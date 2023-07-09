@@ -1,11 +1,17 @@
 #pragma once
-#include "Layer.h"
+#include "layers/Layer.h"
 
 namespace Ritsu {
 
 	template <typename T> class Optimizer {
 	  public:
-		void setLearningRate(T rate) {}
+		using DType = T;
+
+	  public:
+		Optimizer(T learningRate) { this->setLearningRate(learningRate); }
+
+		void setLearningRate(T rate) { this->learningRate = rate; }
+		T getLearningRate() const { return this->learningRate; }
 
 	  private:
 		T learningRate;

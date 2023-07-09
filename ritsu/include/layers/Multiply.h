@@ -1,11 +1,9 @@
-
-
 #pragma once
 #include "Layer.h"
 
 namespace Ritsu {
 
-	template <typename T> class Multiply {
+	template <typename T> class Multiply : public Layer<float> {
 
 	  public:
 		using DType = T;
