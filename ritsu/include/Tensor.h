@@ -1,5 +1,7 @@
 #pragma once
 #include <cmath>
+#include <cstdint>
+#include <cstring>
 #include <iostream>
 #include <istream>
 #include <omp.h>
@@ -30,25 +32,41 @@ namespace Ritsu {
 		 * @param elementSize
 		 */
 		Tensor(const std::vector<unsigned int> &dimensions, unsigned int elementSize) {
-			resizeBuffer(dimensions, elementSize);
+			this->resizeBuffer(dimensions, elementSize);
 		}
-		Tensor(const void *buffer, size_t size) {}
+		Tensor(uint8_t *buffer, size_t size, const std::vector<unsigned int> &dimensions) {
+			this->buffer = buffer;
+			this->dimensions = dimensions;
+			this->NrElements = this->compute_number_elements(this->dimensions);
+		}
 		Tensor(const Tensor &other) {
-			this->buffer = other.buffer;
-			this->dimensions = other.dimensions;
+			this->resizeBuffer(other.dimensions, other.DTypeSize);
+			memcpy(this->buffer, other.buffer, other.getDatSize());
 		}
 		Tensor(Tensor &&other) {
-			this->buffer = std::exchange(other.buffer, this->buffer);
+			this->buffer = std::exchange(other.buffer, nullptr);
 			this->dimensions = other.dimensions;
+			this->NrElements = other.NrElements;
 		}
-		~Tensor() = default;
+		~Tensor() {
+			if (!this->isSubset) {
+				free(this->buffer);
+			}
+			this->buffer = nullptr;
+		}
 
 		auto &operator=(const Tensor &other) {
-			this->buffer = other.buffer;
-			this->dimensions = other.dimensions;
+			this->resizeBuffer(other.dimensions, other.DTypeSize);
+			memcpy(this->buffer, other.buffer, other.getDatSize());
+
 			return *this;
 		}
-		auto &operator=(Tensor &&other) { return *this; }
+		auto &operator=(Tensor &&other) {
+			this->buffer = std::exchange(other.buffer, nullptr);
+			this->dimensions = other.dimensions;
+			this->NrElements = other.NrElements;
+			return *this;
+		}
 
 		// operations of data.
 		template <typename T> inline const auto &getValue(const std::vector<unsigned int> &location) const {
@@ -75,8 +93,6 @@ namespace Ritsu {
 			return *addr;
 		}
 
-		template <typename T> auto getSubset(size_t start, size_t end) const { return T(); }
-
 		auto &operator+(const Tensor &a) {
 			size_t nrElements = this->getNrElements();
 #pragma omp parallel shared(a)
@@ -86,29 +102,45 @@ namespace Ritsu {
 			return *this;
 		}
 
-		template <typename T> auto &operator-(Tensor &a) {
-			size_t nrElements = getNrElements();
-#pragma omp parallel shared(a)
+		template <typename T> auto &operator+(const T &v) {
+			size_t nrElements = this->getNrElements();
 			for (size_t n = 0; n < nrElements; n++) {
-				this->getValue<float>(n) = this->getValue<float>(n) - a.getValue<float>(n);
+				this->getValue<float>(n) = this->getValue<float>(n) + v;
 			}
 			return *this;
 		}
 
-		template <typename T> auto &operator*(Tensor &a) {
+		template <typename T> auto &operator-(const Tensor &tensor) {
 			size_t nrElements = getNrElements();
-#pragma omp parallel shared(a)
+#pragma omp parallel shared(tensor)
 			for (size_t n = 0; n < nrElements; n++) {
-				this->getValue<float>(n) = this->getValue<float>(n) * a.getValue<float>(n);
+				this->getValue<float>(n) = this->getValue<float>(n) - tensor.getValue<float>(n);
 			}
 			return *this;
 		}
 
-		template <typename T> auto &operator/(Tensor &a) {
+		template <typename T> auto &operator*(const Tensor &tensor) {
 			size_t nrElements = getNrElements();
-#pragma omp parallel shared(a)
+#pragma omp parallel shared(tensor)
 			for (size_t n = 0; n < nrElements; n++) {
-				this->getValue<float>(n) = this->getValue<float>(n) / a.getValue<float>(n);
+				this->getValue<float>(n) = this->getValue<float>(n) * tensor.getValue<float>(n);
+			}
+			return *this;
+		}
+
+		auto &operator*(const DType &v) {
+			size_t nrElements = this->getNrElements();
+			for (size_t n = 0; n < nrElements; n++) {
+				this->getValue<float>(n) = this->getValue<float>(n) * v;
+			}
+			return *this;
+		}
+
+		template <typename T> auto &operator/(const Tensor &tensor) {
+			size_t nrElements = getNrElements();
+#pragma omp parallel shared(tensor)
+			for (size_t n = 0; n < nrElements; n++) {
+				this->getValue<float>(n) = this->getValue<float>(n) / tensor.getValue<float>(n);
 			}
 			return *this;
 		}
@@ -117,7 +149,23 @@ namespace Ritsu {
 		//
 		// template <typename T> auto &operator/(T a) { return *this; }
 
-		Tensor &flatten() { return *this; }
+		void assignInitValue(const DType &initValue) {
+			for (size_t i = 0; i < this->getNrElements(); i++) {
+				this->getValue<DType>(i) = initValue;
+			}
+		}
+
+		template <typename T> auto getSubset(size_t start, size_t end) const {
+			Tensor subset = T(static_cast<uint8_t *>(&this->buffer[start * DTypeSize]), end - start, this->dimensions);
+			subset.isSubset = true;
+			return subset;
+		}
+
+		Tensor &flatten() {
+			/*	flatten dim.	*/
+			this->dimensions = {(unsigned int)this->getNrElements()};
+			return *this;
+		}
 
 		template <typename T> Tensor &append(T v) { return *this; }
 		Tensor &append(Tensor &a) { return *this; }
@@ -128,16 +176,15 @@ namespace Ritsu {
 		float &operator[](const std::vector<unsigned int> &location) { return getValue<float>(location); }
 
 		void resizeBuffer(const std::vector<unsigned int> &dimensions, unsigned int elementSize) {
-			size_t totalSize = 1;
-			for (size_t i = 0; i < dimensions.size(); i++) {
-				totalSize *= dimensions[i];
-			}
-			buffer.resize(totalSize * elementSize);
+			size_t total_elements = this->compute_number_elements(dimensions);
+
+			this->buffer = new uint8_t[total_elements * elementSize];
 			this->dimensions = dimensions;
+			this->NrElements = this->compute_number_elements(this->dimensions);
 		}
 
 		friend std::ostream &operator<<(std::ostream &os, Tensor &tensor) {
-			size_t number_elements = tensor.buffer.size() / tensor.DTypeSize;
+			size_t number_elements = tensor.getNrElements();
 			for (int i = 0; i < number_elements; i++) {
 				size_t index = i * 4;
 				DType value = static_cast<DType>(tensor[{(unsigned int)i}]);
@@ -147,7 +194,7 @@ namespace Ritsu {
 			return os;
 		}
 
-		const std::vector<unsigned int> &getNrDimension() const { return this->dimensions; }
+		const std::vector<unsigned int> &getShape() const { return this->dimensions; }
 
 		inline size_t computeIndex(const std::vector<unsigned int> &dim) const {
 			size_t totalSize = 1;
@@ -158,27 +205,40 @@ namespace Ritsu {
 			totalSize += dim[0];
 			return totalSize;
 		}
+		template <typename T> inline const T *getRawData() const { return reinterpret_cast<T *>(this->buffer); }
 
-		inline size_t getNrElements() const {
-			size_t totalSize = 1;
-#pragma omp for simd
-			for (size_t i = 0; i < this->dimensions.size(); i++) {
-				totalSize *= dimensions[i];
-			}
-			return totalSize;
-		}
+		inline size_t getNrElements() const { return this->NrElements; }
+		inline size_t getDatSize() const { return this->getNrElements() * DTypeSize; }
 
 		static bool verifyShape(const Tensor &a, const Tensor &b) {
-			if (a.getNrDimension() != b.getNrDimension()) {
+			if (a.getShape() != b.getShape()) {
+				return false;
+			}
+			if (a.getNrElements() != b.getNrElements()) {
 				return false;
 			}
 			// TODO add more
 			return true;
 		}
 
+	  protected:
+		inline size_t compute_number_elements(const std::vector<unsigned int> &dims) const {
+			size_t totalSize = 1;
+#pragma omp for simd
+			for (size_t i = 0; i < dims.size(); i++) {
+				totalSize *= dims[i];
+			}
+			return totalSize;
+		}
+
 	  private:
+		size_t NrElements = 0;
 		std::vector<unsigned int> dimensions;
 		// TODO custom buffer for improved performance.
-		std::vector<uint8_t> buffer;
+		union {
+			uint8_t *buffer = nullptr;
+			float *fbuffer;
+		};
+		bool isSubset;
 	};
 } // namespace Ritsu

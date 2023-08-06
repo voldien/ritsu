@@ -9,6 +9,8 @@
 namespace Ritsu {
 
 	template <typename T> class Layer {
+		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+					  "Must be a decimal type(float/double/half) or integer.");
 
 	  public:
 		using DType = T;
@@ -30,7 +32,7 @@ namespace Ritsu {
 		}
 
 		// TODO add shape.
-		const std::vector<unsigned int> &getNrDimension() const { return this->shape; }
+		const std::vector<unsigned int> &getShape() const { return this->shape; }
 
 		virtual void build(const std::vector<unsigned int> &dims) {}
 
@@ -40,9 +42,9 @@ namespace Ritsu {
 
 		// Weights trainable
 		virtual Tensor *getTrainableWeights() { return nullptr; }
-		virtual Tensor *getVariables() { return nullptr; }
 
 		// non-trainable.
+		virtual Tensor *getVariables() { return nullptr; }
 
 		// input
 		virtual std::vector<Layer<T> *> getInputs() const { return {}; };
@@ -64,6 +66,9 @@ namespace Ritsu {
 
 		virtual void setInputs(const std::vector<Layer<DType> *> &layers) {}
 		virtual void setOutputs(const std::vector<Layer<DType> *> &layers) {}
+
+		virtual Tensor compute_deriviate(const Tensor &tensor) { return tensor; }
+		virtual Tensor &compute_deriviate(Tensor &tensor) const { return tensor; }
 
 	  protected:
 		std::vector<unsigned int> shape = {1, 1};

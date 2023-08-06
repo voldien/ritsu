@@ -8,13 +8,19 @@ namespace Ritsu {
 		using DType = T;
 
 	  public:
-		Optimizer(T learningRate) { this->setLearningRate(learningRate); }
+		Optimizer(T learningRate, const std::string &name) {
+			this->setLearningRate(learningRate);
+			this->name = name;
+		}
 
 		void setLearningRate(T rate) { this->learningRate = rate; }
 		T getLearningRate() const { return this->learningRate; }
 
+		virtual void update_step(float* gradient, float* variable){}
+
 	  private:
 		T learningRate;
+		std::string name;
 	};
 
 } // namespace Ritsu

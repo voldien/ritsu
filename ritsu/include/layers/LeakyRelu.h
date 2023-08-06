@@ -7,6 +7,8 @@ namespace Ritsu {
 
 	class LeakyRelu : public Layer<float> {
 	  public:
-		LeakyRelu();
+		LeakyRelu(float x) {}
+
+	  private:
 	};
 } // namespace Ritsu

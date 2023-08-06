@@ -1,4 +1,5 @@
 #pragma once
+#include "../Math.h"
 #include "Activaction.h"
 #include <cmath>
 
@@ -6,15 +7,15 @@ namespace Ritsu {
 
 	class SoftMax : public Activaction {
 	  public:
-		SoftMax() : Activaction() {}
-		virtual ~SoftMax() {}
+		SoftMax() {}
+		~SoftMax() override {}
 
-		 Tensor operator<<(const Tensor &tensor) override {
+		Tensor operator<<(const Tensor &tensor) override {
 			// compute(tensor);
 			return tensor;
 		}
 
-		 Tensor operator>>(Tensor &tensor) override {
+		Tensor operator>>(Tensor &tensor) override {
 			compute(tensor);
 			return tensor;
 		}
@@ -24,7 +25,7 @@ namespace Ritsu {
 		//	return tensor;
 		//}
 
-		virtual Tensor &operator()(Tensor &tensor) override {
+		Tensor &operator()(Tensor &tensor) override {
 			compute(tensor);
 			return tensor;
 		}
@@ -35,11 +36,16 @@ namespace Ritsu {
 		//}
 
 	  private:
-		void compute(Tensor &X) {
+		void compute(Tensor &tensor) {
 			/*Iterate through each all elements.    */
-			const size_t nrElements = X.getNrElements();
+			float sum = 0;
+			const size_t nrElements = tensor.getNrElements();
 			for (size_t i = 0; i < nrElements; i++) {
-				X.getValue<float>(i) = std::max<float>(0, X.getValue<float>(i));
+				sum += std::pow(static_cast<DType>(Math::E), tensor.getValue<float>(i));
+			}
+
+			for (size_t i = 0; i < nrElements; i++) {
+				tensor.getValue<float>(i) = tensor.getValue<float>(i) / sum;
 			}
 		}
 	};

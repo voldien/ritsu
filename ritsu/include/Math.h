@@ -1,10 +1,12 @@
 #pragma once
 #include <cfloat>
 #include <cmath>
+#include <vector>
 
 namespace Ritsu {
 
 	class Math {
+	  public:
 		template <class T> inline constexpr static T clamp(T a, T min, T max) {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
@@ -37,7 +39,6 @@ namespace Ritsu {
 		}
 
 		template <typename T> constexpr static T sum(const std::vector<T> &list) noexcept {
-			// TODO add check if support adding assign operation.
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
@@ -45,6 +46,52 @@ namespace Ritsu {
 				sum += list[i];
 			}
 			return sum;
+		}
+
+		template <typename T> constexpr static T sum(const T *list, size_t nrElements) noexcept {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+						  "Type Must Support addition operation.");
+			T sum = 0;
+			for (size_t i = 0; i < nrElements; i++) {
+				sum += list[i];
+			}
+			return sum;
+		}
+
+		template <typename T> constexpr static T mean(const T *list, size_t nrElements) noexcept {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+						  "Type Must Support addition operation.");
+			T sum = Math::sum<T>(list, nrElements);
+			return (static_cast<T>(1) / static_cast<T>(nrElements)) * sum;
+		}
+
+		template <typename T> constexpr static T mean(const std::vector<T> &list) noexcept {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+						  "Type Must Support addition operation.");
+			T sum = Math::sum<T>(list);
+			return (static_cast<T>(1) / static_cast<T>(list.size())) * sum;
+		}
+
+		template <typename T> constexpr static T variance(const T *list, size_t nrElements, T mean) noexcept {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+						  "Type Must Support addition operation.");
+			T sum = 0;
+			for (size_t i = 0; i < nrElements; i++) {
+				sum += (list[i] - mean) * (list[i] - mean);
+			}
+
+			return (static_cast<T>(1) / static_cast<T>(nrElements)) * sum;
+		}
+
+		template <typename T> constexpr static T variance(const std::vector<T> &list, T mean) noexcept {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+						  "Type Must Support addition operation.");
+			T sum = 0;
+			for (size_t i = 0; i < list.size(); i++) {
+				sum += (list[i] - mean) * (list[i] - mean);
+			}
+
+			return (static_cast<T>(1) / static_cast<T>(list.size())) * sum;
 		}
 
 		/**
@@ -68,10 +115,12 @@ namespace Ritsu {
 		 */
 		template <typename T> static T wrapAngle(T angle) {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-			while (angle > static_cast<T>(Math::PI_2))
+			while (angle > static_cast<T>(Math::PI_2)) {
 				angle -= static_cast<T>(Math::PI_2);
-			while (angle < 0.0f)
+			}
+			while (angle < 0.0f) {
 				angle += static_cast<T>(Math::PI_2);
+			}
 			return angle;
 		}
 
@@ -193,67 +242,6 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			return {static_cast<T>(drand48()), static_cast<T>(drand48())};
 		}
-		//
-		// template <typename T> static std::vector<T> &random(std::vector<T> &samples) {
-		//	static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-		//	for (size_t i = 0; i < samples.size(); i++) {
-		//		samples[i] = Random::rand<T>();
-		//	}
-		//	return samples;
-		//}
-
-		// template <typename T> static std::vector<T> &jitter(std::vector<T> &samples) {
-		//	static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-		//
-		//	size_t sqrt_samples = (size_t)(std::sqrt(samples.size()));
-		//	for (size_t i = 0; i < sqrt_samples; i++) {
-		//		for (size_t j = 0; j < sqrt_samples; j++) {
-		//			T x = (static_cast<T>(i) + Random::rand<T>()) / static_cast<T>(sqrt_samples);
-		//			T y = (static_cast<T>(j) + Random::rand<T>()) / static_cast<T>(sqrt_samples);
-		//
-		//			samples[i * sqrt_samples + j] = x;
-		//			samples[i * sqrt_samples + j] = y;
-		//		}
-		//	}
-		//	return samples;
-		//}
-		//
-		// template <typename T> static std::vector<T> &nrooks(std::vector<T> &samples) {
-		//	static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-		//	size_t num_samples = samples.size();
-		//	for (size_t i = 0; i < num_samples; i++) {
-		//		samples[i].setX((static_cast<double>(i) + drand48()) / static_cast<double>(num_samples));
-		//		samples[i].setY((static_cast<double>(i) + drand48()) / static_cast<double>(num_samples));
-		//	}
-		//
-		//	for (size_t i = num_samples - 2; i >= 0; i--) {
-		//		int target = static_cast<int>((drand48() * static_cast<double>(i)));
-		//		float temp = samples[i + 1].x();
-		//		samples[i + 1].setX(samples[target].x());
-		//		samples[target].setX(temp);
-		//		continue;
-		//	}
-		//	return samples;
-		//}
-		template <typename T> static T phi(int j) {
-			T x = 0.0;
-			T f = 0.5;
-			while (j) {
-				// x += j /= f *=
-
-				// 	f * (double)(!j & 1);
-				// 2;
-				// 0.5;
-			}
-			return (x);
-		}
-
-		template <typename T> static std::vector<T> &hammersley(std::vector<T> &samples) {
-			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-			return {};
-		}
-
-		// void multijitter(Vector2 *samples, int num_samples) { int sqrt_samples = (int)sqrt(num_samples); }
 
 		template <typename T> static inline constexpr T align(T size, T alignment) {
 			static_assert(std::is_integral<T>::value, "Must be an integral type.");

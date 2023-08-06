@@ -11,13 +11,13 @@ namespace Ritsu {
 	  public:
 		Divide(Layer<float> &a, Layer<float> b) {}
 
-		virtual void computeActivation(Tensor &X) {
+		virtual void computeActivation(Tensor &tensor) {
 			/*Iterate through each all elements.    */
-			size_t nrElements = X.getNrElements();
+			size_t nrElements = tensor.getNrElements();
 
-#pragma omp parallel shared(X)
+#pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				X.getValue<float>(i) = this->computeSigmoid(X.getValue<float>(i));
+				tensor.getValue<float>(i) = this->computeSigmoid(tensor.getValue<float>(i));
 			}
 		}
 

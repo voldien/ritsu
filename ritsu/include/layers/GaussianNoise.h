@@ -8,41 +8,65 @@ namespace Ritsu {
 	class GuassianNoise : public Layer<float> {
 
 	  public:
-		GuassianNoise(float stddev, const std::string &name = "") : Layer(name), stddev(stddev) {}
+		GuassianNoise(float stddev, const std::string &name = "") : Layer(name), stddev(stddev) {
+			std::random_device rd;
+			this->gen = std::mt19937(rd());
+			this->dis = std::uniform_real_distribution<>(1.0, 2.0);
+		}
 
 		Tensor operator<<(const Tensor &tensor) override {
-			// compute(tensor);
-			return tensor;
+			Tensor tmp = tensor;
+			this->addNoise(tmp);
+			return tmp;
 		}
 
 		Tensor operator>>(Tensor &tensor) override {
-			compute(tensor);
+			this->addNoise(tensor);
 			return tensor;
 		}
-
-		// virtual Tensor operator()(Tensor &tensor) {
-		//	compute(tensor);
-		//	return tensor;
-		//}
 
 		Tensor &operator()(Tensor &tensor) override {
-			compute(tensor);
+			this->addNoise(tensor);
 			return tensor;
 		}
 
+		template <class U> auto &operator()(U &layer) {
+
+			this->setInputs({&layer});
+			layer.setOutputs({this});
+
+			return *this;
+		}
+
+		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
+			/*	Set input layer */
+			this->outputs = layers;
+		}
+
+		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }
+
+		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
+		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
+
+	  private:
+		/*	*/
+		Layer<DType> *input;
+		std::vector<Layer<DType> *> outputs;
+
 	  protected:
-		void compute(Tensor &tensor) {
-			std::random_device rd;	// Will be used to obtain a seed for the random number engine
-			std::mt19937 gen(rd()); // Standard mersenne_twister_engine seeded with rd()
-			std::uniform_real_distribution<> dis(1.0, 2.0);
+		void addNoise(Tensor &tensor) {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
+#pragma omp parallel shared(tensor)
+#pragma omp simd
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<float>(i) = dis(gen);
+				tensor.getValue<float>(i) += dis(gen);
 			}
 		}
 
 	  private:
 		float stddev;
+		std::mt19937 gen;
+		std::uniform_real_distribution<> dis;
 	};
 } // namespace Ritsu

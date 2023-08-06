@@ -1,5 +1,6 @@
 #pragma once
 #include "Activaction.h"
+#include "Tensor.h"
 #include "layers/Layer.h"
 #include <cmath>
 
@@ -11,22 +12,22 @@ namespace Ritsu {
 
 		Tensor operator<<(const Tensor &tensor) override {
 			Tensor output = tensor; // Copy
-			this->computeActivation(output);
+			this->computeReluActivation(output);
 			return output;
 		}
 
 		Tensor &operator<<(Tensor &tensor) override {
-			this->computeActivation(tensor);
+			this->computeReluActivation(tensor);
 			return tensor;
 		}
 
 		Tensor operator>>(Tensor &tensor) override {
-			this->computeActivation(tensor);
+			this->computeReluActivation(tensor);
 			return tensor;
 		}
 
 		Tensor &operator()(Tensor &tensor) override {
-			this->computeActivation(tensor);
+			this->computeReluActivation(tensor);
 			return tensor;
 		}
 
@@ -42,25 +43,33 @@ namespace Ritsu {
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
-			this->shape = layers[0]->getNrDimension();
+			this->shape = layers[0]->getShape();
 			this->input = layers[0];
 		}
 
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-	  protected:
-#pragma omp declare simd uniform(x)
-		DType relu(DType x) { return std::max<float>(0, x); }
+		Tensor compute_deriviate(const Tensor &tensor) override { return tensor; }
+		Tensor &compute_deriviate(Tensor &tensor) const override {
+			computeDeriviate(tensor);
+			return tensor;
+		}
 
-		void computeActivation(Tensor &tensor) {
+	  protected:
+#pragma omp declare simd uniform(value)
+		DType relu(DType value) { return std::max<float>(0, value); }
+
+		void computeReluActivation(Tensor &tensor) {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
-			#pragma omp parallel
+#pragma omp parallel
 			for (size_t i = 0; i < nrElements; i++) {
 				tensor.getValue<float>(i) = this->relu(tensor.getValue<float>(i));
 			}
 		}
+
+		static void computeDeriviate(Tensor &tensor) {}
 
 	  private:
 		Layer<DType> *input;

@@ -1,6 +1,5 @@
 #pragma once
 #include "Layer.h"
-#include "Tensor.h"
 #include <cstddef>
 #include <ctime>
 #include <random>
@@ -15,11 +14,12 @@ namespace Ritsu {
 	  public:
 		Dense(uint32_t units, bool use_bias = true, const std::string &name = "") : Layer(name) {
 
+			/*	*/
 			this->units = units;
 			this->shape = {1, this->units};
 
 			if (use_bias) {
-				this->bias.resize(units);
+				this->bias.resizeBuffer({units}, 4);
 				this->initbias();
 			}
 		}
@@ -45,12 +45,20 @@ namespace Ritsu {
 			return *this;
 		}
 
+		Tensor *getTrainableWeights() override { return &this->weight; }
+		Tensor *getVariables() override { return &this->bias; }
+
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
 			/*	Set input layer */
 			this->outputs = layers;
 
-			this->weight.resize((size_t)this->units * this->getOutputs()[0]->getNrDimension()[1]);
+			/*	*/
+			this->weight.resizeBuffer({(unsigned int)this->units * this->getOutputs()[0]->getShape()[1]},
+									  this->weight.DTypeSize);
+
+			/*	*/
 			this->initweight();
+			this->initbias();
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }
@@ -60,6 +68,8 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
+	  private:
+		/*	*/
 		Layer<DType> *input;
 		std::vector<Layer<DType> *> outputs;
 
@@ -70,18 +80,19 @@ namespace Ritsu {
 			/*	*/
 			// TODO improve
 			//#pragma omp parallel
-			for (size_t dim = 0; dim < input.getNrDimension()[0]; dim++) {
+			for (size_t dim = 0; dim < input.getShape()[0]; dim++) {
 
 				/*	*/
 				float res = 0;
 
 #pragma omp parallel for reduction(+ : res) shared(weight, input)
 				for (size_t elementIndex = 0; elementIndex < units; elementIndex++) {
-					res += input[{(Tensor::IndexType)dim}] * this->weight[dim * units + elementIndex];
+					res +=
+						input.getValue<DType>(elementIndex) * this->weight.getValue<DType>(dim * units + elementIndex);
 				}
 				/*	*/
-				if (!this->bias.empty()) {
-					res += bias[dim];
+				if (!this->bias.getNrElements()) {
+					res += bias.getValue<DType>(dim);
 				}
 
 				/*	*/
@@ -93,8 +104,8 @@ namespace Ritsu {
 		void initweight() noexcept {
 #pragma omp parallel shared(weight)
 #pragma omp simd
-			for (size_t i = 0; i < this->weight.size(); i++) {
-				this->weight[i] = static_cast<double>(std::rand()) / RAND_MAX * 10.0f;
+			for (size_t i = 0; i < this->weight.getNrElements(); i++) {
+				this->weight.getValue<DType>(i) = static_cast<double>(std::rand()) / RAND_MAX * 10.0f;
 			}
 		}
 
@@ -103,15 +114,15 @@ namespace Ritsu {
 
 #pragma omp parallel shared(bias)
 #pragma omp simd
-			for (size_t i = 0; i < this->bias.size(); i++) {
-				this->bias[i] = static_cast<double>(std::rand()) / RAND_MAX * 10.0f;
+			for (size_t i = 0; i < this->bias.getNrElements(); i++) {
+				this->bias.getValue<DType>(i) = static_cast<double>(std::rand()) / RAND_MAX * 10.0f;
 			}
 		}
 
 	  private:
-		std::vector<DType> bias;
+		Tensor bias;
 		uint32_t units;
-		std::vector<DType> weight;
+		Tensor weight;
 	};
 
 } // namespace Ritsu

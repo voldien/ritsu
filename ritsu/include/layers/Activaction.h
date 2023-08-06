@@ -1,13 +1,13 @@
 #pragma once
 #include "Layer.h"
-#include "Math.h"
+#include "../Math.h"
 
 namespace Ritsu {
 
 	class Activaction : public Layer<float> {
 	  public:
 		Activaction(const std::string &name = "") : Layer(name) {}
-		 ~Activaction() override {}
+		~Activaction() override {}
 
 		// virtual Tensor operator<<(Tensor &tensor) override { return tensor; }
 		//

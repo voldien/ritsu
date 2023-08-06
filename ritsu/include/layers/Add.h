@@ -11,7 +11,6 @@ namespace Ritsu {
 		Tensor operator<<(const Tensor &tensor) override {
 
 			Tensor output = tensor;
-
 			// this->computeElementSum(this-> output);
 			return output;
 		}
@@ -38,7 +37,7 @@ namespace Ritsu {
 		}
 
 	  private:
-		static void computeElementSum(Tensor &inputA, const Tensor &inputB) {
+		static inline void computeElementSum(Tensor &inputA, const Tensor &inputB) {
 			const size_t nrElements = inputA.getNrElements();
 			inputA = inputA + inputB;
 		}
