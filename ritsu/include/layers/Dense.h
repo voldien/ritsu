@@ -1,5 +1,6 @@
 #pragma once
 #include "Layer.h"
+#include <cassert>
 #include <cstddef>
 #include <ctime>
 #include <random>
@@ -12,25 +13,38 @@ namespace Ritsu {
 		//    bias_initializer='zeros',
 
 	  public:
-		Dense(uint32_t units, bool use_bias = true, const std::string &name = "") : Layer(name) {
+		Dense(uint32_t units, bool use_bias = true, const std::string &name = "dense") : Layer(name) {
 
 			/*	*/
 			this->units = units;
-			this->shape = {1, this->units};
+			/*	*/
+			this->shape = {this->units};
 
 			if (use_bias) {
-				this->bias.resizeBuffer({units}, 4);
+				this->bias = Tensor({units}, DTypeSize);
 				this->initbias();
 			}
 		}
 
 		Tensor operator<<(const Tensor &tensor) override {
 
-			Tensor output({this->units, 1}, DTypeSize);
+			Tensor output({this->units}, DTypeSize);
+
+			/*	Verify shape.	*/
 
 			this->compute(tensor, output);
 
 			return output;
+		}
+
+		Tensor &operator<<(Tensor &tensor) override {
+
+			/*	Verify shape.	*/
+
+			Tensor inputCopy = tensor;
+			this->compute(inputCopy, tensor);
+
+			return tensor;
 		}
 
 		Tensor operator>>(Tensor &tensor) override { return tensor; }
@@ -52,9 +66,10 @@ namespace Ritsu {
 			/*	Set input layer */
 			this->outputs = layers;
 
+			// TODO verify flatten
+
 			/*	*/
-			this->weight.resizeBuffer({(unsigned int)this->units * this->getOutputs()[0]->getShape()[1]},
-									  this->weight.DTypeSize);
+			this->weight = Tensor({(unsigned int)this->units, this->getInputs()[0]->getShape()[0]}, this->DTypeSize);
 
 			/*	*/
 			this->initweight();
@@ -75,20 +90,23 @@ namespace Ritsu {
 
 	  protected:
 		// operator
-
 		void compute(const Tensor &input, Tensor &output) {
 			/*	*/
 			// TODO improve
 			//#pragma omp parallel
-			for (size_t dim = 0; dim < input.getShape()[0]; dim++) {
+			// Verify the shape.
+
+			const size_t inputDims = input.getShape()[0];
+
+			for (size_t dim = 0; dim < units; dim++) {
 
 				/*	*/
-				float res = 0;
+				DType res = DType(0);
 
 #pragma omp parallel for reduction(+ : res) shared(weight, input)
-				for (size_t elementIndex = 0; elementIndex < units; elementIndex++) {
-					res +=
-						input.getValue<DType>(elementIndex) * this->weight.getValue<DType>(dim * units + elementIndex);
+				for (size_t elementIndex = 0; elementIndex < inputDims; elementIndex++) {
+					/*	*/
+					res += input.getValue<DType>(dim) * this->weight.getValue<DType>(dim * units + elementIndex);
 				}
 				/*	*/
 				if (!this->bias.getNrElements()) {
@@ -96,9 +114,11 @@ namespace Ritsu {
 				}
 
 				/*	*/
-				output[{(Tensor::IndexType)dim}] = res;
+				output.getValue<DType>(dim) = res;
 			}
+
 			/*	Sum bias.*/
+			assert(this->getShape() == output.getShape());
 		}
 
 		void initweight() noexcept {

@@ -9,6 +9,13 @@ namespace Ritsu {
 
 		Tensor &operator()(Tensor &tensor) override { return tensor.flatten(); }
 
+		Tensor &operator<<(Tensor &tensor) override { return tensor.flatten(); }
+
+		Tensor operator<<(const Tensor &tensor) override {
+			Tensor tmp = tensor;
+			return tmp.flatten();
+		}
+
 		template <class U> auto &operator()(U &layer) {
 
 			this->setInputs({&layer});
@@ -17,6 +24,22 @@ namespace Ritsu {
 			return *this;
 		}
 
+		void setInputs(const std::vector<Layer<DType> *> &layers) override {
+			this->input = layers[0];
+
+			this->shape = this->input->getShape().flatten();
+		}
+
+		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
+			/*	Set input layer */
+			this->outputs = layers;
+		}
+
+		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
+		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
+
 	  private:
+		Layer<DType> *input;
+		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

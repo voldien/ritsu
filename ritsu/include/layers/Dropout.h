@@ -6,7 +6,7 @@ namespace Ritsu {
 	class Dropout : public Layer<float> {
 
 	  public:
-		Dropout(float perc, const std::string &name = "") : Layer(name) {}
+		Dropout(float perc, const std::string &name = "dropout") : Layer(name) {}
 
 	  private:
 	};

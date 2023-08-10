@@ -27,6 +27,9 @@ using namespace Ritsu;
 
 int main(int argc, const char **argv) {
 
+	/*	*/
+	size_t batchSize = 1;
+
 	Layer<float> layer("");
 	Sigmoid sigmoid;
 	Relu relu;
@@ -48,9 +51,10 @@ int main(int argc, const char **argv) {
 	// Result = *Pd << input;
 	std::cout << Result << std::endl;
 
-	Input input0node({32, 32, 1});
+	Input input0node({32, 32, 1}, "input");
 	BatchNormalization BatchNormalization;
-	Flatten flatten;
+	Flatten flatten0("flatten0");
+	Flatten flatten("flatten1");
 
 	Dense fw0(32, true, "input0");
 
@@ -60,17 +64,17 @@ int main(int argc, const char **argv) {
 
 	GuassianNoise noiseLayer(0.01f, "noise");
 
-	Layer<float> &output = flatten(fw2(relu(fw1(noiseLayer(fw0(input0node))))));
+	Layer<float> &output = flatten(fw2(relu(fw1(noiseLayer(fw0(flatten0(input0node)))))));
 
 	Cast<int> float2int;
 	Sigmoid sig;
 	Add add(output, fw2);
 	Layer<float> output2 = sig(add);
 
-	Tensor inputRes({32, 1}, 4);
-	Tensor inputData({128, 32, 32, 1}, 4);
+	Tensor inputRes({batchSize, 1}, 4);
+	Tensor inputData({batchSize, 32, 32, 1}, 4);
 
-	Model<float> forwardModel({&fw0}, {&output2});
+	Model<float> forwardModel({&input0node}, {&output2});
 
 	SGD<float> optimizer(0.0002, 0.0);
 
@@ -78,7 +82,7 @@ int main(int argc, const char **argv) {
 	forwardModel.compile(&optimizer, mse_loss);
 	std::cout << forwardModel.summary() << std::endl;
 
-	forwardModel.fit(1, inputData, inputRes, 8);
+	forwardModel.fit(1, inputData, inputRes, batchSize);
 	Tensor predict = std::move(forwardModel.predict(input));
 
 	std::cout << "Predict " << predict << std::endl;

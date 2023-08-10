@@ -58,6 +58,8 @@ namespace Ritsu {
 			return sum;
 		}
 
+		// accuracy.
+
 		template <typename T> constexpr static T mean(const T *list, size_t nrElements) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");

@@ -10,7 +10,18 @@ namespace Ritsu {
 			this->shape = input;
 		}
 
+		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
+
+		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
+			/*	Set input layer */
+			this->outputs = layers;
+		}
+
+		std::vector<Layer<DType> *> getInputs() const override { return {}; }
+		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
+
 	  private:
+		std::vector<Layer<DType> *> outputs;
 		// void setInput(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }
 	};
 } // namespace Ritsu

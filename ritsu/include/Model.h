@@ -6,8 +6,10 @@
 #include <cstddef>
 #include <istream>
 #include <list>
+#include <map>
 #include <ostream>
 #include <string>
+#include <utility>
 
 namespace Ritsu {
 
@@ -34,18 +36,29 @@ namespace Ritsu {
 			// TODO add array support.
 			Tensor batchResult;
 
+			// TODO add support
+			const size_t batchElementSize = 32 * 32 * 1;
+			const size_t batchXIndex = 0;
+			const size_t batchYIndex = 0;
+			// Shape::computeNrElements(X.getShape()){
+
+			//}
+
 			for (size_t nthEpoch = 0; nthEpoch < epochs; nthEpoch++) {
 
 				for (size_t ibatch = 0; ibatch < nrBatches; ibatch++) {
 
 					/*	Extract subset of the data.	*/
-					const Tensor subsetBatchX = X.getSubset<Tensor>(ibatch * batch, (ibatch + 1) * batch);
-					const Tensor subsetBatchY = Y.getSubset<Tensor>(ibatch * batch, (ibatch + 1) * batch);
+					const Tensor subsetBatchX = std::move(X.getSubset<Tensor>(ibatch * batch * batchElementSize,
+																			  (ibatch + 1) * batch * batchElementSize));
+					const Tensor subsetBatchY = std::move(Y.getSubset<Tensor>(ibatch * batch * batchElementSize,
+																			  (ibatch + 1) * batch * batchElementSize));
 
-					this->forwardPropgation(subsetBatchX, batchResult);
+					this->forwardPropgation(subsetBatchX, batchResult,batch);
 
 					/*	Compute the loss/cost.	*/
-					Tensor loss_error = this->lossFunction.computeLoss(batchResult, subsetBatchY);
+					// batchResult.Reshape()
+					Tensor loss_error = std::move(this->lossFunction.computeLoss(batchResult, subsetBatchY));
 
 					this->backPropagation(loss_error);
 
@@ -58,7 +71,7 @@ namespace Ritsu {
 		Tensor predict(const Tensor &X) {
 
 			Tensor result;
-			this->forwardPropgation(X, result);
+			this->forwardPropgation(X, result, 1);
 			return result;
 		}
 
@@ -74,6 +87,7 @@ namespace Ritsu {
 			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
 				Layer<T> *current = (*it);
 
+				_summary += current->getName() + " " + "\n";
 				/*	*/
 				_summary += " ";
 			}
@@ -83,18 +97,22 @@ namespace Ritsu {
 		}
 
 	  protected:
-		void forwardPropgation(const Tensor &inputData, Tensor &result) {
+		void forwardPropgation(const Tensor &inputData, Tensor &result, size_t batchSize) {
 
 			Layer<T> *current = this->inputs[0];
-			Tensor res = (*current) << (inputData);
+			Tensor res = std::move(inputData); // std::move((*current) << (inputData));
+
 			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
 				Layer<T> *current = (*it);
 
 				/*	*/
-				std::cout << current->getName() << std::endl;
-				res = (*current) << (res);
+				std::cout << current->getName() << " " << current->getShape() << std::endl;
+				res = std::move((*current) << ((const Tensor &)res));
+
+				std::cout << "Result Tensor Shape"
+						  << " " << res.getShape() << std::endl;
 			}
-			result = res;
+			result = std::move(res);
 		}
 
 		void backPropagation(const Tensor &result) {
@@ -122,8 +140,17 @@ namespace Ritsu {
 		}
 
 		virtual void build(std::vector<Layer<T> *> inputs, std::vector<Layer<T> *> outputs) { /*	*/
+
 			// Iterate through each and extract number of trainable variables.
 			this->build_sequence(inputs, outputs);
+
+			for (auto it = this->forwardSequence.rbegin(); it != this->forwardSequence.rend(); it++) {
+				const std::string &name = (*it)->getName();
+				if (this->layers.find(name) != this->layers.end()) {
+					(*it)->setName(name + "_1");
+				}
+				this->layers[(*it)->getName().c_str()] = (*it);
+			}
 		}
 
 		void build_sequence(std::vector<Layer<T> *> inputs, std::vector<Layer<T> *> outputs) {
@@ -150,7 +177,6 @@ namespace Ritsu {
 					current = nullptr;
 				}
 			}
-
 			// this->forwardSequence.reverse();
 		}
 
@@ -159,6 +185,7 @@ namespace Ritsu {
 		std::vector<Layer<T> *> outputs;
 		Optimizer<T> *optimizer;
 		Loss lossFunction;
+		std::map<std::string, Layer<T> *> layers;
 
 	  private: /*	Internal data.	*/
 		std::list<Layer<DType> *> forwardSequence;

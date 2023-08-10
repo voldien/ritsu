@@ -8,10 +8,15 @@ namespace Ritsu {
 	class GuassianNoise : public Layer<float> {
 
 	  public:
-		GuassianNoise(float stddev, const std::string &name = "") : Layer(name), stddev(stddev) {
+		GuassianNoise(float stddev, const std::string &name = "noise") : Layer(name), stddev(stddev) {
 			std::random_device rd;
 			this->gen = std::mt19937(rd());
 			this->dis = std::uniform_real_distribution<>(1.0, 2.0);
+		}
+
+		Tensor& operator<<(Tensor &tensor) override {
+			this->addNoise(tensor);
+			return tensor;
 		}
 
 		Tensor operator<<(const Tensor &tensor) override {
