@@ -108,6 +108,9 @@ namespace Ritsu {
 
 				/*	*/
 				std::cout << current->getName() << " " << current->getShape() << std::endl;
+
+				if (res.getShape() != current->getShape()) {
+				}
 				res = std::move((*current) << ((const Tensor &)res));
 
 				std::cout << "Result Tensor Shape"
@@ -129,7 +132,7 @@ namespace Ritsu {
 				Layer<T> *current = (*it);
 
 				std::cout << current->getName() << std::endl;
-				differental_gradient = current->compute_deriviate(differental_gradient) *
+				differental_gradient = current->compute_derivative(differental_gradient) *
 									   static_cast<DType>(this->optimizer->getLearningRate());
 
 				/*	Only apply if */
@@ -169,6 +172,8 @@ namespace Ritsu {
 					this->weightSizeInBytes += current->getTrainableWeights()->getNrElements() * current->DTypeSize;
 				}
 				// TODO add support
+
+				// TODO verify the shape.
 
 				std::vector<Layer<T> *> layers = current->getOutputs();
 				/*	*/

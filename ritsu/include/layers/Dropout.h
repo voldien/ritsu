@@ -22,8 +22,8 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor compute_deriviate(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_deriviate(Tensor &tensor) const override { return tensor; }
+		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
+		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
 
 	  private:
 		void computeDropout(Tensor &tensor) {

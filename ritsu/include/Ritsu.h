@@ -8,7 +8,7 @@
 #include "layers/Dense.h"
 #include "layers/GaussianNoise.h"
 #include "layers/Input.h"
-#include "layers/Regulator.h"
+#include "layers/Regularization.h"
 
 #include "Model.h"
 #include "layers/Flatten.h"

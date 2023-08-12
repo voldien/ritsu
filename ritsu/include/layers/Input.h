@@ -10,7 +10,7 @@ namespace Ritsu {
 			this->shape = input;
 		}
 
-		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
+		void setInputs(const std::vector<Layer<DType> *> &layers) override { /*	*/ }
 
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
 			/*	Set input layer */
@@ -20,8 +20,8 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor compute_deriviate(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_deriviate(Tensor &tensor) const override { return tensor; }
+		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
+		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
 
 	  private:
 		std::vector<Layer<DType> *> outputs;

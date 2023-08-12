@@ -94,7 +94,7 @@ namespace Ritsu {
 
 			const size_t index = this->computeIndex(location);
 
-			const U *addr = reinterpret_cast<const U *>(&buffer[index * DTypeSize]);
+			const U *addr = reinterpret_cast<const U *>(&this->buffer[index * DTypeSize]);
 			return *addr;
 		}
 
@@ -104,14 +104,14 @@ namespace Ritsu {
 
 			const size_t index = this->computeIndex(location);
 
-			U *addr = reinterpret_cast<U *>(&buffer[index * DTypeSize]);
+			U *addr = reinterpret_cast<U *>(&this->buffer[index * DTypeSize]);
 			return *addr;
 		}
 
 		template <typename U> inline auto &getValue(size_t index) {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
-			U *addr = reinterpret_cast<U *>(&buffer[index * DTypeSize]);
+			U *addr = reinterpret_cast<U *>(&this->buffer[index * DTypeSize]);
 			return *addr;
 		}
 
@@ -119,15 +119,15 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 
-			const U *addr = reinterpret_cast<const U *>(&buffer[index * DTypeSize]);
+			const U *addr = reinterpret_cast<const U *>(&this->buffer[index * DTypeSize]);
 			return *addr;
 		}
 
 		auto &operator+(const Tensor &tensor) {
 			size_t nrElements = this->getNrElements();
 #pragma omp parallel shared(tensor)
-			for (size_t n = 0; n < nrElements; n++) {
-				this->getValue<DType>(n) = this->getValue<DType>(n) + tensor.getValue<DType>(n);
+			for (size_t index = 0; index < nrElements; index++) {
+				this->getValue<DType>(index) = this->getValue<DType>(index) + tensor.getValue<DType>(index);
 			}
 			return *this;
 		}
@@ -143,8 +143,8 @@ namespace Ritsu {
 		template <typename U> auto &operator-(const Tensor &tensor) {
 			size_t nrElements = getNrElements();
 #pragma omp parallel shared(tensor)
-			for (size_t n = 0; n < nrElements; n++) {
-				this->getValue<float>(n) = this->getValue<float>(n) - tensor.getValue<float>(n);
+			for (size_t index = 0; index < nrElements; index++) {
+				this->getValue<DType>(index) = this->getValue<DType>(index) - tensor.getValue<DType>(index);
 			}
 			return *this;
 		}
@@ -152,8 +152,8 @@ namespace Ritsu {
 		template <typename U> auto &operator*(const Tensor &tensor) {
 			size_t nrElements = getNrElements();
 #pragma omp parallel shared(tensor)
-			for (size_t n = 0; n < nrElements; n++) {
-				this->getValue<DType>(n) = this->getValue<DType>(n) * tensor.getValue<DType>(n);
+			for (size_t index = 0; index < nrElements; index++) {
+				this->getValue<DType>(index) = this->getValue<DType>(index) * tensor.getValue<DType>(index);
 			}
 			return *this;
 		}
@@ -161,7 +161,7 @@ namespace Ritsu {
 		auto &operator*(const DType &vec) {
 			size_t nrElements = this->getNrElements();
 			for (size_t index = 0; index < nrElements; index++) {
-				this->getValue<DType>(index) = this->getValue<float>(index) * vec;
+				this->getValue<DType>(index) = this->getValue<DType>(index) * vec;
 			}
 			return *this;
 		}
@@ -169,8 +169,8 @@ namespace Ritsu {
 		template <typename U> auto &operator/(const Tensor &tensor) {
 			size_t nrElements = getNrElements();
 #pragma omp parallel shared(tensor)
-			for (size_t n = 0; n < nrElements; n++) {
-				this->getValue<DType>(n) = this->getValue<float>(n) / tensor.getValue<float>(n);
+			for (size_t index = 0; index < nrElements; index++) {
+				this->getValue<DType>(index) = this->getValue<DType>(index) / tensor.getValue<DType>(index);
 			}
 			return *this;
 		}
@@ -205,18 +205,17 @@ namespace Ritsu {
 			/*	Resize.	*/
 			return *this;
 		}
+
 		Tensor &append(Tensor &tensor) {
 			/*	Resize.	*/
 			return *this;
 		}
 
-		// TODO add std::cout istream
-
 		DType operator[](const std::vector<IndexType> &location) const { return getValue<DType>(location); }
 		DType &operator[](const std::vector<IndexType> &location) { return getValue<DType>(location); }
 
 		void resizeBuffer(const Shape<IndexType> &shape, const size_t elementSize) {
-			size_t total_elements = this->compute_number_elements(shape);
+			const size_t total_elements = shape.getNrElements();
 
 			if (this->buffer != nullptr && this->ownAllocation) {
 			}
@@ -225,7 +224,7 @@ namespace Ritsu {
 
 			this->buffer = static_cast<uint8_t *>(realloc(this->buffer, nrBytesAllocate));
 			this->shape = shape;
-			this->NrElements = this->compute_number_elements(this->getShape());
+			this->NrElements = total_elements;
 		}
 
 		friend std::ostream &operator<<(std::ostream &os, Tensor &tensor) {
@@ -265,17 +264,7 @@ namespace Ritsu {
 			return true;
 		}
 
-		void Reshape(const Shape<IndexType> &newShape) { this->shape.Reshape(newShape); }
-
-	  protected:
-		inline size_t compute_number_elements(const std::vector<IndexType> &dims) const {
-			size_t totalSize = 1;
-#pragma omp for simd
-			for (size_t i = 0; i < dims.size(); i++) {
-				totalSize *= dims[i];
-			}
-			return totalSize;
-		}
+		void reshape(const Shape<IndexType> &newShape) { this->shape.reshape(newShape); }
 
 	  private:
 		using TensorBuffer = union _buffer_t {

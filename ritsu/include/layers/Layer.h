@@ -79,8 +79,8 @@ namespace Ritsu {
 		virtual void setInputs(const std::vector<Layer<DType> *> &layers) = 0;
 		virtual void setOutputs(const std::vector<Layer<DType> *> &layers) = 0;
 
-		virtual Tensor compute_deriviate(const Tensor &tensor) = 0;
-		virtual Tensor &compute_deriviate(Tensor &tensor) const = 0;
+		virtual Tensor compute_derivative(const Tensor &tensor) = 0;
+		virtual Tensor &compute_derivative(Tensor &tensor) const = 0;
 
 	  protected:
 		Shape<IndexType> shape;

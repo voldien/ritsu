@@ -50,26 +50,38 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor compute_deriviate(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_deriviate(Tensor &tensor) const override {
+		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
+		Tensor &compute_derivative(Tensor &tensor) const override {
 			computeDeriviate(tensor);
 			return tensor;
 		}
 
 	  protected:
 #pragma omp declare simd uniform(value)
-		DType relu(DType value) { return std::max<float>(0, value); }
+		inline static constexpr DType relu(DType value) { return std::max<DType>(0, value); }
+		inline static constexpr DType reluDeriviate(DType value) {
+			if (value >= 0) {
+				return 1;
+			}
+			return 0;
+		}
 
 		void computeReluActivation(Tensor &tensor) {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 #pragma omp parallel
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<float>(i) = this->relu(tensor.getValue<float>(i));
+				tensor.getValue<DType>(i) = relu(tensor.getValue<DType>(i));
 			}
 		}
 
-		static void computeDeriviate(Tensor &tensor) {}
+		static void computeDeriviate(Tensor &tensor) {
+			const size_t nrElements = tensor.getNrElements();
+#pragma omp parallel
+			for (size_t i = 0; i < nrElements; i++) {
+				tensor.getValue<DType>(i) = reluDeriviate(tensor.getValue<DType>(i));
+			}
+		}
 
 	  private:
 		Layer<DType> *input;

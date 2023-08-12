@@ -11,7 +11,7 @@ namespace Ritsu {
 	  public:
 		Subtract(Layer<float> &a, Layer<float> b) {}
 
-		virtual void computeActivation(Tensor &X) {
+		void computeActivation(Tensor &X) {
 			/*Iterate through each all elements.    */
 			size_t nrElements = X.getNrElements();
 

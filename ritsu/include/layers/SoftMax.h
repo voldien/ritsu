@@ -7,7 +7,7 @@ namespace Ritsu {
 
 	class SoftMax : public Activaction {
 	  public:
-		SoftMax() {}
+		SoftMax(const std::string &name = "softmax") : Activaction(name) {}
 		~SoftMax() override {}
 
 		Tensor operator<<(const Tensor &tensor) override {
@@ -16,7 +16,7 @@ namespace Ritsu {
 		}
 
 		Tensor operator>>(Tensor &tensor) override {
-			compute(tensor);
+			this->computeSoftMax(tensor);
 			return tensor;
 		}
 
@@ -26,7 +26,7 @@ namespace Ritsu {
 		//}
 
 		Tensor &operator()(Tensor &tensor) override {
-			compute(tensor);
+			this->computeSoftMax(tensor);
 			return tensor;
 		}
 
@@ -36,17 +36,19 @@ namespace Ritsu {
 		//}
 
 	  private:
-		void compute(Tensor &tensor) {
+		void computeSoftMax(Tensor &tensor) {
 			/*Iterate through each all elements.    */
-			float sum = 0;
+			DType sum = 0;
 			const size_t nrElements = tensor.getNrElements();
+#pragma omp parallel
 			for (size_t i = 0; i < nrElements; i++) {
-				sum += std::pow(static_cast<DType>(Math::E), tensor.getValue<float>(i));
+				sum += static_cast<DType>(std::exp(tensor.getValue<DType>(i)));
 			}
-
+#pragma omp parallel
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<float>(i) = tensor.getValue<float>(i) / sum;
+				tensor.getValue<DType>(i) = tensor.getValue<DType>(i) / sum;
 			}
 		}
+		
 	};
 } // namespace Ritsu

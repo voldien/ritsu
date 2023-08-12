@@ -89,7 +89,7 @@ namespace Ritsu {
 			return os;
 		}
 
-		void Reshape(const std::vector<T> &newDims) {
+		void reshape(const std::vector<T> &newDims) {
 			if (this->computeNrElements(newDims) == this->getNrElements()) {
 				this->dims = newDims;
 			} else {
