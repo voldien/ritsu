@@ -20,7 +20,7 @@ namespace Ritsu {
 		const size_t DTypeSize = sizeof(DType);
 
 	  public:
-		Layer(const std::string &name) : name(name) { this->shape = Shape<IndexType>({1, 1}); }
+		Layer(const std::string &name) : name(name) { this->shape = std::move(Shape<IndexType>({1, 1})); }
 		virtual ~Layer() {}
 
 		virtual Tensor operator<<(const Tensor &tensor) { return tensor; }
@@ -33,6 +33,12 @@ namespace Ritsu {
 
 		template <class U> auto &operator()(const U &layer) {
 			this->getInputs()[0] = layer;
+			return *this;
+		}
+
+		template <class U> auto &operator()(U &layer) {
+			this->setInputs({&layer});
+			layer.setOutputs({this});
 			return *this;
 		}
 
@@ -70,14 +76,17 @@ namespace Ritsu {
 			return *this;
 		}
 
-		virtual void setInputs(const std::vector<Layer<DType> *> &layers) {}
-		virtual void setOutputs(const std::vector<Layer<DType> *> &layers) {}
+		virtual void setInputs(const std::vector<Layer<DType> *> &layers) = 0;
+		virtual void setOutputs(const std::vector<Layer<DType> *> &layers) = 0;
 
-		virtual Tensor compute_deriviate(const Tensor &tensor) { return tensor; }
-		virtual Tensor &compute_deriviate(Tensor &tensor) const { return tensor; }
+		virtual Tensor compute_deriviate(const Tensor &tensor) = 0;
+		virtual Tensor &compute_deriviate(Tensor &tensor) const = 0;
 
 	  protected:
 		Shape<IndexType> shape;
+
+		//		std::vector<Layer<DType> *> *input;
+		// std::vector<Layer<DType> *> outputs;
 
 	  private:
 		std::string name;

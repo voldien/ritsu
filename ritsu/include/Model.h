@@ -8,6 +8,7 @@
 #include <list>
 #include <map>
 #include <ostream>
+#include <sstream>
 #include <string>
 #include <utility>
 
@@ -27,7 +28,7 @@ namespace Ritsu {
 
 		// operator
 		// TODO add array.
-		void fit(size_t epochs, const Tensor &X, const Tensor &Y, size_t batch = 1) {
+		void fit(size_t epochs, const Tensor &X, const Tensor &Y, size_t batch = 1, bool verbose = true) {
 
 			/*	*/
 			const size_t nrBatches = X.getShape()[0] / batch;
@@ -54,7 +55,8 @@ namespace Ritsu {
 					const Tensor subsetBatchY = std::move(Y.getSubset<Tensor>(ibatch * batch * batchElementSize,
 																			  (ibatch + 1) * batch * batchElementSize));
 
-					this->forwardPropgation(subsetBatchX, batchResult,batch);
+					/*	Compute network.	*/
+					this->forwardPropgation(subsetBatchX, batchResult, batch);
 
 					/*	Compute the loss/cost.	*/
 					// batchResult.Reshape()
@@ -68,10 +70,10 @@ namespace Ritsu {
 			}
 		}
 
-		Tensor predict(const Tensor &X) {
+		Tensor predict(const Tensor &X, size_t batch = 1, bool verbose = false) {
 
 			Tensor result;
-			this->forwardPropgation(X, result, 1);
+			this->forwardPropgation(X, result, batch);
 			return result;
 		}
 
@@ -81,19 +83,18 @@ namespace Ritsu {
 		}
 
 		virtual std::string summary() const {
-			std::string _summary;
+			std::stringstream _summary;
+
 			Layer<T> *current = this->inputs[0];
 
 			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
 				Layer<T> *current = (*it);
 
-				_summary += current->getName() + " " + "\n";
-				/*	*/
-				_summary += " ";
+				_summary << current->getName() << '\t' << " " << current->getShape() << std::endl;
 			}
-			_summary += "number of weights: " + std::to_string(this->nr_weights) + "\n";
-			_summary += "Trainable in Bytes: " + std::to_string(this->weightSizeInBytes);
-			return _summary;
+			_summary << "number of weights: " << std::to_string(this->nr_weights) << std::endl;
+			_summary << "Trainable in Bytes: " << std::to_string(this->weightSizeInBytes);
+			return _summary.str();
 		}
 
 	  protected:
@@ -153,7 +154,7 @@ namespace Ritsu {
 			}
 		}
 
-		void build_sequence(std::vector<Layer<T> *> inputs, std::vector<Layer<T> *> outputs) {
+		void build_sequence(const std::vector<Layer<T> *> inputs, const std::vector<Layer<T> *> outputs) {
 			// Iterate through each and extract number of trainable variables.
 			Layer<T> *current = inputs[0];
 			this->nr_weights = 0;

@@ -1,23 +1,5 @@
-#include "Tensor.h"
-#include "layers/Add.h"
-#include "layers/AveragePooling.h"
-#include "layers/BatchNormalization.h"
-#include "layers/Cast.h"
-#include "layers/Concatenate.h"
-#include "layers/Conv2D.h"
-#include "layers/Dense.h"
-#include "layers/GaussianNoise.h"
-#include "layers/Input.h"
+#include <Ritsu.h>
 
-#include "layers/Flatten.h"
-#include "layers/Layer.h"
-#include "layers/MaxPooling.h"
-#include "layers/Multiply.h"
-#include "layers/Relu.h"
-#include "layers/Sigmoid.h"
-#include "layers/UpScale.h"
-#include "optimizer/SGD.h"
-#include <Model.h>
 #include <cstdio>
 #include <iostream>
 #include <istream>
@@ -28,9 +10,9 @@ using namespace Ritsu;
 int main(int argc, const char **argv) {
 
 	/*	*/
-	size_t batchSize = 1;
+	const unsigned int batchSize = 1;
 
-	Layer<float> layer("");
+
 	Sigmoid sigmoid;
 	Relu relu;
 
@@ -69,7 +51,7 @@ int main(int argc, const char **argv) {
 	Cast<int> float2int;
 	Sigmoid sig;
 	Add add(output, fw2);
-	Layer<float> output2 = sig(add);
+	Layer<float>& output2 = sig(add);
 
 	Tensor inputRes({batchSize, 1}, 4);
 	Tensor inputData({batchSize, 32, 32, 1}, 4);

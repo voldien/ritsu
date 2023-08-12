@@ -14,7 +14,7 @@ namespace Ritsu {
 			this->dis = std::uniform_real_distribution<>(1.0, 2.0);
 		}
 
-		Tensor& operator<<(Tensor &tensor) override {
+		Tensor &operator<<(Tensor &tensor) override {
 			this->addNoise(tensor);
 			return tensor;
 		}
@@ -52,6 +52,9 @@ namespace Ritsu {
 
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
+
+		Tensor compute_deriviate(const Tensor &tensor) override { return tensor; }
+		Tensor &compute_deriviate(Tensor &tensor) const override { return tensor; }
 
 	  private:
 		/*	*/

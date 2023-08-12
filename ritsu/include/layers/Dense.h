@@ -26,6 +26,7 @@ namespace Ritsu {
 			}
 		}
 
+	  public:
 		Tensor operator<<(const Tensor &tensor) override {
 
 			Tensor output({this->units}, DTypeSize);
@@ -83,6 +84,9 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
+		Tensor compute_deriviate(const Tensor &tensor) override { return tensor; }
+		Tensor &compute_deriviate(Tensor &tensor) const override { return tensor; }
+
 	  private:
 		/*	*/
 		Layer<DType> *input;
@@ -106,7 +110,8 @@ namespace Ritsu {
 #pragma omp parallel for reduction(+ : res) shared(weight, input)
 				for (size_t elementIndex = 0; elementIndex < inputDims; elementIndex++) {
 					/*	*/
-					res += input.getValue<DType>(dim) * this->weight.getValue<DType>(dim * units + elementIndex);
+					res +=
+						input.getValue<DType>(elementIndex) * this->weight.getValue<DType>(dim * units + elementIndex);
 				}
 				/*	*/
 				if (!this->bias.getNrElements()) {

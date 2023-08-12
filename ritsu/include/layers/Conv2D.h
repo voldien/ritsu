@@ -17,31 +17,39 @@ namespace Ritsu {
 			   const std::string &padding, bool useBias = false, const std::string &kernel_init = "",
 			   const std::string &bias_init = "", const std::string &name = "")
 			: Layer<float>(name) {
-				this->filters = filters;
-				this->stride = strides;
-				this->kernel = kernel_size;
-			}
+
+			this->filters = filters;
+			this->stride = strides;
+			this->kernel = kernel_size;
+		}
 
 		Tensor operator<<(const Tensor &tensor) override {
-			
-			//Tensor output({this->units, 1}, DTypeSize);
-//
-			//this->compute(tensor, output);
 
-			//return output;
+			// Tensor output({this->units, 1}, DTypeSize);
+			//
+			// this->compute(tensor, output);
+
+			// return output;
+			return tensor;
 		}
 
 		Tensor operator>>(Tensor &tensor) override { return tensor; }
 
-		Tensor &operator()(Tensor &tensor) override { 
+		Tensor &operator()(Tensor &tensor) override {
 			this->compute(tensor, tensor);
-			return tensor; }
+			return tensor;
+		}
+
+		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
+		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
+
+		Tensor compute_deriviate(const Tensor &tensor) override { return tensor; }
+		Tensor &compute_deriviate(Tensor &tensor) const override { return tensor; }
 
 	  protected:
 		// operator
 
-		void compute(const Tensor &input, Tensor &output) {
-
+		void compute(const Tensor &input, Tensor &output) { /*	*/
 		}
 
 		void initbias() {
@@ -53,6 +61,8 @@ namespace Ritsu {
 
 	  private:
 		std::vector<DType> bias;
+		Tensor _bias;
+		Tensor _weight;
 		std::vector<uint32_t> kernel;
 		std::vector<uint32_t> stride;
 		uint32_t filters;

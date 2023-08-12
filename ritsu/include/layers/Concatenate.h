@@ -6,7 +6,7 @@ namespace Ritsu {
 	class Concatenate : public Layer<float> {
 
 	  public:
-		Concatenate(Layer<DType> &a, Layer<DType> b, const std::string &name) : Concatenate({&a, &b}, name) {}
+		Concatenate(Layer<DType> &a, Layer<DType>& b, const std::string &name) : Concatenate({&a, &b}, name) {}
 		Concatenate(const std::vector<Layer<DType> *> &layers, const std::string &name) : Layer<float>(name) {
 			this->inputs = layers;
 		}

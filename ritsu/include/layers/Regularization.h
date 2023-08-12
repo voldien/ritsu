@@ -3,10 +3,10 @@
 
 namespace Ritsu {
 
-	class Add : public Layer<float> {
+	class Regularization : public Layer<float> {
 
 	  public:
-		Add(const Layer<float> &a, const Layer<float> &b, const std::string &name = "Add") : Layer<float>(name) {}
+		Regularization(float L1, float L2, const std::string &name = "Regularization") : Layer<float>(name) {}
 
 		Tensor operator<<(const Tensor &tensor) override {
 

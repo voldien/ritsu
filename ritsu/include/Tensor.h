@@ -5,6 +5,7 @@
 #include <cstring>
 #include <iostream>
 #include <istream>
+#include <memory>
 #include <omp.h>
 #include <ostream>
 #include <string>
@@ -18,6 +19,9 @@ namespace Ritsu {
 	 *
 	 */
 	/*template <class T = float> */ class Tensor {
+		// static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+		//			  "Must be a decimal type(float/double/half) or integer.");
+
 	  public:
 		using DType = float;
 		static constexpr size_t DTypeSize = sizeof(DType);
@@ -34,22 +38,23 @@ namespace Ritsu {
 		 * @param elementSize
 		 */
 		// TODO remove element size, replace with the generic type size.
-		Tensor(const std::vector<IndexType> &dimensions, unsigned int elementSize) {
+		Tensor(const std::vector<IndexType> &dimensions, size_t elementSize = sizeof(DType)) {
 			this->resizeBuffer(dimensions, elementSize);
 		}
 
-		Tensor(const Shape<IndexType> &shape, unsigned int elementSize) {
-			this->resizeBuffer(shape.getDims(), elementSize);
+		Tensor(const Shape<IndexType> &shape, size_t elementSize = sizeof(DType)) {
+			this->resizeBuffer(static_cast<const std::vector<IndexType> &>(shape), elementSize);
 		}
 
 		Tensor(uint8_t *buffer, size_t size, const std::vector<IndexType> &dimensions) {
 			this->buffer = buffer;
 			this->shape = dimensions;
-			this->NrElements = this->compute_number_elements(this->getShape().getDims());
+			this->NrElements = this->getShape().getNrElements();
+			this->ownAllocation = false;
 		}
 
 		Tensor(const Tensor &other) {
-			this->resizeBuffer(other.getShape(), other.DTypeSize);
+			this->resizeBuffer(other.getShape(), Ritsu::Tensor::DTypeSize);
 			memcpy(this->buffer, other.buffer, other.getDatSize());
 		}
 
@@ -68,7 +73,7 @@ namespace Ritsu {
 		}
 
 		auto &operator=(const Tensor &other) {
-			this->resizeBuffer(other.getShape(), other.DTypeSize);
+			this->resizeBuffer(other.getShape(), Ritsu::Tensor::DTypeSize);
 			memcpy(this->buffer, other.buffer, other.getDatSize());
 
 			return *this;
@@ -83,27 +88,38 @@ namespace Ritsu {
 		}
 
 		// operations of data.
-		template <typename T> inline const auto &getValue(const std::vector<IndexType> &location) const {
+		template <typename U> inline const auto &getValue(const std::vector<IndexType> &location) const {
+			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
+						  "Must be a decimal type(float/double/half) or integer.");
+
 			const size_t index = this->computeIndex(location);
 
-			const T *addr = reinterpret_cast<const T *>(&buffer[index * DTypeSize]);
+			const U *addr = reinterpret_cast<const U *>(&buffer[index * DTypeSize]);
 			return *addr;
 		}
 
-		template <typename T> inline auto &getValue(const std::vector<IndexType> &location) {
+		template <typename U> inline auto &getValue(const std::vector<IndexType> &location) {
+			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
+						  "Must be a decimal type(float/double/half) or integer.");
+
 			const size_t index = this->computeIndex(location);
 
-			T *addr = reinterpret_cast<T *>(&buffer[index * DTypeSize]);
+			U *addr = reinterpret_cast<U *>(&buffer[index * DTypeSize]);
 			return *addr;
 		}
 
-		template <typename T> inline auto &getValue(size_t index) {
-			T *addr = reinterpret_cast<T *>(&buffer[index * DTypeSize]);
+		template <typename U> inline auto &getValue(size_t index) {
+			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
+						  "Must be a decimal type(float/double/half) or integer.");
+			U *addr = reinterpret_cast<U *>(&buffer[index * DTypeSize]);
 			return *addr;
 		}
 
-		template <typename T> inline const auto &getValue(size_t index) const {
-			const T *addr = reinterpret_cast<const T *>(&buffer[index * DTypeSize]);
+		template <typename U> inline const auto &getValue(size_t index) const {
+			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
+						  "Must be a decimal type(float/double/half) or integer.");
+
+			const U *addr = reinterpret_cast<const U *>(&buffer[index * DTypeSize]);
 			return *addr;
 		}
 
@@ -124,7 +140,7 @@ namespace Ritsu {
 			return *this;
 		}
 
-		template <typename T> auto &operator-(const Tensor &tensor) {
+		template <typename U> auto &operator-(const Tensor &tensor) {
 			size_t nrElements = getNrElements();
 #pragma omp parallel shared(tensor)
 			for (size_t n = 0; n < nrElements; n++) {
@@ -133,7 +149,7 @@ namespace Ritsu {
 			return *this;
 		}
 
-		template <typename T> auto &operator*(const Tensor &tensor) {
+		template <typename U> auto &operator*(const Tensor &tensor) {
 			size_t nrElements = getNrElements();
 #pragma omp parallel shared(tensor)
 			for (size_t n = 0; n < nrElements; n++) {
@@ -150,7 +166,7 @@ namespace Ritsu {
 			return *this;
 		}
 
-		template <typename T> auto &operator/(const Tensor &tensor) {
+		template <typename U> auto &operator/(const Tensor &tensor) {
 			size_t nrElements = getNrElements();
 #pragma omp parallel shared(tensor)
 			for (size_t n = 0; n < nrElements; n++) {
@@ -165,14 +181,13 @@ namespace Ritsu {
 			}
 		}
 
-		template <typename T> auto getSubset(size_t start, size_t end) const {
-			Tensor subset =
-				T(static_cast<uint8_t *>(&this->buffer[start * DTypeSize]), end - start, this->getShape().getDims());
+		template <typename U> auto getSubset(size_t start, size_t end) const {
+			Tensor subset = U(static_cast<uint8_t *>(&this->buffer[start * DTypeSize]), end - start, this->getShape());
 			subset.ownAllocation = false;
 			return subset;
 		}
 
-		template <typename T>
+		template <typename U>
 		auto getSubset(const std::vector<IndexType> &start, const std::vector<IndexType> &end) const {
 			Tensor
 				subset; // = T(static_cast<uint8_t *>(&this->buffer[start * DTypeSize]), end - start, this->dimensions);
@@ -186,11 +201,11 @@ namespace Ritsu {
 			return *this;
 		}
 
-		template <typename T> Tensor &append(T v) {
+		template <typename T> Tensor &append(T tensor) {
 			/*	Resize.	*/
 			return *this;
 		}
-		Tensor &append(Tensor &a) {
+		Tensor &append(Tensor &tensor) {
 			/*	Resize.	*/
 			return *this;
 		}
@@ -200,8 +215,8 @@ namespace Ritsu {
 		DType operator[](const std::vector<IndexType> &location) const { return getValue<DType>(location); }
 		DType &operator[](const std::vector<IndexType> &location) { return getValue<DType>(location); }
 
-		void resizeBuffer(const Shape<IndexType> &shape, unsigned int elementSize) {
-			size_t total_elements = this->compute_number_elements(shape.getDims());
+		void resizeBuffer(const Shape<IndexType> &shape, const size_t elementSize) {
+			size_t total_elements = this->compute_number_elements(shape);
 
 			if (this->buffer != nullptr && this->ownAllocation) {
 			}
@@ -210,7 +225,7 @@ namespace Ritsu {
 
 			this->buffer = static_cast<uint8_t *>(realloc(this->buffer, nrBytesAllocate));
 			this->shape = shape;
-			this->NrElements = this->compute_number_elements(this->getShape().getDims());
+			this->NrElements = this->compute_number_elements(this->getShape());
 		}
 
 		friend std::ostream &operator<<(std::ostream &os, Tensor &tensor) {
@@ -237,7 +252,7 @@ namespace Ritsu {
 			return totalSize;
 		}
 
-		template <typename T> inline const T *getRawData() const { return reinterpret_cast<T *>(this->buffer); }
+		template <typename U> inline const U *getRawData() const { return reinterpret_cast<U *>(this->buffer); }
 
 		inline size_t getNrElements() const { return this->NrElements; }
 		inline size_t getDatSize() const { return this->getNrElements() * DTypeSize; }
@@ -250,11 +265,7 @@ namespace Ritsu {
 			return true;
 		}
 
-		void Reshape(const Shape<IndexType> &newShape) {
-			if (!this->getNrElements() == newShape.getNrElements()) {
-			}
-			this->shape = newShape;
-		}
+		void Reshape(const Shape<IndexType> &newShape) { this->shape.Reshape(newShape); }
 
 	  protected:
 		inline size_t compute_number_elements(const std::vector<IndexType> &dims) const {
@@ -267,7 +278,7 @@ namespace Ritsu {
 		}
 
 	  private:
-		using Buffer = union _buffer_t {
+		using TensorBuffer = union _buffer_t {
 			uint8_t *buffer = nullptr;
 			float *fbuffer;
 		};

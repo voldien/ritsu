@@ -6,53 +6,81 @@
 #include <istream>
 #include <omp.h>
 #include <random>
+#include <stdexcept>
 #include <string>
 #include <vector>
 
 namespace Ritsu {
 
+	/**
+	 * @brief
+	 *
+	 */
 	template <typename T = unsigned int> class Shape {
+		static_assert(std::is_integral<T>::value, "Type must be a integral type.");
+
+		using IndexType = unsigned int;
+		static constexpr size_t IndexTypeSize = sizeof(IndexType);
+
 	  public:
 		Shape() = default;
-		Shape(const std::vector<T> &shape) { this->dimensions = shape; }
+		Shape(const std::vector<T> &shape) { this->dims = shape; }
+		Shape(const Shape &shape) { this->dims = shape.dims; }
+		Shape(Shape &&shape) { this->dims = std::move(shape.dims); }
 
-		auto &operator=(const std::vector<T> &shape) {
-			this->dimensions = shape;
+		Shape &operator=(const Shape &shape) {
+			this->dims = shape.dims;
+			return *this;
+		}
+		Shape &operator=(Shape &&shape) {
+			this->dims = std::move(shape.dims);
 			return *this;
 		}
 
-		T operator[](T location) const { return this->dimensions[location]; }
-		T &operator[](T location) { return this->dimensions[location]; }
+		auto &operator=(const std::vector<T> &shape) {
+			this->dims = shape;
+			return *this;
+		}
+		auto &operator=(std::vector<T> &&shape) {
+			this->dims = shape;
+			return *this;
+		}
+
+		T operator[](T index) const { return this->dims[index]; }
+		T &operator[](T index) { return this->dims[index]; }
 
 		bool operator==(const Shape &shape) const {
 			if (&shape == this) {
 				return true;
 			}
-			return shape.dimensions == this->dimensions;
+			return shape.dims == this->dims;
 		}
+
 		bool operator!=(const Shape &shape) const {
 			if (&shape != this) {
 				return true;
 			}
 
-			return shape.dimensions != this->dimensions;
+			return shape.dims != this->dims;
 		}
 
-		Shape flatten() const { return Shape({(T)Shape::computeNrElements(this->dimensions)}); }
+		// implicit
+		operator std::vector<T>() const { return this->dims; }
+		// explicit conversion
+		explicit operator const std::vector<T> &() const { return this->dims; }
 
-		T getNrElements() const { return computeNrElements<T>(this->dimensions); }
+		Shape flatten() const { return Shape({static_cast<T>(Shape::computeNrElements<T>(this->dims))}); }
 
-		// TODO remove
-		const std::vector<T> &getDims() const { return this->dimensions; }
+		T getNrElements() const { return computeNrElements<T>(this->dims); }
 
 		friend std::ostream &operator<<(std::ostream &os, const Shape &shape) {
 
 			os << "[";
-			for (int i = 0; i < shape.dimensions.size(); i++) {
+			for (int i = 0; i < shape.dims.size(); i++) {
 				size_t index = i;
-				T value = shape.dimensions[i];
+				T value = shape.dims[i];
 				os << value;
-				if (i < shape.dimensions.size() - 1) {
+				if (i < shape.dims.size() - 1) {
 					os << ",";
 				}
 			}
@@ -61,19 +89,31 @@ namespace Ritsu {
 			return os;
 		}
 
-		void Reshape() {}
+		void Reshape(const std::vector<T> &newDims) {
+			if (this->computeNrElements(newDims) == this->getNrElements()) {
+				this->dims = newDims;
+			} else {
+				// Failure
+				throw std::invalid_argument("Invalid Dimension");
+			}
+		}
 
 	  public:
-		template <typename U> static U computeNrElements(const std::vector<U> &shape) {
+		Shape flatten(const Shape &shape) const { return Shape({(T)Shape::computeNrElements(shape.dims)}); }
+
+		template <typename U> static U computeNrElements(const std::vector<U> &dims) {
 			size_t totalSize = 1;
+
+			/*	*/
 #pragma omp for simd
-			for (size_t i = 0; i < shape.size(); i++) {
-				totalSize *= shape[i];
+			for (size_t i = 0; i < dims.size(); i++) {
+				totalSize *= dims[i];
 			}
+			/*	*/
 			return totalSize;
 		}
 
 	  private:
-		std::vector<T> dimensions;
+		std::vector<T> dims;
 	};
 } // namespace Ritsu
