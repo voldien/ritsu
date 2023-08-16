@@ -1,10 +1,10 @@
 #pragma once
-#include "../Random.h"
 #include "../Tensor.h"
 #include "../core/Shape.h"
 #include <cstddef>
 #include <omp.h>
 #include <string>
+#include <typeinfo>
 #include <vector>
 
 namespace Ritsu {
@@ -42,14 +42,14 @@ namespace Ritsu {
 			return *this;
 		}
 
-		// TODO add shape.
 		const Shape<IndexType> &getShape() const { return this->shape; }
 
-		virtual void build(const std::vector<unsigned int> &dims) {}
+		virtual void build(const Shape<IndexType> &shape) {}
 
 		// virtual Tensor &operator()(const Tensor &tensor) { return tensor; }
 
 		// Dtype
+		const std::type_info &getDType() const { return typeid(DType); }
 
 		// Weights trainable
 		virtual Tensor *getTrainableWeights() { return nullptr; }
@@ -59,8 +59,6 @@ namespace Ritsu {
 
 		// input
 		virtual std::vector<Layer<T> *> getInputs() const { return {}; };
-
-		// name
 
 		// output
 		virtual std::vector<Layer<T> *> getOutputs() const { return {}; }
@@ -78,6 +76,9 @@ namespace Ritsu {
 
 		virtual void setInputs(const std::vector<Layer<DType> *> &layers) = 0;
 		virtual void setOutputs(const std::vector<Layer<DType> *> &layers) = 0;
+
+		size_t getNrInputLayers() const { return this->getInputs().size(); }
+		size_t getNrOutputLayers() const { return this->getOutputs().size(); }
 
 		virtual Tensor compute_derivative(const Tensor &tensor) = 0;
 		virtual Tensor &compute_derivative(Tensor &tensor) const = 0;

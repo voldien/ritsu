@@ -6,11 +6,12 @@ namespace Ritsu {
 
 	class Input : public Layer<float> {
 	  public:
-		Input(const std::vector<unsigned int> &input, const std::string &name = "input") : Layer<float>(name) {
+		Input(const std::vector<IndexType> &input, const std::string &name = "input") : Layer<float>(name) {
 			this->shape = input;
 		}
 
-		void setInputs(const std::vector<Layer<DType> *> &layers) override { /*	*/ }
+		void setInputs(const std::vector<Layer<DType> *> &layers) override { /*	*/
+		}
 
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
 			/*	Set input layer */

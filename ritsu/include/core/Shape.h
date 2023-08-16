@@ -46,7 +46,7 @@ namespace Ritsu {
 			return *this;
 		}
 
-		T operator[](T index) const { return this->dims[index]; }
+		T operator[](T index) const { return this->getElementPerDimension(index); }
 		T &operator[](T index) { return this->dims[index]; }
 
 		bool operator==(const Shape &shape) const {
@@ -72,6 +72,8 @@ namespace Ritsu {
 		Shape flatten() const { return Shape({static_cast<T>(Shape::computeNrElements<T>(this->dims))}); }
 
 		T getNrElements() const { return computeNrElements<T>(this->dims); }
+		T getElementPerDimension(const uint32_t index) const { return this->dims[index]; }
+		T getNrDimensions() const { return this->dims.size(); }
 
 		friend std::ostream &operator<<(std::ostream &os, const Shape &shape) {
 
@@ -102,6 +104,8 @@ namespace Ritsu {
 		Shape flatten(const Shape &shape) const { return Shape({(T)Shape::computeNrElements(shape.dims)}); }
 
 		template <typename U> static U computeNrElements(const std::vector<U> &dims) {
+			static_assert(std::is_integral<U>::value, "Type must be a integral type.");
+
 			size_t totalSize = 1;
 
 			/*	*/

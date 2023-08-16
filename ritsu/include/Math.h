@@ -7,19 +7,19 @@ namespace Ritsu {
 
 	class Math {
 	  public:
-		template <class T> inline constexpr static T clamp(T a, T min, T max) {
+		template <class T> inline constexpr static T clamp(T value, T min, T max) {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
-			return Math::max<T>(min, Math::min<T>(max, a));
+			return Math::max<T>(min, Math::min<T>(max, value));
 		}
 
 		/**
 		 *	Get max value of a and b.
 		 */
-		template <typename T> inline constexpr static T max(T a, T b) {
+		template <typename T> inline constexpr static T max(T value0, T value1) {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
-			return (static_cast<T>(a) < static_cast<T>(b)) ? static_cast<T>(b) : static_cast<T>(a);
+			return (static_cast<T>(value0) < static_cast<T>(value1)) ? static_cast<T>(value1) : static_cast<T>(value0);
 		}
 
 		/**

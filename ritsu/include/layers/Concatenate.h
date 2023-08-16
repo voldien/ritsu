@@ -1,18 +1,24 @@
 #pragma once
 #include "Layer.h"
+#include "Tensor.h"
 
 namespace Ritsu {
 
 	class Concatenate : public Layer<float> {
 
 	  public:
-		Concatenate(Layer<DType> &a, Layer<DType>& b, const std::string &name) : Concatenate({&a, &b}, name) {}
+		Concatenate(Layer<DType> &a, Layer<DType> &b, const std::string &name = "concatenate")
+			: Concatenate({&a, &b}, name) {}
 		Concatenate(const std::vector<Layer<DType> *> &layers, const std::string &name) : Layer<float>(name) {
 			this->inputs = layers;
 		}
 
 	  private:
-		// void compute(Tensor &a, Tensor &b) { return a + b; }
+		static void concatenate(const Tensor &tensorA, const Tensor &tensorB, Tensor &output) {
+			Tensor copyA = tensorA;
+			copyA.append(tensorB);
+			output = copyA;
+		}
 
 		std::vector<Layer<DType> *> inputs;
 		std::vector<Layer<DType> *> outputs;

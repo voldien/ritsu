@@ -63,21 +63,40 @@ namespace Ritsu {
 		Tensor *getTrainableWeights() override { return &this->weight; }
 		Tensor *getVariables() override { return &this->bias; }
 
-		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
-			/*	Set input layer */
-			this->outputs = layers;
+		void build(const Shape<IndexType> &shape) override {
 
-			// TODO verify flatten
+			/*	Validate */
 
 			/*	*/
-			this->weight = Tensor({(unsigned int)this->units, this->getInputs()[0]->getShape()[0]}, this->DTypeSize);
+			this->weight = Tensor({static_cast<IndexType>(this->units), shape[0]}, this->DTypeSize);
 
 			/*	*/
 			this->initweight();
 			this->initbias();
 		}
 
-		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }
+		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
+
+			/*	Set input layer */
+			this->outputs = layers;
+
+			// TODO verify flatten
+
+			/*	*/
+			this->build(this->getInputs()[0]->getShape());
+		}
+
+		void setInputs(const std::vector<Layer<DType> *> &layers) override {
+
+			// TODO verify flatten
+			Layer<DType> *inputLayer = layers[0];
+			if (inputLayer->getShape().getNrDimensions() == 1) {
+			}
+
+			this->input = layers[0];
+
+			assert(layers.size() == 1);
+		}
 
 		// input
 

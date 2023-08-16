@@ -141,7 +141,7 @@ namespace Ritsu {
 		}
 
 		template <typename U> auto &operator-(const Tensor &tensor) {
-			size_t nrElements = getNrElements();
+			size_t nrElements = this->getNrElements();
 #pragma omp parallel shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = this->getValue<DType>(index) - tensor.getValue<DType>(index);
@@ -150,7 +150,7 @@ namespace Ritsu {
 		}
 
 		template <typename U> auto &operator*(const Tensor &tensor) {
-			size_t nrElements = getNrElements();
+			size_t nrElements = this->getNrElements();
 #pragma omp parallel shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = this->getValue<DType>(index) * tensor.getValue<DType>(index);
@@ -203,6 +203,10 @@ namespace Ritsu {
 
 		template <typename T> Tensor &append(T tensor) {
 			/*	Resize.	*/
+			Shape<IndexType> newShape;
+			this->resizeBuffer(newShape, DTypeSize);
+			/*	Copy new Data.	*/
+			
 			return *this;
 		}
 
@@ -222,21 +226,22 @@ namespace Ritsu {
 
 			const size_t nrBytesAllocate = total_elements * elementSize;
 
+			// TODO handle if not the same pointer is returned.
 			this->buffer = static_cast<uint8_t *>(realloc(this->buffer, nrBytesAllocate));
 			this->shape = shape;
 			this->NrElements = total_elements;
 		}
 
-		friend std::ostream &operator<<(std::ostream &os, Tensor &tensor) {
+		friend std::ostream &operator<<(std::ostream &stream, Tensor &tensor) {
 			size_t number_elements = tensor.getNrElements();
 
 			for (int i = 0; i < number_elements; i++) {
 				size_t index = i;
 				DType value = tensor.getValue<DType>(i);
-				os << value << ",";
+				stream << value << ",";
 			}
 
-			return os;
+			return stream;
 		}
 
 		const Shape<IndexType> &getShape() const { return this->shape; }

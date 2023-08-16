@@ -1,10 +1,13 @@
 #pragma once
-#include "layers/Layer.h"
+#include "Tensor.h"
+#include <string>
 
 namespace Ritsu {
 
 	template <typename T> class Optimizer {
 	  public:
+		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+					  "Must be a decimal type(float/double/half) or integer.");
 		using DType = T;
 
 	  public:
@@ -16,7 +19,7 @@ namespace Ritsu {
 		void setLearningRate(T rate) { this->learningRate = rate; }
 		T getLearningRate() const { return this->learningRate; }
 
-		virtual void update_step(float* gradient, float* variable){}
+		virtual void update_step(DType *gradient, DType *variable) {}
 
 	  private:
 		T learningRate;

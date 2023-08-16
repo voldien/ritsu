@@ -6,7 +6,7 @@ namespace Ritsu {
 	class Add : public Layer<float> {
 
 	  public:
-		Add(const Layer<float> &a, const Layer<float> &b, const std::string &name = "Add") : Layer<float>(name) {}
+		Add(const std::string &name = "Add") : Layer<float>(name) {}
 
 		Tensor operator<<(const Tensor &tensor) override {
 
@@ -21,7 +21,6 @@ namespace Ritsu {
 		}
 
 		Tensor operator>>(Tensor &tensor) override {
-			// this->computeElementSum(tensor);
 			return tensor;
 		}
 

@@ -1,3 +1,4 @@
+#pragma once
 #include "Tensor.h"
 #include "layers/Add.h"
 #include "layers/AveragePooling.h"
@@ -18,6 +19,8 @@
 #include "layers/Relu.h"
 #include "layers/Sigmoid.h"
 #include "layers/UpScale.h"
+#include "optimizer/Ada.h"
+#include "optimizer/Adam.h"
 #include "optimizer/SGD.h"
 // using TensorF = Tensor<float>;
 // using TensorD = Tensor<double>;

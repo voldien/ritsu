@@ -11,7 +11,6 @@ namespace Ritsu {
 		Tensor operator<<(const Tensor &tensor) override {
 
 			Tensor output = tensor;
-
 			this->computeActivation(output);
 			return output;
 		}
@@ -70,7 +69,7 @@ namespace Ritsu {
 
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<float>(i) = computeTanh(tensor.getValue<float>(i));
+				tensor.getValue<DType>(i) = Tahn::computeTanh(tensor.getValue<DType>(i));
 			}
 		}
 

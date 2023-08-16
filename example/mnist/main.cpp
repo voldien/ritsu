@@ -12,7 +12,6 @@ int main(int argc, const char **argv) {
 	/*	*/
 	const unsigned int batchSize = 1;
 
-
 	Sigmoid sigmoid;
 	Relu relu;
 
@@ -50,8 +49,8 @@ int main(int argc, const char **argv) {
 
 	Cast<int> float2int;
 	Sigmoid sig;
-	Add add(output, fw2);
-	Layer<float>& output2 = sig(add);
+	Add add;
+	Layer<float> &output2 = sig(add);
 
 	Tensor inputRes({batchSize, 1}, 4);
 	Tensor inputData({batchSize, 32, 32, 1}, 4);
@@ -60,7 +59,7 @@ int main(int argc, const char **argv) {
 
 	SGD<float> optimizer(0.0002, 0.0);
 
-	Loss mse_loss([](const Tensor &a, const Tensor &b, Tensor &out) { out = a; });
+	Loss mse_loss([](const Tensor &value0, const Tensor &value1, Tensor &out) { out = value0; });
 	forwardModel.compile(&optimizer, mse_loss);
 	std::cout << forwardModel.summary() << std::endl;
 

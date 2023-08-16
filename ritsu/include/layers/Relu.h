@@ -59,6 +59,8 @@ namespace Ritsu {
 	  protected:
 #pragma omp declare simd uniform(value)
 		inline static constexpr DType relu(DType value) { return std::max<DType>(0, value); }
+
+#pragma omp declare simd uniform(value)
 		inline static constexpr DType reluDeriviate(DType value) {
 			if (value >= 0) {
 				return 1;
@@ -69,17 +71,17 @@ namespace Ritsu {
 		void computeReluActivation(Tensor &tensor) {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
-#pragma omp parallel
+#pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = relu(tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = Relu::relu(tensor.getValue<DType>(i));
 			}
 		}
 
 		static void computeDeriviate(Tensor &tensor) {
 			const size_t nrElements = tensor.getNrElements();
-#pragma omp parallel
+#pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = reluDeriviate(tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = Relu::reluDeriviate(tensor.getValue<DType>(i));
 			}
 		}
 

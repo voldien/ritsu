@@ -5,9 +5,9 @@ namespace Ritsu {
 	class MinPooling : public Layer<float> {
 
 	  public:
-		AveragePooling(int stride, const std::string &name = "maxpooling") : Layer(name) {}
+		MinPooling(int stride, const std::string &name = "minpooling") : Layer(name) {}
 
 	  private:
 		int stride;
 	};
-}
+} // namespace Ritsu

@@ -9,8 +9,9 @@ namespace Ritsu {
 
 	  public:
 		GuassianNoise(float stddev, const std::string &name = "noise") : Layer(name), stddev(stddev) {
-			std::random_device rd;
-			this->gen = std::mt19937(rd());
+			std::random_device randome_device;
+			/*	*/
+			this->gen = std::mt19937(randome_device());
 			this->dis = std::uniform_real_distribution<>(1.0, 2.0);
 		}
 
