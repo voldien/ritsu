@@ -16,6 +16,7 @@ int main(int argc, const char **argv) {
 	Relu relu;
 
 	Tensor input({1024, 1}, 4);
+	input.assignInitValue(0);
 
 	input = input + input;
 	std::cout << input << std::endl;
@@ -24,10 +25,10 @@ int main(int argc, const char **argv) {
 
 	Layer<float> *Pd = &dense;
 
-	GuassianNoise noise(0.01f);
+	GuassianNoise noise(2.f, 3.f);
 	input = noise(input);
 
-	Tensor Result = sigmoid(relu(input));
+	Tensor Result = relu(input);
 	// Result = relu << Result;
 	// Result = *Pd << input;
 	std::cout << Result << std::endl;
@@ -43,7 +44,7 @@ int main(int argc, const char **argv) {
 
 	Dense fw2 = Dense(1, true, "layer1");
 
-	GuassianNoise noiseLayer(0.01f, "noise");
+	GuassianNoise noiseLayer(0.05, 0.05f, "noise");
 
 	Layer<float> &output = flatten(fw2(relu(fw1(noiseLayer(fw0(flatten0(input0node)))))));
 

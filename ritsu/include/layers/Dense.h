@@ -1,4 +1,5 @@
 #pragma once
+#include "../Random.h"
 #include "Layer.h"
 #include <cassert>
 #include <cstddef>
@@ -146,20 +147,24 @@ namespace Ritsu {
 		}
 
 		void initweight() noexcept {
+
+			RandomNormal<DType> random(0.1, 0.2);
 #pragma omp parallel shared(weight)
 #pragma omp simd
+
 			for (size_t i = 0; i < this->weight.getNrElements(); i++) {
-				this->weight.getValue<DType>(i) = static_cast<double>(std::rand()) / RAND_MAX * 10.0f;
+				this->weight.getValue<DType>(i) = random.rand();
 			}
 		}
 
 		void initbias() noexcept {
-			std::srand(std::time(nullptr));
+
+			RandomNormal<DType> random(0.1, 0.2);
 
 #pragma omp parallel shared(bias)
 #pragma omp simd
 			for (size_t i = 0; i < this->bias.getNrElements(); i++) {
-				this->bias.getValue<DType>(i) = static_cast<double>(std::rand()) / RAND_MAX * 10.0f;
+				this->bias.getValue<DType>(i) = random.rand();
 			}
 		}
 

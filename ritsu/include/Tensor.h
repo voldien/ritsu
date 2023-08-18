@@ -206,7 +206,7 @@ namespace Ritsu {
 			Shape<IndexType> newShape;
 			this->resizeBuffer(newShape, DTypeSize);
 			/*	Copy new Data.	*/
-			
+
 			return *this;
 		}
 

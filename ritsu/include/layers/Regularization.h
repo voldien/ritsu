@@ -7,8 +7,8 @@ namespace Ritsu {
 	class Regularization : public Layer<float> {
 
 	  public:
-		Regularization(DType l1 = 0.0f, DType L2 = 0.0f, const std::string &name = "Regularization")
-			: Layer<float>(name), l1(l1), l2(l2) {}
+		Regularization(const DType L1 = 0, const DType L2 = 0, const std::string &name = "Regularization")
+			: Layer<float>(name), l1(L1), l2(L2) {}
 
 		Tensor operator<<(const Tensor &tensor) override {
 
@@ -32,29 +32,53 @@ namespace Ritsu {
 			return tensor;
 		}
 
-		template <class U> auto &operator()(std::vector<U> &layers) {
-			// this->setInputs({&layer});
-			// layer.setOutputs({this});
-			// return *this;
+		template <class U> auto &operator()(U &layer) {
+
+			this->setInputs({&layer});
+			layer.setOutputs({this});
+
+			return *this;
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
 
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor compute_derivative(const Tensor &tensor) override {
+			Tensor output;
+			
+			if (this->l1 > 0) {
+				computeL1(tensor, this->l1, output);
+			}
+			if (this->l2 > 0) {
+				computeL2(tensor, this->l2, output);
+			}
+			
+			return output;
+		}
+		Tensor &compute_derivative(Tensor &tensor) const override {
+
+			Tensor output;
+			if (this->l1 > 0) {
+				computeL1(tensor, this->l1, output);
+			}
+			if (this->l2 > 0) {
+				computeL2(tensor, this->l2, output);
+			}
+
+			return tensor;
+		}
 
 	  private:
 		static inline void computeElementSum(Tensor &inputA, const Tensor &inputB) { inputA = inputA + inputB; }
 
-		static void computeL1(const Tensor &x0, const Tensor &x1, Tensor &output) {
+		static void computeL1(const Tensor &x0, const DType L1, Tensor &output) {
 			//#pragma omp parallel shared(tensor)
 			//			for (size_t i = 0; i < tensor.getNrElements(); i++) {
 			//				tensor.getValue<DType>(i) = computeSigmoidDerivate(tensor.getValue<DType>(i));
 			//			}
 		}
 
-		static void computeL2(const Tensor &x0, const Tensor &x1, Tensor &output) {
+		static void computeL2(const Tensor &x0, const DType L2, Tensor &output) {
 			//#pragma omp parallel shared(tensor)
 			//			for (size_t i = 0; i < tensor.getNrElements(); i++) {
 			//				tensor.getValue<DType>(i) = computeSigmoidDerivate(tensor.getValue<DType>(i));

@@ -62,8 +62,10 @@ namespace Ritsu {
 		}
 
 	  private:
-		inline DType computeSigmoid(DType x) const { return 1.0f / (1.0 + std::exp(-x)); }
-		inline DType computeSigmoidDerivate(DType x) const { return std::exp(-x) / std::pow(((std::exp(-x) + 1)), 2); }
+		inline static DType computeSigmoid(const DType value) { return 1.0f / (1.0 + std::exp(-value)); }
+		inline static DType computeSigmoidDerivate(const DType value) {
+			return std::exp(-value) / std::pow(((std::exp(-value) + 1)), 2);
+		}
 
 		void computeSigmoidDerivate(Tensor &tensor) const {
 #pragma omp parallel shared(tensor)
@@ -78,7 +80,7 @@ namespace Ritsu {
 
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<float>(i) = this->computeSigmoid(tensor.getValue<float>(i));
+				tensor.getValue<DType>(i) = computeSigmoid(tensor.getValue<DType>(i));
 			}
 		}
 

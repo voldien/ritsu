@@ -75,20 +75,20 @@ namespace Ritsu {
 		T getElementPerDimension(const uint32_t index) const { return this->dims[index]; }
 		T getNrDimensions() const { return this->dims.size(); }
 
-		friend std::ostream &operator<<(std::ostream &os, const Shape &shape) {
+		friend std::ostream &operator<<(std::ostream &stream, const Shape &shape) {
 
-			os << "[";
+			stream << "[";
 			for (int i = 0; i < shape.dims.size(); i++) {
 				size_t index = i;
 				T value = shape.dims[i];
-				os << value;
+				stream << value;
 				if (i < shape.dims.size() - 1) {
-					os << ",";
+					stream << ",";
 				}
 			}
-			os << "]";
+			stream << "]";
 
-			return os;
+			return stream;
 		}
 
 		void reshape(const std::vector<T> &newDims) {

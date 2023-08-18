@@ -1,4 +1,5 @@
 #pragma once
+#include "../Random.h"
 #include "../Tensor.h"
 #include "../core/Shape.h"
 #include <cstddef>

@@ -21,8 +21,10 @@ namespace Ritsu {
 	  private:
 		void compute(const Tensor &input, Tensor &output) {
 
-			size_t ndims = 10;
+			const size_t ndims = 10;
+
 			for (size_t i = 0; i < ndims; i++) {
+				
 				Tensor subset = input.getSubset<Tensor>(0, 12);
 				DType mean = Math::mean(subset.getRawData<DType>(), subset.getNrElements());
 				// TODO add // (subset - mean) /

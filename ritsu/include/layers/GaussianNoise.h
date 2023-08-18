@@ -1,5 +1,6 @@
 #pragma once
 #include "Layer.h"
+#include "Random.h"
 #include <ctime>
 #include <random>
 
@@ -8,31 +9,29 @@ namespace Ritsu {
 	class GuassianNoise : public Layer<float> {
 
 	  public:
-		GuassianNoise(float stddev, const std::string &name = "noise") : Layer(name), stddev(stddev) {
-			std::random_device randome_device;
-			/*	*/
-			this->gen = std::mt19937(randome_device());
-			this->dis = std::uniform_real_distribution<>(1.0, 2.0);
+		GuassianNoise(const DType mean, const DType stddev, const std::string &name = "noise") : Layer(name) {
+			this->random = new RandomNormal<DType>(stddev, mean);
 		}
+		~GuassianNoise() override { delete this->random; }
 
 		Tensor &operator<<(Tensor &tensor) override {
-			this->addNoise(tensor);
+			this->applyNoise(tensor);
 			return tensor;
 		}
 
 		Tensor operator<<(const Tensor &tensor) override {
 			Tensor tmp = tensor;
-			this->addNoise(tmp);
+			this->applyNoise(tmp);
 			return tmp;
 		}
 
 		Tensor operator>>(Tensor &tensor) override {
-			this->addNoise(tensor);
+			this->applyNoise(tensor);
 			return tensor;
 		}
 
 		Tensor &operator()(Tensor &tensor) override {
-			this->addNoise(tensor);
+			this->applyNoise(tensor);
 			return tensor;
 		}
 
@@ -64,19 +63,17 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> outputs;
 
 	  protected:
-		void addNoise(Tensor &tensor) {
+		void applyNoise(Tensor &tensor) {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 #pragma omp parallel shared(tensor)
 #pragma omp simd
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<float>(i) += dis(gen);
+				tensor.getValue<DType>(i) += this->random->rand();
 			}
 		}
 
 	  private:
-		float stddev;
-		std::mt19937 gen;
-		std::uniform_real_distribution<> dis;
+		Random<DType> *random;
 	};
 } // namespace Ritsu

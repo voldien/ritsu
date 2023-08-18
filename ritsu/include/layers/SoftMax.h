@@ -36,18 +36,19 @@ namespace Ritsu {
 
 	  private:
 		void computeSoftMax(Tensor &tensor) {
-			/*Iterate through each all elements.    */
-			DType sum = 0;
+			/*	Iterate through each all elements.    */
+			DType Inversesum = 0;
 			const size_t nrElements = tensor.getNrElements();
+
 #pragma omp parallel
 			for (size_t i = 0; i < nrElements; i++) {
-				sum += static_cast<DType>(std::exp(tensor.getValue<DType>(i)));
+				Inversesum += static_cast<DType>(std::exp(tensor.getValue<DType>(i)));
 			}
+			Inversesum = 1.0f / Inversesum;
 #pragma omp parallel
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = tensor.getValue<DType>(i) / sum;
+				tensor.getValue<DType>(i) = tensor.getValue<DType>(i) * Inversesum;
 			}
 		}
-		
 	};
 } // namespace Ritsu

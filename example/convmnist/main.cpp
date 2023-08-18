@@ -25,8 +25,8 @@ int main(int argc, const char **argv) {
 	Sigmoid sigmoid;
 	Regularization regularization(0.1, 0.2);
 
-	// Layer<float> &outputLayer = regularization(sigmoid(
-	//	output(flatten0(relu_0(BatchNormalization_1(conv2D_1(relu_0(BatchNormalization_0(conv2D_0(input0node))))))))));
+	Layer<float> &outputLayer = regularization(sigmoid(
+		output(flatten0(relu_0(BatchNormalization_1(conv2D_1(relu_0(BatchNormalization_0(conv2D_0(input0node))))))))));
 	//
-	// Model<float> model({&input0node}, {&outputLayer});
+	Model<float> model({&input0node}, {&outputLayer});
 }
