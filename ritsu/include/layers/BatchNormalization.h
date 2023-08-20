@@ -4,6 +4,11 @@
 #include "Tensor.h"
 
 namespace Ritsu {
+	
+	/**
+	 * @brief 
+	 * 
+	 */
 	class BatchNormalization : public Layer<float> {
 	  public:
 		BatchNormalization(const std::string &name = "batch normalization") : Layer<float>(name) {}

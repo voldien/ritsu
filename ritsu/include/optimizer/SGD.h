@@ -11,10 +11,20 @@ namespace Ritsu {
 			this->momentum = momentum;
 		}
 
-		void update_step(Tensor &gradient, Tensor &variable) {
+		virtual void gradient(const Tensor &loss, const Tensor &variable, Tensor &output_gradient) {}
+
+		void update_step(const Tensor &gradient, Tensor &variable) override {
+			Tensor tmpGradient = gradient;
 			if (momentum > 0) {
-				velocity = momentum * velocity - gradient * this->getLearningRate();
-				variable = variable + velocity;
+				// velocity = momentum * velocity - (gradient * this->getLearningRate());
+				// variable = variable + velocity;
+			} else {
+				Tensor gradientUpdate = tmpGradient * this->getLearningRate();
+
+				if (gradientUpdate.getShape() == variable.getShape()) {
+					// assert(train_variables->getShape() == differental_gradient.getShape());
+					variable = gradientUpdate;
+				}
 			}
 		}
 

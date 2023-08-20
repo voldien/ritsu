@@ -1,8 +1,10 @@
 #pragma once
 #include "Loss.h"
 #include "Tensor.h"
+#include "core/Shape.h"
 #include "layers/Layer.h"
 #include "optimizer/Optimizer.h"
+#include <cassert>
 #include <cstddef>
 #include <istream>
 #include <list>
@@ -28,20 +30,29 @@ namespace Ritsu {
 
 		// operator
 		// TODO add array.
-		void fit(size_t epochs, const Tensor &X, const Tensor &Y, size_t batch = 1, bool verbose = true) {
+		void fit(size_t epochs, const Tensor &inputData, const Tensor &expectedData, size_t batch = 1,
+				 bool verbose = true) {
 
 			/*	*/
-			const size_t nrBatches = X.getShape()[0] / batch;
+			const size_t nrBatches = inputData.getShape()[0] / batch;
 			// TODO verify shape and etc.
 
 			// TODO add array support.
 			Tensor batchResult;
 
 			// TODO add support
-			const size_t batchElementSize = 32 * 32 * 1;
-			const size_t batchXIndex = 0;
-			const size_t batchYIndex = 0;
+
+			const size_t batchXIndex = inputData.getShape().getNrDimensions() - 1;
+			const size_t batchYIndex = expectedData.getShape().getNrDimensions() - 1;
+
+			/*	*/
+			const Shape<Tensor::IndexType> dataShape = inputData.getShape()(1, inputData.getShape().getNrDimensions());
+			const Shape<Tensor::IndexType> expectedShape =
+				expectedData.getShape()(1, expectedData.getShape().getNrDimensions());
 			// Shape::computeNrElements(X.getShape()){
+
+			const size_t batchDataElementSize = dataShape.getNrElements();
+			const size_t batchExpectedElementSize = expectedShape.getNrElements();
 
 			//}
 
@@ -50,30 +61,41 @@ namespace Ritsu {
 				for (size_t ibatch = 0; ibatch < nrBatches; ibatch++) {
 
 					/*	Extract subset of the data.	*/
-					const Tensor subsetBatchX = std::move(X.getSubset<Tensor>(ibatch * batch * batchElementSize,
-																			  (ibatch + 1) * batch * batchElementSize));
-					const Tensor subsetBatchY = std::move(Y.getSubset<Tensor>(ibatch * batch * batchElementSize,
-																			  (ibatch + 1) * batch * batchElementSize));
+					const Tensor subsetBatchX = std::move(inputData.getSubset<Tensor>(
+						ibatch * batch * batchDataElementSize, (ibatch + 1) * batch * batchDataElementSize));
 
-					/*	Compute network.	*/
+					const Tensor subsetExpecetedBatch = std::move(expectedData.getSubset<Tensor>(
+						ibatch * batch * batchExpectedElementSize, (ibatch + 1) * batch * batchExpectedElementSize));
+
+					/*	Compute network forward.	*/
 					this->forwardPropgation(subsetBatchX, batchResult, batch);
 
-					/*	Compute the loss/cost.	*/
-					// batchResult.Reshape()
-					Tensor loss_error = std::move(this->lossFunction.computeLoss(batchResult, subsetBatchY));
+					// std::cout << "Forward Batch Result" << batchResult << std::endl << std::endl;
 
+					/*	Compute the loss/cost.	*/
+					Tensor loss_error = std::move(this->lossFunction.computeLoss(batchResult, subsetExpecetedBatch));
+
+					/*	*/
 					this->backPropagation(loss_error);
 
-					std::cout << '\r' << "Epoch" << nthEpoch << "/" << epochs << " batch: " << ibatch << "/" << ibatch
-							  << std::endl;
+					/*	*/
+					const DType  averageCost =
+						static_cast<float>(Math::sum(loss_error.getRawData<DType>(), loss_error.getNrElements())) /
+						static_cast<float>(loss_error.getNrElements());
+
+					const DType accuracy = 0;
+
+					std::cout << "\r"
+							  << "Epoch" << nthEpoch << "/" << epochs << " batch: " << ibatch << "/" << nrBatches
+							  << " cost: " << averageCost << " accuracy: " << accuracy << std::flush;
 				}
 			}
 		}
 
-		Tensor predict(const Tensor &X, size_t batch = 1, bool verbose = false) {
+		Tensor predict(const Tensor &inputTensor, size_t batch = 1, bool verbose = false) {
 
 			Tensor result;
-			this->forwardPropgation(X, result, batch);
+			this->forwardPropgation(inputTensor, result, batch);
 			return result;
 		}
 
@@ -85,7 +107,7 @@ namespace Ritsu {
 		virtual std::string summary() const {
 			std::stringstream _summary;
 
-			Layer<T> *current = this->inputs[0];
+			Layer<T> *current = nullptr;
 
 			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
 				Layer<T> *current = (*it);
@@ -95,6 +117,23 @@ namespace Ritsu {
 			_summary << "number of weights: " << std::to_string(this->nr_weights) << std::endl;
 			_summary << "Trainable in Bytes: " << std::to_string(this->weightSizeInBytes);
 			return _summary.str();
+		}
+
+		virtual void save(const std::string &path) {
+			/*	*/
+			/*	*/
+		}
+		virtual void load(const std::string &path) {
+			/*	*/
+			/*	*/
+		}
+		virtual void saveWeight(const std::string &path) {
+			/*	*/
+			/*	*/
+		}
+		virtual void loadWeight(const std::string &path) {
+			/*	*/
+			/*	*/
 		}
 
 	  protected:
@@ -107,14 +146,16 @@ namespace Ritsu {
 				Layer<T> *current = (*it);
 
 				/*	*/
-				std::cout << current->getName() << " " << current->getShape() << std::endl;
+				// std::cout << current->getName() << " " << current->getShape() << std::endl;
 
 				if (res.getShape() != current->getShape()) {
 				}
-				res = std::move((*current) << ((const Tensor &)res));
 
-				std::cout << "Result Tensor Shape"
-						  << " " << res.getShape() << std::endl;
+				res = std::move((*current) << ((const Tensor &)res));
+				// Verify shape
+
+				// std::cout << "Result Tensor Shape"
+				//		  << " " << res.getShape() << std::endl;
 			}
 			result = std::move(res);
 		}
@@ -125,20 +166,18 @@ namespace Ritsu {
 			Layer<T> *current = nullptr;
 
 			Tensor differental_gradient(result.getShape(), 4);
-			differental_gradient.assignInitValue(1.0f);
+			differental_gradient = result;
 
 			for (auto it = this->forwardSequence.rbegin(); it != this->forwardSequence.rend(); it++) {
 
 				Layer<T> *current = (*it);
 
-				std::cout << current->getName() << std::endl;
-				differental_gradient = current->compute_derivative(differental_gradient) *
-									   static_cast<DType>(this->optimizer->getLearningRate());
+				differental_gradient = current->compute_derivative(static_cast<const Tensor &>(differental_gradient));
 
 				/*	Only apply if */
 				Tensor *train_variables = current->getTrainableWeights();
-				if (train_variables != nullptr) {
-					*train_variables = differental_gradient;
+				if (train_variables) {
+					this->optimizer->update_step(differental_gradient, *train_variables);
 				}
 			}
 		}

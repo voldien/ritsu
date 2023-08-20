@@ -1,6 +1,7 @@
 #pragma once
 #include "../Random.h"
 #include "Layer.h"
+#include "Tensor.h"
 #include <cassert>
 #include <cstddef>
 #include <ctime>
@@ -69,11 +70,15 @@ namespace Ritsu {
 			/*	Validate */
 
 			/*	*/
-			this->weight = Tensor({static_cast<IndexType>(this->units), shape[0]}, this->DTypeSize);
+			this->weight = Tensor(Shape<IndexType>({static_cast<IndexType>(this->units), shape[0]}), this->DTypeSize);
 
 			/*	*/
 			this->initweight();
 			this->initbias();
+
+			assert(this->weight.getShape().getNrDimensions() == 2);
+			assert(this->weight.getShape()[1] == shape[0]);
+			assert(this->weight.getShape()[0] == this->units);
 		}
 
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
@@ -104,8 +109,15 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor compute_derivative(const Tensor &tensor) override {
+			Tensor output(this->weight.getShape());
+			computeDerivative(tensor, output);
+			return output;
+		}
+		Tensor &compute_derivative(Tensor &tensor) const override {
+			// computeDerivative(tensor, tensor);
+			return tensor;
+		}
 
 	  private:
 		/*	*/
@@ -114,41 +126,40 @@ namespace Ritsu {
 
 	  protected:
 		// operator
-		void compute(const Tensor &input, Tensor &output) {
+		void compute(const Tensor &inputTesnor, Tensor &output) {
 			/*	*/
+			// assert(inputTesnor.getShape() == this->bias.getShape());
 			// TODO improve
 			//#pragma omp parallel
 			// Verify the shape.
 
-			const size_t inputDims = input.getShape()[0];
+			// TODO matrix multiplication
+			output = computeMatrix(this->weight, inputTesnor) + this->bias;
+			return;
+		}
+		void computeDerivative(const Tensor &error, Tensor &result) {
+			result = this->weight * -1.0f;//computeMatrix(this->weight, error);
+		}
+		// TODO relocate
+		Tensor computeMatrix(const Tensor &TensorA, const Tensor &TensorB) {
 
-			for (size_t dim = 0; dim < units; dim++) {
+			Tensor output(this->getShape());
 
-				/*	*/
-				DType res = DType(0);
+			for (size_t y = 0; y < TensorA.getShape()[0]; y++) {
+				DType sum = 0;
+				for (size_t x = 0; x < TensorA.getShape()[1]; x++) {
 
-#pragma omp parallel for reduction(+ : res) shared(weight, input)
-				for (size_t elementIndex = 0; elementIndex < inputDims; elementIndex++) {
-					/*	*/
-					res +=
-						input.getValue<DType>(elementIndex) * this->weight.getValue<DType>(dim * units + elementIndex);
+					size_t index = y * TensorA.getShape()[0] + x;
+					sum = TensorA.getValue<DType>(index) * TensorB.getValue<DType>(y);
 				}
-				/*	*/
-				if (!this->bias.getNrElements()) {
-					res += bias.getValue<DType>(dim);
-				}
-
-				/*	*/
-				output.getValue<DType>(dim) = res;
+				output.getValue<DType>(y) = sum;
 			}
-
-			/*	Sum bias.*/
-			assert(this->getShape() == output.getShape());
+			return output;
 		}
 
 		void initweight() noexcept {
 
-			RandomNormal<DType> random(0.1, 0.2);
+			RandomNormal<DType> random(0.1, 1.0);
 #pragma omp parallel shared(weight)
 #pragma omp simd
 
@@ -159,7 +170,7 @@ namespace Ritsu {
 
 		void initbias() noexcept {
 
-			RandomNormal<DType> random(0.1, 0.2);
+			RandomNormal<DType> random(0.1, 1.0);
 
 #pragma omp parallel shared(bias)
 #pragma omp simd

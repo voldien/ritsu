@@ -2,6 +2,10 @@
 #include "Layer.h"
 
 namespace Ritsu {
+	/**
+	 * @brief 
+	 * 
+	 */
 	class AveragePooling2D : public Layer<float> {
 
 	  public:

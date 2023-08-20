@@ -1,5 +1,4 @@
 #pragma once
-#include "../Random.h"
 #include "../Tensor.h"
 #include "../core/Shape.h"
 #include <cstddef>
@@ -81,8 +80,8 @@ namespace Ritsu {
 		size_t getNrInputLayers() const { return this->getInputs().size(); }
 		size_t getNrOutputLayers() const { return this->getOutputs().size(); }
 
-		virtual Tensor compute_derivative(const Tensor &tensor) = 0;
-		virtual Tensor &compute_derivative(Tensor &tensor) const = 0;
+		virtual Tensor compute_derivative(const Tensor &tensorLoss) = 0;
+		virtual Tensor &compute_derivative(Tensor &tensorLoss) const = 0;
 
 	  protected:
 		Shape<IndexType> shape;

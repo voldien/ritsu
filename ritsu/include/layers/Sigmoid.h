@@ -51,13 +51,13 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 		Tensor compute_derivative(const Tensor &tensor) override {
-			Tensor result;
-			this->computeSigmoidDerivate(result);
+			Tensor result(tensor.getShape());
+			this->computeSigmoidDerivative(result);
 			return result;
 		}
 
 		Tensor &compute_derivative(Tensor &tensor) const override {
-			this->computeSigmoidDerivate(tensor);
+			this->computeSigmoidDerivative(tensor);
 			return tensor;
 		}
 
@@ -67,7 +67,7 @@ namespace Ritsu {
 			return std::exp(-value) / std::pow(((std::exp(-value) + 1)), 2);
 		}
 
-		void computeSigmoidDerivate(Tensor &tensor) const {
+		void computeSigmoidDerivative(Tensor &tensor) const {
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
 				tensor.getValue<DType>(i) = computeSigmoidDerivate(tensor.getValue<DType>(i));

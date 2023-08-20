@@ -49,6 +49,8 @@ namespace Ritsu {
 		T operator[](T index) const { return this->getElementPerDimension(index); }
 		T &operator[](T index) { return this->dims[index]; }
 
+		Shape<IndexType> operator()(T start, T end) const { return this->getSubShape(start, end); }
+
 		bool operator==(const Shape &shape) const {
 			if (&shape == this) {
 				return true;
@@ -62,6 +64,13 @@ namespace Ritsu {
 			}
 
 			return shape.dims != this->dims;
+		}
+
+		Shape getSubShape(const size_t start, const size_t end) const {
+			std::vector<IndexType>::const_iterator first = this->dims.begin() + start;
+			std::vector<IndexType>::const_iterator last = this->dims.begin() + end;
+			std::vector<IndexType> newVec(first, last);
+			return Shape<IndexType>(newVec);
 		}
 
 		// implicit
@@ -91,6 +100,7 @@ namespace Ritsu {
 			return stream;
 		}
 
+		// TODO add template to allow multiple of primtive types.
 		void reshape(const std::vector<T> &newDims) {
 			if (this->computeNrElements(newDims) == this->getNrElements()) {
 				this->dims = newDims;
@@ -98,6 +108,16 @@ namespace Ritsu {
 				// Failure
 				throw std::invalid_argument("Invalid Dimension");
 			}
+		}
+
+		static size_t computeIndex(const std::vector<IndexType> &dim) {
+			size_t totalSize = 1;
+
+			for (size_t i = dim.size() - 1; i >= dim.size(); i--) {
+				totalSize *= dim[i];
+			}
+			totalSize += dim[0];
+			return totalSize;
 		}
 
 	  public:

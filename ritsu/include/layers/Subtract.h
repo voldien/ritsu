@@ -5,6 +5,10 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief 
+	 * 
+	 */
 	class Subtract : public Add {
 
 	  public:

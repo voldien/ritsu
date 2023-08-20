@@ -3,6 +3,10 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief 
+	 * 
+	 */
 	class Activaction : public Layer<float> {
 	  public:
 		Activaction(const std::string &name = "") : Layer(name) {}

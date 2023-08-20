@@ -50,10 +50,10 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override {
-			computeDeriviate(tensor);
-			return tensor;
+		Tensor compute_derivative(const Tensor &tensorLoss) override { return tensorLoss; }
+		Tensor &compute_derivative(Tensor &tensorLoss) const override {
+			computeDeriviate(tensorLoss);
+			return tensorLoss;
 		}
 
 	  protected:

@@ -51,25 +51,25 @@ namespace Ritsu {
 
 		Tensor compute_derivative(const Tensor &tensor) override {
 			Tensor output = tensor;
-			computeDeriviate(output);
+			this->computeReluLeakyDerivative(output);
 			return output;
 		}
 
 		Tensor &compute_derivative(Tensor &tensor) const override {
-			this->computeDeriviate(tensor);
+			this->computeReluLeakyDerivative(tensor);
 			return tensor;
 		}
 
 	  protected:
-		#pragma omp declare simd uniform(value, alpha)
+#pragma omp declare simd uniform(value, alpha)
 		inline static constexpr DType leakyRelu(DType value, const DType alpha) {
 			if (value < 0) {
 				return value * alpha;
 			}
 			return std::max<DType>(0, value);
 		}
-		#pragma omp declare simd uniform(value, alpha)
-		inline static constexpr DType leakyReluDeriviate(DType value, const DType alpha) {
+#pragma omp declare simd uniform(value, alpha)
+		inline static constexpr DType leakyReluDerivative(DType value, const DType alpha) {
 			if (value >= 0) {
 				return 0;
 			}
@@ -85,11 +85,11 @@ namespace Ritsu {
 			}
 		}
 
-		void computeDeriviate(Tensor &tensor) const {
+		void computeReluLeakyDerivative(Tensor &tensor) const {
 			const size_t nrElements = tensor.getNrElements();
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = LeakyRelu::leakyReluDeriviate(tensor.getValue<DType>(i), this->alpha);
+				tensor.getValue<DType>(i) = LeakyRelu::leakyReluDerivative(tensor.getValue<DType>(i), this->alpha);
 			}
 		}
 

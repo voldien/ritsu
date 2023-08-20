@@ -7,10 +7,14 @@
 #include "layers/Concatenate.h"
 #include "layers/Conv2D.h"
 #include "layers/Dense.h"
+#include "layers/ExpLinear.h"
 #include "layers/GaussianNoise.h"
 #include "layers/Input.h"
+#include "layers/Linear.h"
 #include "layers/MinPooling2D.h"
 #include "layers/Regularization.h"
+#include "layers/Reshape.h"
+#include "layers/Swish.h"
 
 #include "Model.h"
 #include "layers/Flatten.h"
@@ -23,6 +27,7 @@
 #include "optimizer/Ada.h"
 #include "optimizer/Adam.h"
 #include "optimizer/SGD.h"
+
 // using TensorF = Tensor<float>;
 // using TensorD = Tensor<double>;
 // using TensorI = Tensor<int>;

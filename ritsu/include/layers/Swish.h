@@ -1,6 +1,5 @@
 #pragma once
 #include "Activaction.h"
-#include "Tensor.h"
 #include <cmath>
 
 namespace Ritsu {
@@ -9,9 +8,9 @@ namespace Ritsu {
 	 * @brief
 	 *
 	 */
-	class Tahn : public Activaction {
+	class Swish : public Activaction {
 	  public:
-		Tahn(const std::string &name = "tahn") : Activaction(name) {}
+		Swish(const std::string &name = "swish") : Activaction(name) {}
 
 		Tensor operator<<(const Tensor &tensor) override {
 
@@ -50,21 +49,14 @@ namespace Ritsu {
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }
 
-		Tensor compute_derivative(const Tensor &tensor) override {
-			Tensor output = tensor;
-			computeDerivative(output);
-			return output;
-		}
-		Tensor &compute_derivative(Tensor &tensor) const override {
-			computeDerivative(tensor);
-			return tensor;
-		}
+		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
+		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
 
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 	  private:
-		inline static constexpr DType computeTanh(DType value) {
+		inline static constexpr DType computeSwish(const DType value) {
 
 			const DType e_ = std::exp(-value);
 			const DType _e_ = std::exp(value);
@@ -72,18 +64,8 @@ namespace Ritsu {
 			return (e_ - _e_) / (e_ + _e_);
 		}
 
-		inline static constexpr DType computeTanhDerivate(DType value) {
+		inline static constexpr DType computeSwishDerivative(DType value) {
 			return std::exp(-value) / std::pow(((std::exp(-value) + 1)), 2);
-		}
-
-		static void computeDerivative(Tensor &output) {
-			/*Iterate through each all elements.    */
-			const size_t nrElements = output.getNrElements();
-
-#pragma omp parallel shared(output)
-			for (size_t i = 0; i < nrElements; i++) {
-				output.getValue<DType>(i) = Tahn::computeTanh(output.getValue<DType>(i));
-			}
 		}
 
 		void computeActivation(Tensor &tensor) {
@@ -92,7 +74,7 @@ namespace Ritsu {
 
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = Tahn::computeTanh(tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = Swish::computeSwish(tensor.getValue<DType>(i));
 			}
 		}
 

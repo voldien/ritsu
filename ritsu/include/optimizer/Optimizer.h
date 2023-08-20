@@ -1,5 +1,5 @@
 #pragma once
-#include "Tensor.h"
+#include "../Tensor.h"
 #include <string>
 
 namespace Ritsu {
@@ -19,7 +19,11 @@ namespace Ritsu {
 		void setLearningRate(T rate) { this->learningRate = rate; }
 		T getLearningRate() const { return this->learningRate; }
 
-		virtual void update_step(DType *gradient, DType *variable) {}
+		virtual void gradient(const Tensor &loss, const Tensor &variable, Tensor &output_gradient) {}
+
+		virtual void update_step(const Tensor &gradient, Tensor &variable) {}
+
+		virtual void apply(Tensor &gradient, Tensor &variable) {}
 
 	  private:
 		T learningRate;

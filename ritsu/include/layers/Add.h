@@ -3,6 +3,10 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief 
+	 * 
+	 */
 	class Add : public Layer<float> {
 
 	  public:

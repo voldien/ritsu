@@ -1,12 +1,13 @@
 #pragma once
 #include "Layer.h"
+#include <cstdint>
 
 namespace Ritsu {
 
 	class UpScale : public Layer<float> {
 
 	  public:
-		UpScale(float scale, const std::string &name) : Layer(name) {}
+		UpScale(uint32_t scale, const std::string &name = "upscale") : Layer(name) {}
 
 	  private:
 		// void compute(Tensor &a, Tensor &b) { return a + b; }

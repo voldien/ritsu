@@ -7,7 +7,7 @@ namespace Ritsu {
 	class Loss {
 
 	  public:
-		using LossFunction = void (*)(const Tensor &, const Tensor &, Tensor &);
+		using LossFunction = void (*)(const Tensor &evoluated, const Tensor &expected, Tensor &output_result);
 
 		Loss() = default;
 		//	template <typename T>
@@ -16,7 +16,7 @@ namespace Ritsu {
 			Tensor out(inputX0.getShape(), inputX0.DTypeSize);
 
 			if (!Tensor::verifyShape(inputX0, inputX1)) {
-				std::cout << inputX0.getShape() << inputX1.getShape() << "Bad Shape" << std::endl;
+				// std::cout << inputX0.getShape() << inputX1.getShape() << "Bad Shape" << std::endl;
 			}
 
 			this->loss_function(inputX0, inputX1, out);
@@ -27,4 +27,16 @@ namespace Ritsu {
 		LossFunction loss_function;
 		std::string name;
 	};
+
+	void loss_mse(const Tensor &inputA, const Tensor &inputB, Tensor &output_result) {
+		output_result = inputA;
+		output_result = output_result - inputB;
+		output_result = output_result * output_result;
+	}
+
+	void loss_msa(const Tensor &inputA, const Tensor &inputB, Tensor &output_result) {}
+
+	void cross_entropy(const Tensor &inputA, const Tensor &inputB, Tensor &output) {
+		/*Tensor A = inputA * log(inputB);*/
+	}
 }; // namespace Ritsu

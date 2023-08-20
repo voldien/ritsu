@@ -1,6 +1,5 @@
 #pragma once
 #include "Activaction.h"
-#include "Tensor.h"
 #include <cmath>
 
 namespace Ritsu {
@@ -9,9 +8,9 @@ namespace Ritsu {
 	 * @brief
 	 *
 	 */
-	class Tahn : public Activaction {
+	class Linear : public Activaction {
 	  public:
-		Tahn(const std::string &name = "tahn") : Activaction(name) {}
+		Linear(const DType linear, const std::string &name = "linear") : Activaction(name), linear(linear) {}
 
 		Tensor operator<<(const Tensor &tensor) override {
 
@@ -50,41 +49,16 @@ namespace Ritsu {
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }
 
-		Tensor compute_derivative(const Tensor &tensor) override {
-			Tensor output = tensor;
-			computeDerivative(output);
-			return output;
-		}
-		Tensor &compute_derivative(Tensor &tensor) const override {
-			computeDerivative(tensor);
-			return tensor;
-		}
+		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
+		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
 
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 	  private:
-		inline static constexpr DType computeTanh(DType value) {
+		inline static constexpr DType computeLinear(const DType coeff, const DType value) { return coeff * value; }
 
-			const DType e_ = std::exp(-value);
-			const DType _e_ = std::exp(value);
-
-			return (e_ - _e_) / (e_ + _e_);
-		}
-
-		inline static constexpr DType computeTanhDerivate(DType value) {
-			return std::exp(-value) / std::pow(((std::exp(-value) + 1)), 2);
-		}
-
-		static void computeDerivative(Tensor &output) {
-			/*Iterate through each all elements.    */
-			const size_t nrElements = output.getNrElements();
-
-#pragma omp parallel shared(output)
-			for (size_t i = 0; i < nrElements; i++) {
-				output.getValue<DType>(i) = Tahn::computeTanh(output.getValue<DType>(i));
-			}
-		}
+		inline static constexpr DType computeLinearDerivative(const DType coff) { return coff; }
 
 		void computeActivation(Tensor &tensor) {
 			/*Iterate through each all elements.    */
@@ -92,12 +66,23 @@ namespace Ritsu {
 
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = Tahn::computeTanh(tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = Linear::computeLinear(this->linear, tensor.getValue<DType>(i));
+			}
+		}
+
+		void computeActivationDerivative(Tensor &tensor) {
+			/*Iterate through each all elements.    */
+			const size_t nrElements = tensor.getNrElements();
+
+#pragma omp parallel shared(tensor)
+			for (size_t i = 0; i < nrElements; i++) {
+				tensor.getValue<DType>(i) = Linear::computeLinearDerivative(this->linear);
 			}
 		}
 
 	  private:
 		Layer<DType> *input;
 		std::vector<Layer<DType> *> outputs;
+		DType linear;
 	};
 } // namespace Ritsu

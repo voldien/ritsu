@@ -124,6 +124,9 @@ namespace Ritsu {
 		}
 
 		auto &operator+(const Tensor &tensor) {
+			if (verifyShape(*this, tensor)) {
+			}
+
 			size_t nrElements = this->getNrElements();
 #pragma omp parallel shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
@@ -140,7 +143,7 @@ namespace Ritsu {
 			return *this;
 		}
 
-		template <typename U> auto &operator-(const Tensor &tensor) {
+		auto &operator-(const Tensor &tensor) {
 			size_t nrElements = this->getNrElements();
 #pragma omp parallel shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
@@ -149,7 +152,7 @@ namespace Ritsu {
 			return *this;
 		}
 
-		template <typename U> auto &operator*(const Tensor &tensor) {
+		auto &operator*(const Tensor &tensor) {
 			size_t nrElements = this->getNrElements();
 #pragma omp parallel shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
@@ -158,7 +161,10 @@ namespace Ritsu {
 			return *this;
 		}
 
-		auto &operator*(const DType &vec) {
+		template <typename U> Tensor &operator*(U vec) {
+			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
+						  "Type Must Support addition operation.");
+
 			size_t nrElements = this->getNrElements();
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = this->getValue<DType>(index) * vec;
@@ -182,6 +188,7 @@ namespace Ritsu {
 		}
 
 		template <typename U> auto getSubset(size_t start, size_t end) const {
+			// TODO update shape
 			Tensor subset = U(static_cast<uint8_t *>(&this->buffer[start * DTypeSize]), end - start, this->getShape());
 			subset.ownAllocation = false;
 			return subset;
@@ -210,13 +217,15 @@ namespace Ritsu {
 			return *this;
 		}
 
+		Tensor &dot(const Tensor &tensor) { return *this; }
+
 		Tensor &append(Tensor &tensor) {
 			/*	Resize.	*/
 			return *this;
 		}
 
-		DType operator[](const std::vector<IndexType> &location) const { return getValue<DType>(location); }
-		DType &operator[](const std::vector<IndexType> &location) { return getValue<DType>(location); }
+		DType operator[](const std::vector<IndexType> &location) const { return this->getValue<DType>(location); }
+		DType &operator[](const std::vector<IndexType> &location) { return this->getValue<DType>(location); }
 
 		void resizeBuffer(const Shape<IndexType> &shape, const size_t elementSize) {
 			const size_t total_elements = shape.getNrElements();
@@ -268,7 +277,7 @@ namespace Ritsu {
 			}
 			return true;
 		}
-
+		// TODO add template to allow multiple of primtive types.
 		void reshape(const Shape<IndexType> &newShape) { this->shape.reshape(newShape); }
 
 	  private:

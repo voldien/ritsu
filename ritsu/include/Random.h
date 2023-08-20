@@ -45,4 +45,21 @@ namespace Ritsu {
 		std::normal_distribution<U> distribution;
 		std::mt19937 gen;
 	};
+
+	template <typename U> class RandomBernoulli : public Random<U> {
+	  public:
+		RandomBernoulli(const U perc = 1.0, const size_t seed = 0) {
+			this->distribution = std::bernoulli_distribution(perc);
+			std::random_device random_device;
+			this->generator =
+				std::default_random_engine(random_device()); // Standard mersenne_twister_engine seeded with rd()
+		}
+
+		U rand() override { return this->distribution(this->generator); }
+
+	  private:
+		std::bernoulli_distribution distribution;
+		std::default_random_engine generator;
+	};
+
 } // namespace Ritsu
