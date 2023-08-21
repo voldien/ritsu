@@ -11,6 +11,7 @@ namespace Ritsu {
 
 	  public:
 		Random() {}
+		virtual ~Random() = default;
 
 		virtual DType rand() = 0;
 

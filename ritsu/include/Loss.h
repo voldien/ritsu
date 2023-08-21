@@ -34,9 +34,19 @@ namespace Ritsu {
 		output_result = output_result * output_result;
 	}
 
-	void loss_msa(const Tensor &inputA, const Tensor &inputB, Tensor &output_result) {}
+	void loss_msa(const Tensor &inputA, const Tensor &inputB, Tensor &output_result) {
+		output_result = inputA;
+		output_result = output_result - inputB;
+		// TODO add absolute.
+		output_result = output_result * output_result;
+	}
 
-	void cross_entropy(const Tensor &inputA, const Tensor &inputB, Tensor &output) {
+	void loss_cross_entropy(const Tensor &inputA, const Tensor &inputB, Tensor &output) {
 		/*Tensor A = inputA * log(inputB);*/
 	}
+
+	void loss_cross_catagorial_entropy(const Tensor &inputA, const Tensor &inputB, Tensor &output) {
+		/*Tensor A = inputA * log(inputB);*/
+	}
+	void loss_ssim(const Tensor &inputA, const Tensor &inputB, Tensor &output) { /*Tensor A = inputA * log(inputB);*/ }
 }; // namespace Ritsu

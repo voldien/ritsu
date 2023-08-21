@@ -3,24 +3,41 @@
 logo
 []()
 
+## Supported Precisions
+
+- **Float**
+- **Double**
+- **Integar**
+
 ## Layer Support
 
-- **Dense**
+### Activation
+
 - **Relu**
+- **Leaky Relu**
 - **Sigmoid**
 - **Tanh**
-- **Batch Normalization**
-- **Leaky Relu**
 - **SoftMax**
+- **Linear**
+- **Swish**
+- **ExpLinear**
+### Layer
+- **Dense**
+- **Batch Normalization**
 - **Dropout**
-- **Flatten**
+
+- **GuassianNoise**
+
 - **MaxPooling2D/3D**
 - **AveragePooling2D/3D**
 - **MinPooling2D/3D**
-- **GuassianNoise**
+
 
 - **Convolution2D**
 - **TransposeConvolution2D**
+
+- **Flatten**
+- **Reshape**
 
 - **Concatenate**
 - **Add**
@@ -30,15 +47,18 @@ logo
 
 
 ## Loss Function
-- **MSE**
-- **SSIM**
-- **S**
+- **MSE** - Mean Square Error.
+- **MSA** - Mean Square Absolute.
+- **SSIM** - Structural similarity
+- **CrossEntropy** - 
+- **CatagorialCrossEntropy** - 
+- **PNNR**
 
 ## Optimizer
 
-- **SGD**
+- **SGD** -- Stochastic Gradient Descent
 - **Ada**
-- **Adam**
+- **Adam** - Adaptive Moment estimation
 
 
 ## Installation

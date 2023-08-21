@@ -25,16 +25,16 @@ namespace Ritsu {
 		/**
 		 *	Get min value of a and b.
 		 */
-		template <typename T> inline constexpr static T min(T a, T b) noexcept {
+		template <typename T> inline constexpr static T min(T value0, T value1) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
-			return (static_cast<T>(b) < static_cast<T>(a)) ? static_cast<T>(b) : static_cast<T>(a);
+			return (static_cast<T>(value1) < static_cast<T>(value0)) ? static_cast<T>(value1) : static_cast<T>(value0);
 		}
 
-		template <typename T> inline constexpr static T frac(T a) noexcept {
+		template <typename T> inline constexpr static T frac(T value) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			T part;
-			std::modf(a, &part);
+			std::modf(value, &part);
 			return part;
 		}
 
@@ -136,18 +136,18 @@ namespace Ritsu {
 		 * 	and will thus exceed eitehr the start or the end point.
 		 * @return constexpr T
 		 */
-		template <typename T> inline constexpr static T lerp(T a, T b, T t) noexcept {
+		template <typename T> inline constexpr static T lerp(T value0, T value1, T interp) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-			return (a + (b - a) * t);
+			return (value0 + (value1 - value0) * interp);
 		}
-		template <typename T> inline constexpr static T lerpClamped(T a, T b, T t) noexcept {
+		template <typename T> inline constexpr static T lerpClamped(T value0, T value1, T interp) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-			return (a + (b - a) * Math::clamp<T>(t, static_cast<T>(0.0), static_cast<T>(1.0)));
+			return (value0 + (value1 - value0) * Math::clamp<T>(interp, static_cast<T>(0.0), static_cast<T>(1.0)));
 		}
 
-		template <typename T> inline constexpr static T mod(T a, T mod) noexcept {
+		template <typename T> inline constexpr static T mod(T value, T mod) noexcept {
 			static_assert(std::is_integral<T>::value, "Must be a integer type.");
-			return (a % mod + mod) % mod;
+			return (value % mod + mod) % mod;
 		}
 
 		/**
@@ -238,7 +238,7 @@ namespace Ritsu {
 			return static_cast<T>(std::pow(x, exponent));
 		}
 
-		template <typename T> static T gameSpaceToLinear(T gamma, T exp) noexcept { return std::pow(gamma, exp); }
+		template <typename T> static T gameSpaceToLinear(T gamma, T exponent) noexcept { return std::pow(gamma, exponent); }
 
 		template <typename T> static inline T random() {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");

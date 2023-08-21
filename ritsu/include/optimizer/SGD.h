@@ -11,7 +11,7 @@ namespace Ritsu {
 			this->momentum = momentum;
 		}
 
-		virtual void gradient(const Tensor &loss, const Tensor &variable, Tensor &output_gradient) {}
+		void gradient(const Tensor &loss, const Tensor &variable, Tensor &output_gradient) override {}
 
 		void update_step(const Tensor &gradient, Tensor &variable) override {
 			Tensor tmpGradient = gradient;

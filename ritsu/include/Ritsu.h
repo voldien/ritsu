@@ -1,4 +1,6 @@
 #pragma once
+#include <cstddef>
+
 #include "Tensor.h"
 #include "layers/Add.h"
 #include "layers/AveragePooling2D.h"
@@ -28,7 +30,12 @@
 #include "optimizer/Adam.h"
 #include "optimizer/SGD.h"
 
-// using TensorF = Tensor<float>;
-// using TensorD = Tensor<double>;
-// using TensorI = Tensor<int>;
-// using TensorLI = Tensor<int>;
+namespace Ritsu {
+
+	// using TensorF = Tensor<float>;
+	// using TensorD = Tensor<double>;
+	// using TensorI = Tensor<std::int32_t>;
+	// using TensorI = Tensor<std::uint32_t>;
+	// using TensorLI = Tensor<std::int64_t>;
+
+}

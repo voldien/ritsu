@@ -1,13 +1,12 @@
 #pragma once
+#include "../Math.h"
 #include "Layer.h"
-#include "Math.h"
-#include "Tensor.h"
 
 namespace Ritsu {
-	
+
 	/**
-	 * @brief 
-	 * 
+	 * @brief
+	 *
 	 */
 	class BatchNormalization : public Layer<float> {
 	  public:
@@ -29,7 +28,7 @@ namespace Ritsu {
 			const size_t ndims = 10;
 
 			for (size_t i = 0; i < ndims; i++) {
-				
+
 				Tensor subset = input.getSubset<Tensor>(0, 12);
 				DType mean = Math::mean(subset.getRawData<DType>(), subset.getNrElements());
 				// TODO add // (subset - mean) /
