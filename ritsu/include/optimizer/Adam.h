@@ -6,7 +6,7 @@ namespace Ritsu {
 
 	template <typename T> class Adam : public Optimizer<T> {
 	  public:
-		Adam(T beta) {}
+		Adam(const T learningRate, const T beta, const std::string &name = "") : Optimizer<T>(learningRate, name) {}
 	};
 
 } // namespace Ritsu

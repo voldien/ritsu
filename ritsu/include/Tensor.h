@@ -143,6 +143,25 @@ namespace Ritsu {
 			return *this;
 		}
 
+		auto &operator-() {
+			size_t nrElements = this->getNrElements();
+			// #pragma omp parallel shared(tensor)
+			for (size_t index = 0; index < nrElements; index++) {
+				this->getValue<DType>(index) = -this->getValue<DType>(index);
+			}
+			return *this;
+		}
+
+		auto operator-() const {
+			Tensor output(getShape());
+			size_t nrElements = this->getNrElements();
+#pragma omp parallel shared(output)
+			for (size_t index = 0; index < nrElements; index++) {
+				output.getValue<DType>(index) = -this->getValue<DType>(index);
+			}
+			return output;
+		}
+
 		auto &operator-(const Tensor &tensor) {
 			size_t nrElements = this->getNrElements();
 #pragma omp parallel shared(tensor)
@@ -159,6 +178,17 @@ namespace Ritsu {
 				this->getValue<DType>(index) = this->getValue<DType>(index) * tensor.getValue<DType>(index);
 			}
 			return *this;
+		}
+
+		friend auto operator*(const Tensor &tensorA, const Tensor &tensorB) {
+			Tensor output(tensorA.getShape());
+			size_t nrElements = tensorA.getNrElements();
+
+#pragma omp parallel shared(tensorA, tensorB, output)
+			for (size_t index = 0; index < nrElements; index++) {
+				output.getValue<DType>(index) = tensorA.getValue<DType>(index) * tensorB.getValue<DType>(index);
+			}
+			return output;
 		}
 
 		template <typename U> Tensor &operator*(U vec) {
@@ -218,6 +248,7 @@ namespace Ritsu {
 		}
 
 		Tensor &dot(const Tensor &tensor) { return *this; }
+		friend Tensor dot(const Tensor &tensorA, const Tensor &tensorB) { return tensorA; }
 
 		Tensor &append(Tensor &tensor) {
 			/*	Resize.	*/
@@ -296,5 +327,22 @@ namespace Ritsu {
 		};
 		// TODO  add shared data
 		bool ownAllocation = true;
+
+	  public: // TOOD relocate
+		static Tensor log10(const Tensor &tensorA) {
+			Tensor output(tensorA.getShape());
+			for (size_t i = 0; i < tensorA.getNrElements(); i++) {
+				output.getValue<DType>(i) = static_cast<DType>(std::log10(tensorA.getValue<DType>(i)));
+			}
+			return output;
+		}
+
+		static Tensor abs(const Tensor &tensorA) {
+			Tensor output(tensorA.getShape());
+			for (size_t i = 0; i < tensorA.getNrElements(); i++) {
+				output.getValue<DType>(i) = static_cast<DType>(std::abs(tensorA.getValue<DType>(i)));
+			}
+			return output;
+		}
 	};
 } // namespace Ritsu

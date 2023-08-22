@@ -21,6 +21,7 @@ logo
 - **Linear**
 - **Swish**
 - **ExpLinear**
+
 ### Layer
 - **Dense**
 - **Batch Normalization**

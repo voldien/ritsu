@@ -13,7 +13,7 @@ namespace Ritsu {
 		//	template <typename T>
 		Loss(LossFunction lambda, const std::string &name = "loss") : name(name) { this->loss_function = lambda; }
 		virtual Tensor computeLoss(const Tensor &inputX0, const Tensor &inputX1) {
-			Tensor out(inputX0.getShape(), inputX0.DTypeSize);
+			Tensor out(inputX0.getShape(), Tensor::DTypeSize);
 
 			if (!Tensor::verifyShape(inputX0, inputX1)) {
 				// std::cout << inputX0.getShape() << inputX1.getShape() << "Bad Shape" << std::endl;
@@ -38,15 +38,22 @@ namespace Ritsu {
 		output_result = inputA;
 		output_result = output_result - inputB;
 		// TODO add absolute.
-		output_result = output_result * output_result;
+		output_result = Tensor::abs(output_result * output_result);
 	}
 
 	void loss_cross_entropy(const Tensor &inputA, const Tensor &inputB, Tensor &output) {
-		/*Tensor A = inputA * log(inputB);*/
+		output = std::move(inputA * Tensor::log10(inputB));
 	}
 
 	void loss_cross_catagorial_entropy(const Tensor &inputA, const Tensor &inputB, Tensor &output) {
+		Tensor A = Tensor::log10(inputB);
+		// TODO add support for primitve
+		Tensor one;
+		output = -inputB * A + (one - inputB) * A;
+
 		/*Tensor A = inputA * log(inputB);*/
 	}
-	void loss_ssim(const Tensor &inputA, const Tensor &inputB, Tensor &output) { /*Tensor A = inputA * log(inputB);*/ }
+
+	void loss_ssim(const Tensor &inputA, const Tensor &inputB, Tensor &output) { /*Tensor A = inputA * log(inputB);*/
+	}
 }; // namespace Ritsu
