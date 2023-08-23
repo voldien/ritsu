@@ -30,11 +30,13 @@ namespace Ritsu {
 
 		// operator
 		// TODO add array.
-		void fit(size_t epochs, const Tensor &inputData, const Tensor &expectedData, size_t batch = 1,
-				 bool verbose = true) {
+		// shuffle=True,
+		void fit(size_t epochs, const Tensor &inputData, const Tensor &expectedData, size_t batch_size = 1,
+				 float validation_split = 0.0f, bool verbose = true) {
 
 			/*	*/
-			const size_t nrBatches = inputData.getShape()[0] / batch;
+			const size_t nrTrainBatches = inputData.getShape()[0] / batch_size;
+			const size_t nrValidationBatches = 0;
 			// TODO verify shape and etc.
 
 			// TODO add array support.
@@ -44,6 +46,9 @@ namespace Ritsu {
 
 			const size_t batchXIndex = inputData.getShape().getNrDimensions() - 1;
 			const size_t batchYIndex = expectedData.getShape().getNrDimensions() - 1;
+
+			Tensor validationData;
+			Tensor validationExpected;
 
 			/*	*/
 			const Shape<Tensor::IndexType> dataShape = inputData.getShape()(1, inputData.getShape().getNrDimensions());
@@ -58,17 +63,18 @@ namespace Ritsu {
 
 			for (size_t nthEpoch = 0; nthEpoch < epochs; nthEpoch++) {
 
-				for (size_t ibatch = 0; ibatch < nrBatches; ibatch++) {
+				for (size_t ibatch = 0; ibatch < nrTrainBatches; ibatch++) {
 
 					/*	Extract subset of the data.	*/
 					const Tensor subsetBatchX = std::move(inputData.getSubset<Tensor>(
-						ibatch * batch * batchDataElementSize, (ibatch + 1) * batch * batchDataElementSize));
+						ibatch * batch_size * batchDataElementSize, (ibatch + 1) * batch_size * batchDataElementSize));
 
-					const Tensor subsetExpecetedBatch = std::move(expectedData.getSubset<Tensor>(
-						ibatch * batch * batchExpectedElementSize, (ibatch + 1) * batch * batchExpectedElementSize));
+					const Tensor subsetExpecetedBatch =
+						std::move(expectedData.getSubset<Tensor>(ibatch * batch_size * batchExpectedElementSize,
+																 (ibatch + 1) * batch_size * batchExpectedElementSize));
 
 					/*	Compute network forward.	*/
-					this->forwardPropgation(subsetBatchX, batchResult, batch);
+					this->forwardPropgation(subsetBatchX, batchResult, batch_size);
 
 					// std::cout << "Forward Batch Result" << batchResult << std::endl << std::endl;
 
@@ -79,16 +85,26 @@ namespace Ritsu {
 					this->backPropagation(loss_error);
 
 					/*	*/
-					const DType  averageCost =
+					const DType averageCost =
 						static_cast<float>(Math::sum(loss_error.getRawData<DType>(), loss_error.getNrElements())) /
 						static_cast<float>(loss_error.getNrElements());
 
+					const DType validationCost = 0;
+
 					const DType accuracy = 0;
 
+					const DType validationAccuracy = 0;
+
+					print_status(std::cout);
+
 					std::cout << "\r"
-							  << "Epoch" << nthEpoch << "/" << epochs << " batch: " << ibatch << "/" << nrBatches
-							  << " cost: " << averageCost << " accuracy: " << accuracy << std::flush;
+							  << "Epoch: " << nthEpoch << "/" << epochs << " Batch: " << ibatch << "/" << nrTrainBatches
+							  << " - loss: " << averageCost << " -  accuracy: " << accuracy << std::flush;
 				}
+				for (size_t ibatch = 0; ibatch < nrValidationBatches; ibatch++) {
+				}
+
+				std::cout << std::endl << std::flush;
 			}
 		}
 
@@ -99,6 +115,7 @@ namespace Ritsu {
 			return result;
 		}
 
+		// metrics=['accuracy']
 		void compile(Optimizer<T> *optimizer, Loss loss) {
 			this->optimizer = optimizer;
 			this->lossFunction = loss;
@@ -137,6 +154,7 @@ namespace Ritsu {
 		}
 
 	  protected:
+		// TODO add support for multiple input data and result data..
 		void forwardPropgation(const Tensor &inputData, Tensor &result, size_t batchSize) {
 
 			Layer<T> *current = this->inputs[0];
@@ -225,12 +243,24 @@ namespace Ritsu {
 			// this->forwardSequence.reverse();
 		}
 
+		void print_status(std::ostream &stream) {
+
+			// std::cout << "\r"
+			//		  << "Epoch: " << nthEpoch << "/" << epochs << " Batch: " << ibatch << "/" << nrTrainBatches
+			//		  << " - loss: " << averageCost << " -  accuracy: " << accuracy << std::flush;
+		}
+
+		bool is_build() const noexcept { return true; }
+
 	  protected:
 		std::vector<Layer<T> *> inputs;
 		std::vector<Layer<T> *> outputs;
 		Optimizer<T> *optimizer;
 		Loss lossFunction;
 		std::map<std::string, Layer<T> *> layers;
+
+		/*	*/
+		std::map<std::string, Tensor> metrics;
 
 	  private: /*	Internal data.	*/
 		std::list<Layer<DType> *> forwardSequence;

@@ -1,12 +1,15 @@
 #pragma once
 #include "Layer.h"
+#include "Random.h"
 
 namespace Ritsu {
 
 	class Dropout : public Layer<float> {
 
 	  public:
-		Dropout(const DType perc, const std::string &name = "dropout") : Layer(name), perc(perc) {}
+		Dropout(const DType perc, const std::string &name = "dropout") : Layer(name), perc(perc) {
+			this->random = new RandomBernoulli<DType>(perc);
+		}
 
 		Tensor &operator<<(Tensor &tensor) override {
 			this->computeDropout(tensor);
@@ -35,6 +38,7 @@ namespace Ritsu {
 
 		/*	*/
 		DType perc;
+		Random<DType> *random;
 		Layer<DType> *input;
 		std::vector<Layer<DType> *> outputs;
 	};

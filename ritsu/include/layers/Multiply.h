@@ -8,11 +8,13 @@ namespace Ritsu {
 	  public:
 		Multiply(const std::string &name = "multiply") {}
 
-		Multiply &operator<<(Multiply &layer) { return *this; }
+		Tensor operator<<(const Tensor &tensor) override { return tensor; }
 
-		Multiply &operator>>(Multiply &layer) { return *this; }
+		Tensor &operator<<(Tensor &tensor) override { return tensor; }
 
-		Multiply &operator()(Multiply &layer) { return *this; }
+		Tensor operator>>(Tensor &tensor) override { return tensor; }
+
+		Tensor &operator()(Tensor &tensor) override { return tensor; }
 
 	  private:
 	};

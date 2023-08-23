@@ -3,7 +3,12 @@
 #include <functional>
 
 namespace Ritsu {
-
+	
+	/**
+	 * @brief 
+	 * 
+	 * @tparam T 
+	 */
 	template <typename T> class SGD : public Optimizer<T> {
 	  public:
 		SGD(const T learningRate, const T momentum, const std::string &name = "SGD")

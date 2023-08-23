@@ -6,8 +6,11 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief
+	 *
+	 */
 	class GuassianNoise : public Layer<float> {
-
 	  public:
 		GuassianNoise(const DType mean, const DType stddev, const std::string &name = "noise") : Layer(name) {
 			this->random = new RandomNormal<DType>(stddev, mean);
@@ -56,7 +59,7 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		/*	No deriviate*/
+		/*	No derivative.	*/
 		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
 		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
 

@@ -3,6 +3,10 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief
+	 *
+	 */
 	class Flatten : public Layer<float> {
 	  public:
 		Flatten(const std::string &name = "flatten") : Layer<float>(name) {}

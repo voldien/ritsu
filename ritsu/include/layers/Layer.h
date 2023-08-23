@@ -20,7 +20,7 @@ namespace Ritsu {
 		const size_t DTypeSize = sizeof(DType);
 
 	  public:
-		Layer(const std::string &name) : name(name) { this->shape = std::move(Shape<IndexType>({1, 1})); }
+		Layer(const std::string &name) : name(name) { this->shape = std::move(Shape<IndexType>()); }
 		virtual ~Layer() {}
 
 		virtual Tensor operator<<(const Tensor &tensor) { return tensor; }
@@ -30,6 +30,8 @@ namespace Ritsu {
 		virtual Tensor operator>>(Tensor &tensor) { return tensor; }
 
 		virtual Tensor &operator()(Tensor &tensor) { return tensor; }
+
+		friend Tensor operator<<(const Tensor &tensorA, const Tensor &tensorB) { return {}; }
 
 		template <class U> auto &operator()(const U &layer) {
 			this->getInputs()[0] = layer;

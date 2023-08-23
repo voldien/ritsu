@@ -4,6 +4,11 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief
+	 *
+	 * @tparam T
+	 */
 	template <typename T> class Optimizer {
 	  public:
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,

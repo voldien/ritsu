@@ -6,10 +6,13 @@
 namespace Ritsu {
 
 	template <typename T> class Random {
+		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+					  "Must be a decimal type(float/double/half) or integer.");
+
+	  public:
 		using DType = T;
 		const size_t DTypeSize = sizeof(DType);
 
-	  public:
 		Random() {}
 		virtual ~Random() = default;
 

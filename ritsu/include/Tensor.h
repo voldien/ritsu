@@ -331,6 +331,7 @@ namespace Ritsu {
 	  public: // TOOD relocate
 		static Tensor log10(const Tensor &tensorA) {
 			Tensor output(tensorA.getShape());
+#pragma omp parallel shared(tensorA, output)
 			for (size_t i = 0; i < tensorA.getNrElements(); i++) {
 				output.getValue<DType>(i) = static_cast<DType>(std::log10(tensorA.getValue<DType>(i)));
 			}
@@ -339,6 +340,8 @@ namespace Ritsu {
 
 		static Tensor abs(const Tensor &tensorA) {
 			Tensor output(tensorA.getShape());
+
+#pragma omp parallel shared(tensorA, output)
 			for (size_t i = 0; i < tensorA.getNrElements(); i++) {
 				output.getValue<DType>(i) = static_cast<DType>(std::abs(tensorA.getValue<DType>(i)));
 			}

@@ -7,6 +7,10 @@
 
 using namespace Ritsu;
 
+void loadMNIST(const std::string& imagePath ){
+	
+}
+
 int main(int argc, const char **argv) {
 
 	/*	*/
@@ -64,12 +68,8 @@ int main(int argc, const char **argv) {
 
 	SGD<float> optimizer(0.002, 0.0);
 
-	Loss mse_loss([](const Tensor &value0, const Tensor &value1, Tensor &out) {
-		out = value0;
-		out = out - value1;
-		out = out * out;
-	});
-	forwardModel.compile(&optimizer, mse_loss);
+	Loss mse_loss(loss_mse);
+	forwardModel.compile(&optimizer, loss_cross_entropy);
 	std::cout << forwardModel.summary() << std::endl;
 
 	forwardModel.fit(epochs, inputData, inputRes, batchSize);
