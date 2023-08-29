@@ -4,6 +4,10 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief 
+	 * 
+	 */
 	class Reshape : public Layer<float> {
 	  public:
 		Reshape(const Shape<IndexType> &shape, const std::string &name = "reshape")

@@ -18,6 +18,7 @@
 #include "layers/Reshape.h"
 #include "layers/Swish.h"
 
+#include "Metric.h"
 #include "Model.h"
 #include "layers/Flatten.h"
 #include "layers/Layer.h"

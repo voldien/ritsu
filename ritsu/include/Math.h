@@ -149,6 +149,7 @@ namespace Ritsu {
 			static_assert(std::is_integral<T>::value, "Must be a integer type.");
 			return (value % mod + mod) % mod;
 		}
+		
 
 		/**
 		 *

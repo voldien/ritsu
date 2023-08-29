@@ -31,8 +31,6 @@ namespace Ritsu {
 
 		virtual Tensor &operator()(Tensor &tensor) { return tensor; }
 
-		friend Tensor operator<<(const Tensor &tensorA, const Tensor &tensorB) { return {}; }
-
 		template <class U> auto &operator()(const U &layer) {
 			this->getInputs()[0] = layer;
 			return *this;
@@ -71,9 +69,13 @@ namespace Ritsu {
 		void setName(const std::string &name) { this->name = name; }
 
 		Layer<T> &operator()(Layer<T> &layer) {
+			this->connectLayers(layer);
+			return *this;
+		}
+
+		virtual void connectLayers(Layer<T> &layer) {
 			this->setInputs({&layer});
 			layer.setOutputs({this});
-			return *this;
 		}
 
 		virtual void setInputs(const std::vector<Layer<DType> *> &layers) = 0;
@@ -85,6 +87,7 @@ namespace Ritsu {
 		virtual Tensor compute_derivative(const Tensor &tensorLoss) = 0;
 		virtual Tensor &compute_derivative(Tensor &tensorLoss) const = 0;
 
+	  private:
 	  protected:
 		Shape<IndexType> shape;
 

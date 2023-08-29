@@ -58,10 +58,10 @@ namespace Ritsu {
 
 	  protected:
 #pragma omp declare simd uniform(value)
-		inline static constexpr DType relu(DType value) { return std::max<DType>(0, value); }
+		inline static constexpr DType relu(const DType value) { return std::max<DType>(0, value); }
 
 #pragma omp declare simd uniform(value)
-		inline static constexpr DType reluDeriviate(DType value) {
+		inline static constexpr DType reluDeriviate(const DType value) {
 			if (value >= 0) {
 				return 1;
 			}

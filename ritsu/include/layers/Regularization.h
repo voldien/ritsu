@@ -56,9 +56,11 @@ namespace Ritsu {
 
 			return output;
 		}
+
 		Tensor &compute_derivative(Tensor &tensorLoss) const override {
 
-			Tensor output;
+			Tensor output(this->getShape());
+
 			if (this->l1 > 0) {
 				computeL1(tensorLoss, this->l1, output);
 			}

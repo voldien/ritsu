@@ -347,5 +347,10 @@ namespace Ritsu {
 			}
 			return output;
 		}
+
+		template <typename U> static U mean(const Tensor &tensorA) {
+			// TODO fix tup
+			return static_cast<U>(Math::mean<float>(tensorA.getRawData<float>(), tensorA.getNrElements()));
+		}
 	};
 } // namespace Ritsu

@@ -19,16 +19,17 @@ namespace Ritsu {
 
 			/*	*/
 			this->units = units;
+
 			/*	*/
 			this->shape = {this->units};
 
+			/*	*/
 			if (use_bias) {
 				this->bias = Tensor({units}, DTypeSize);
 				this->initbias();
 			}
 		}
 
-	  public:
 		Tensor operator<<(const Tensor &tensor) override {
 
 			Tensor output({this->units}, DTypeSize);
@@ -76,6 +77,7 @@ namespace Ritsu {
 			this->initweight();
 			this->initbias();
 
+			/*	*/
 			assert(this->weight.getShape().getNrDimensions() == 2);
 			assert(this->weight.getShape()[1] == shape[0]);
 			assert(this->weight.getShape()[0] == this->units);
@@ -135,11 +137,12 @@ namespace Ritsu {
 
 			// TODO matrix multiplication
 			output = computeMatrix(this->weight, inputTesnor) + this->bias;
-			return;
 		}
+
 		void computeDerivative(const Tensor &error, Tensor &result) {
-			result = this->weight * -1.0f;//computeMatrix(this->weight, error);
+			result = this->weight * -1.0f; // computeMatrix(this->weight, error);
 		}
+
 		// TODO relocate
 		Tensor computeMatrix(const Tensor &TensorA, const Tensor &TensorB) {
 

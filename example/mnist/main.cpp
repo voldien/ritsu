@@ -1,3 +1,4 @@
+#include "Metric.h"
 #include <Ritsu.h>
 
 #include <cstdio>
@@ -7,82 +8,60 @@
 
 using namespace Ritsu;
 
-void loadMNIST(const std::string& imagePath ){
-	
+void loadMNIST(const std::string &imagePath, Tensor &dataX, Tensor &dataY) {
+	/*	*/
+	/*	*/
 }
 
 int main(int argc, const char **argv) {
 
 	/*	*/
 	const unsigned int batchSize = 1;
+	const unsigned int output_size = 10;
 	const unsigned int epochs = 128;
+	Shape<unsigned int> dataShape({32, 32, 1});
+	Shape<unsigned int> resultShape({10});
 
-	Sigmoid sigmoid;
-	Relu relu;
+	const size_t dataBufferSize = 100;
+	Tensor inputResY({dataBufferSize, output_size}, 4);
+	Tensor inputDataX({dataBufferSize, 32, 32, 1}, 4);
 
-	Tensor input({1024, 1}, 4);
-	input.assignInitValue(0);
+	loadMNIST("", inputDataX, inputResY);
 
-	input = input + input;
-	// std::cout << input << std::endl;
+	Input input0node(dataShape, "input");
 
-	Dense dense(32);
-
-	Layer<float> *Pd = &dense;
-
-	GuassianNoise noise(2.f, 3.f);
-	input = noise(input);
-
-	Tensor Result = relu(input);
-	// Result = relu << Result;
-	// Result = *Pd << input;
-	// std::cout << Result << std::endl;
-
-	Input input0node({32, 32, 1}, "input");
-	BatchNormalization BatchNormalization;
-	Flatten flatten0("flatten0");
+	Flatten flattenInput("flatten0");
 	Flatten flatten("flatten1");
 
-	Dense fw0(128, true, "layer0");
+	Relu relu0;
+	Relu relu1;
 
+	Dense fw0(256, true, "layer0");
+	BatchNormalization BN0;
 	Dense fw1 = Dense(128, true, "layer1");
-
-	Dense fw2 = Dense(10, true, "layer2");
+	BatchNormalization BN1;
+	Dense fw2 = Dense(output_size, true, "layer2");
 
 	Sigmoid outputAct;
 
 	GuassianNoise noiseLayer(0.05, 0.05f, "noise");
 
-	Layer<float> &output = outputAct(flatten(fw2(relu(fw1(noiseLayer(fw0(flatten0(input0node))))))));
+	Layer<float> &output = outputAct(fw2(relu1(BN1(fw1(relu0(BN0(fw0(flattenInput(input0node)))))))));
 
-	Cast<int> float2int;
-	Sigmoid sig;
-	Add add;
-	Layer<float> &output2 = sig(add);
+	Model<float> forwardModel({&input0node}, {&output});
 
-	const size_t dataBufferSize = 100;
-	Tensor inputRes({dataBufferSize, 10}, 4);
-	Tensor inputData({dataBufferSize, 32, 32, 1}, 4);
+	SGD<float> optimizer(0.002f, 0.0);
 
-	Model<float> forwardModel({&input0node}, {&output2});
-
-	SGD<float> optimizer(0.002, 0.0);
+	MetricAccuracy accuracy;
+	MetricMean lossmetric;
 
 	Loss mse_loss(loss_mse);
-	forwardModel.compile(&optimizer, loss_cross_entropy);
+	forwardModel.compile(&optimizer, loss_cross_entropy, {(Metric *)&mse_loss, (Metric *)&accuracy});
 	std::cout << forwardModel.summary() << std::endl;
 
-	forwardModel.fit(epochs, inputData, inputRes, batchSize);
-	Tensor predict = std::move(forwardModel.predict(input));
+	forwardModel.fit(epochs, inputDataX, inputResY, batchSize);
+	Tensor predict = std::move(forwardModel.predict(inputDataX));
 	std::cout << "Predict " << predict << std::endl;
 
-	// Input inputRef({32, 32, 1});
-	//
-	// Conv2D conv(32, {2, 2}, {1, 1}, "");
-
-	// auto &ref = conv(inputRef);
-
 	return EXIT_SUCCESS;
-
-	// Create N
 }

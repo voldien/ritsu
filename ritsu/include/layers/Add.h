@@ -4,8 +4,8 @@
 namespace Ritsu {
 
 	/**
-	 * @brief 
-	 * 
+	 * @brief
+	 *
 	 */
 	class Add : public Layer<float> {
 
@@ -24,9 +24,7 @@ namespace Ritsu {
 			return tensor;
 		}
 
-		Tensor operator>>(Tensor &tensor) override {
-			return tensor;
-		}
+		Tensor operator>>(Tensor &tensor) override { return tensor; }
 
 		Tensor &operator()(Tensor &tensor) override {
 			// this->computeElementSum(tensor);
@@ -39,8 +37,8 @@ namespace Ritsu {
 			// return *this;
 		}
 
-		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
-		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
+		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->inputs = layers; }
+		void setOutputs(const std::vector<Layer<DType> *> &layers) override { this->outputs = layers; }
 
 		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
 		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
@@ -49,7 +47,7 @@ namespace Ritsu {
 		static inline void computeElementSum(Tensor &inputA, const Tensor &inputB) { inputA = inputA + inputB; }
 
 	  private:
-		std::vector<Layer<DType> *> *input;
+		std::vector<Layer<DType> *> inputs;
 		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

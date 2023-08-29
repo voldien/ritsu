@@ -4,6 +4,9 @@
 
 namespace Ritsu {
 
+	// template class Shape<std::uint32_t>;
+	// template class Shape<std::int32_t>;
+
 	template class Model<std::float_t>;
 	template class Model<std::int32_t>;
 	template class Model<std::int8_t>;
@@ -12,9 +15,13 @@ namespace Ritsu {
 	template class Layer<std::int32_t>;
 	template class Layer<std::int8_t>;
 
-	//template class Tensor<std::float_t>;
-	//template class Tensor<std::int32_t>;
-	//template class Tensor<std::int8_t>;
+	// template class Dense<std::float_t>;
+	// template class Dense<std::int32_t>;
+	// template class Dense<std::int8_t>;
+
+	// template class Tensor<std::float_t>;
+	// template class Tensor<std::int32_t>;
+	// template class Tensor<std::int8_t>;
 
 	template class Optimizer<std::float_t>;
 	template class Optimizer<double>;

@@ -1,6 +1,5 @@
 #pragma once
 #include "Activaction.h"
-#include <cmath>
 
 namespace Ritsu {
 

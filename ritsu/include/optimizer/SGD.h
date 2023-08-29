@@ -3,11 +3,11 @@
 #include <functional>
 
 namespace Ritsu {
-	
+
 	/**
-	 * @brief 
-	 * 
-	 * @tparam T 
+	 * @brief
+	 *
+	 * @tparam T
 	 */
 	template <typename T> class SGD : public Optimizer<T> {
 	  public:
@@ -19,6 +19,7 @@ namespace Ritsu {
 		void gradient(const Tensor &loss, const Tensor &variable, Tensor &output_gradient) override {}
 
 		void update_step(const Tensor &gradient, Tensor &variable) override {
+
 			Tensor tmpGradient = gradient;
 			if (momentum > 0) {
 				// velocity = momentum * velocity - (gradient * this->getLearningRate());

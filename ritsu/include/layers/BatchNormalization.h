@@ -16,11 +16,40 @@ namespace Ritsu {
 
 		Tensor &operator<<(Tensor &tensor) override { return tensor; }
 
-		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
-		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
+		template <class U> auto &operator()(U &layer) {
+
+			this->setInputs({&layer});
+			layer.setOutputs({this});
+
+			return *this;
+		}
+
+		void setInputs(const std::vector<Layer<DType> *> &layers) override {
+			this->shape = layers[0]->getShape();
+			/*	Set input layer */
+			this->outputs = layers;
+		}
+
+		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
+			/*	Set input layer */
+			this->outputs = layers;
+
+			// TODO verify flatten
+
+			/*	*/
+			this->build(this->getInputs()[0]->getShape());
+		}
+		void build(const Shape<IndexType> &shape) override { /*	Validate */
+		}
+
+		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
+		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
 		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+
+		Tensor *getTrainableWeights() override { return nullptr; }
+		Tensor *getVariables() override { return nullptr; }
 
 	  private:
 		void compute(const Tensor &input, Tensor &output) {
@@ -42,6 +71,7 @@ namespace Ritsu {
 		Tensor beta;
 		Tensor alpha;
 
+		/*	*/
 		/*	*/
 		Layer<DType> *input;
 		std::vector<Layer<DType> *> outputs;

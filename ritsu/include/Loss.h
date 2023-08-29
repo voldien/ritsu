@@ -25,6 +25,9 @@ namespace Ritsu {
 			}
 
 			this->loss_function(inputX0, inputX1, out);
+
+			/*	Compute mean per each element in batch.	*/
+
 			return out;
 		}
 

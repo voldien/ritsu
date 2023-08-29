@@ -4,6 +4,10 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief 
+	 * 
+	 */
 	class Dropout : public Layer<float> {
 
 	  public:
