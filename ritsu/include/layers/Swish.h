@@ -7,6 +7,7 @@ namespace Ritsu {
 	 * @brief
 	 *
 	 */
+
 	class Swish : public Activaction {
 	  public:
 		Swish(const std::string &name = "swish") : Activaction(name) {}

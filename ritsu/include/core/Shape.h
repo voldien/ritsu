@@ -1,5 +1,6 @@
 #pragma once
 #include "../Math.h"
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <iostream>
@@ -62,8 +63,16 @@ namespace Ritsu {
 			if (&shape != this) {
 				return true;
 			}
+			if (shape.getNrDimensions() != this->getNrDimensions()) {
+				return false;
+			}
+			for (size_t i = 0; i < shape.getNrElements(); i++) {
+				if (shape[i] != this->dims[i]) {
+					return true;
+				}
+			}
 
-			return shape.dims != this->dims;
+			return false;
 		}
 
 		Shape<IndexType> getSubShape(const size_t start, const size_t end) const {
@@ -81,7 +90,9 @@ namespace Ritsu {
 		Shape flatten() const { return Shape({static_cast<T>(Shape::computeNrElements<T>(this->dims))}); }
 
 		T getNrElements() const { return computeNrElements<T>(this->dims); }
-		T getAxisDimensions(const uint32_t index) const { return this->dims[Math::mod<size_t>(index, this->dims.size())]; }
+		T getAxisDimensions(const uint32_t index) const {
+			return this->dims[Math::mod<size_t>(index, this->dims.size())];
+		}
 		T getNrDimensions() const { return this->dims.size(); }
 
 		friend std::ostream &operator<<(std::ostream &stream, const Shape &shape) {

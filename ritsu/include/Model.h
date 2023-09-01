@@ -62,6 +62,8 @@ namespace Ritsu {
 				expectedData.getShape()(batch_size, expectedData.getShape().getNrDimensions());
 			// Shape::computeNrElements(X.getShape()){
 
+			std::map<std::string, Tensor> cachedResult;
+
 			/*	*/
 			const size_t batchDataElementSize = dataShape.getNrElements();
 			const size_t batchExpectedElementSize = expectedShape.getNrElements();
@@ -73,15 +75,16 @@ namespace Ritsu {
 				for (size_t ibatch = 0; ibatch < nrTrainBatches; ibatch++) {
 
 					/*	Extract subset of the data.	*/
-					const Tensor subsetBatchX = std::move(inputData.getSubset<Tensor>(
-						ibatch * batch_size * batchDataElementSize, (ibatch + 1) * batch_size * batchDataElementSize));
+					const Tensor subsetBatchX = std::move(
+						inputData.getSubset<Tensor>(ibatch * batch_size * batchDataElementSize,
+													(ibatch + 1) * batch_size * batchDataElementSize, dataShape));
 
-					const Tensor subsetExpecetedBatch =
-						std::move(expectedData.getSubset<Tensor>(ibatch * batch_size * batchExpectedElementSize,
-																 (ibatch + 1) * batch_size * batchExpectedElementSize));
+					const Tensor subsetExpecetedBatch = std::move(expectedData.getSubset<Tensor>(
+						ibatch * batch_size * batchExpectedElementSize,
+						(ibatch + 1) * batch_size * batchExpectedElementSize, expectedShape));
 
 					/*	Compute network forward.	*/
-					this->forwardPropgation(subsetBatchX, batchResult, batch_size);
+					this->forwardPropgation(subsetBatchX, batchResult, batch_size, &cachedResult);
 
 					/*	Compute the loss/cost.	*/
 					Tensor loss_error = std::move(this->lossFunction.computeLoss(batchResult, subsetExpecetedBatch));
@@ -157,6 +160,7 @@ namespace Ritsu {
 			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
 				Layer<T> *current = (*it);
 
+				// TODO get type
 				_summary << current->getName() << '\t' << " " << current->getShape() << std::endl;
 			}
 			_summary << "number of weights: " << std::to_string(this->nr_weights) << std::endl;
@@ -186,7 +190,8 @@ namespace Ritsu {
 
 	  protected:
 		// TODO add support for multiple input data and result data..
-		void forwardPropgation(const Tensor &inputData, Tensor &result, size_t batchSize) {
+		void forwardPropgation(const Tensor &inputData, Tensor &result, size_t batchSize,
+							   std::map<std::string, Tensor> *cacheResult = nullptr) {
 
 			Layer<T> *current = this->inputs[0];
 			Tensor res = std::move(inputData); // std::move((*current) << (inputData));
@@ -201,6 +206,11 @@ namespace Ritsu {
 				}
 
 				res = std::move((*current) << ((const Tensor &)res));
+
+				/*	*/
+				if (cacheResult != nullptr) {
+					(*cacheResult)[(*current).getName()] = res;
+				}
 				// Verify shape
 
 				// std::cout << "Result Tensor Shape"
@@ -238,10 +248,17 @@ namespace Ritsu {
 
 			for (auto it = this->forwardSequence.rbegin(); it != this->forwardSequence.rend(); it++) {
 				const std::string &name = (*it)->getName();
-				if (this->layers.find(name) != this->layers.end()) {
-					(*it)->setName(name + "_1");
+				std::string newName = (*it)->getName();
+
+				int index = 0;
+				while (this->layers.find(newName) != this->layers.end()) {
+
+					newName = name + "_" + (*it)->getDType().name();
+					newName += (char)('0' + (char)index);
 				}
-				this->layers[(*it)->getName().c_str()] = (*it);
+
+				(*it)->setName(newName);
+				this->layers[newName] = (*it);
 			}
 		}
 
@@ -299,5 +316,5 @@ namespace Ritsu {
 		std::list<Layer<DType> *> forwardSequence;
 		size_t nr_weights;
 		size_t weightSizeInBytes;
-	};
+	}; // namespace Ritsu
 } // namespace Ritsu

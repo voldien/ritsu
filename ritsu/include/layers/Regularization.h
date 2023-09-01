@@ -1,6 +1,7 @@
 #pragma once
 #include "Layer.h"
 #include "Tensor.h"
+#include <cassert>
 #include <cmath>
 
 namespace Ritsu {
@@ -41,8 +42,32 @@ namespace Ritsu {
 			return *this;
 		}
 
-		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
-		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
+		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
+
+			/*	Set input layer */
+			this->outputs = layers;
+
+			// TODO verify flatten
+
+			/*	*/
+			this->build(this->getInputs()[0]->getShape());
+		}
+
+		void setInputs(const std::vector<Layer<DType> *> &layers) override {
+
+			// TODO verify flatten
+			Layer<DType> *inputLayer = layers[0];
+			if (inputLayer->getShape().getNrDimensions() == 1) {
+			}
+
+			this->input = layers[0];
+			this->shape = this->input->getShape();
+
+			assert(layers.size() == 1);
+		}
+
+		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
+		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 		Tensor compute_derivative(const Tensor &tensorLoss) override {
 			Tensor output;
@@ -92,7 +117,7 @@ namespace Ritsu {
 		DType l1;
 		DType l2;
 
-		std::vector<Layer<DType> *> *input;
+		Layer<DType> *input;
 		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

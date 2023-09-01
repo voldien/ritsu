@@ -4,6 +4,10 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief
+	 *
+	 */
 	class SoftMax : public Activaction {
 	  public:
 		SoftMax(const std::string &name = "softmax") : Activaction(name) {}

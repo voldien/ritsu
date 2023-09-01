@@ -1,4 +1,6 @@
 #include "Metric.h"
+#include "layers/Regularization.h"
+#include "layers/UpScale.h"
 #include <Ritsu.h>
 
 #include <cstdio>
@@ -42,11 +44,11 @@ int main(int argc, const char **argv) {
 	BatchNormalization BN1;
 	Dense fw2 = Dense(output_size, true, "layer2");
 
+	Regularization regulation(0.00, 0.001);
+
 	Sigmoid outputAct;
 
-	GuassianNoise noiseLayer(0.05, 0.05f, "noise");
-
-	Layer<float> &output = outputAct(fw2(relu1(BN1(fw1(relu0(BN0(fw0(flattenInput(input0node)))))))));
+	Layer<float> &output = regulation(outputAct(fw2(relu1(BN1(fw1(relu0(BN0(fw0(flattenInput(input0node))))))))));
 
 	Model<float> forwardModel({&input0node}, {&output});
 
@@ -56,12 +58,16 @@ int main(int argc, const char **argv) {
 	MetricMean lossmetric;
 
 	Loss mse_loss(loss_mse);
-	forwardModel.compile(&optimizer, loss_cross_entropy, {(Metric *)&mse_loss, (Metric *)&accuracy});
+	forwardModel.compile(&optimizer, loss_mse, {(Metric *)&mse_loss, (Metric *)&accuracy});
 	std::cout << forwardModel.summary() << std::endl;
 
 	forwardModel.fit(epochs, inputDataX, inputResY, batchSize);
 	Tensor predict = std::move(forwardModel.predict(inputDataX));
 	std::cout << "Predict " << predict << std::endl;
+
+	UpScale<double> upDouble(0);
+	Cast<float> castFloat;
+	Layer<float> &v = castFloat(upDouble);
 
 	return EXIT_SUCCESS;
 }

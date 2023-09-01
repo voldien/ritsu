@@ -1,3 +1,4 @@
+
 #pragma once
 #include <cfloat>
 #include <cmath>
@@ -5,6 +6,10 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief
+	 *
+	 */
 	class Math {
 	  public:
 		template <class T> inline constexpr static T clamp(T value, T min, T max) {
@@ -42,6 +47,7 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
+			#pragma omp parallel shared(list) 
 			for (size_t i = 0; i < list.size(); i++) {
 				sum += list[i];
 			}
@@ -52,6 +58,7 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
+			#pragma omp parallel shared(list)
 			for (size_t i = 0; i < nrElements; i++) {
 				sum += list[i];
 			}
@@ -89,6 +96,7 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
+
 			for (size_t i = 0; i < list.size(); i++) {
 				sum += (list[i] - mean) * (list[i] - mean);
 			}
@@ -149,7 +157,6 @@ namespace Ritsu {
 			static_assert(std::is_integral<T>::value, "Must be a integer type.");
 			return (value % mod + mod) % mod;
 		}
-		
 
 		/**
 		 *
@@ -239,11 +246,13 @@ namespace Ritsu {
 			return static_cast<T>(std::pow(x, exponent));
 		}
 
-		template <typename T> static T gameSpaceToLinear(T gamma, T exponent) noexcept { return std::pow(gamma, exponent); }
+		template <typename T> static T gameSpaceToLinear(T gamma, T exponent) noexcept {
+			return std::pow(gamma, exponent);
+		}
 
 		template <typename T> static inline T random() {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-			return {static_cast<T>(drand48()), static_cast<T>(drand48())};
+			return {static_cast<T>(::drand48()), static_cast<T>(::drand48())};
 		}
 
 		template <typename T> static inline constexpr T align(T size, T alignment) {

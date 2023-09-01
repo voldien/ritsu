@@ -21,7 +21,7 @@ namespace Ritsu {
 			Tensor out(inputX0.getShape(), Tensor::DTypeSize);
 
 			if (!Tensor::verifyShape(inputX0, inputX1)) {
-				// std::cout << inputX0.getShape() << inputX1.getShape() << "Bad Shape" << std::endl;
+				std::cout << inputX0.getShape() << inputX1.getShape() << "Bad Shape" << std::endl;
 			}
 
 			this->loss_function(inputX0, inputX1, out);

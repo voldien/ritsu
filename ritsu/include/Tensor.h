@@ -1,5 +1,6 @@
 #pragma once
 #include "core/Shape.h"
+#include <algorithm>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -217,10 +218,14 @@ namespace Ritsu {
 			}
 		}
 
-		template <typename U> auto getSubset(size_t start, size_t end) const {
+		template <typename U> auto getSubset(size_t start, size_t end, const Shape<IndexType>& newShape = {}) const {
 			// TODO update shape
-			Tensor subset = U(static_cast<uint8_t *>(&this->buffer[start * DTypeSize]), end - start, this->getShape());
+			if(newShape.getNrDimensions() == 0){
+
+			}
+			Tensor subset = U(static_cast<uint8_t *>(&this->buffer[start * DTypeSize]), end - start, newShape);
 			subset.ownAllocation = false;
+
 			return subset;
 		}
 
@@ -262,6 +267,7 @@ namespace Ritsu {
 			const size_t total_elements = shape.getNrElements();
 
 			if (this->buffer != nullptr && this->ownAllocation) {
+				/*	*/
 			}
 
 			const size_t nrBytesAllocate = total_elements * elementSize;
@@ -351,6 +357,11 @@ namespace Ritsu {
 		template <typename U> static U mean(const Tensor &tensorA) {
 			// TODO fix tup
 			return static_cast<U>(Math::mean<float>(tensorA.getRawData<float>(), tensorA.getNrElements()));
+		}
+
+		template <typename U> static U variance(const Tensor &tensorA, const U mean) {
+			// TODO fix tup
+			return static_cast<U>(Math::variance<float>(tensorA.getRawData<float>(), tensorA.getNrElements(), mean));
 		}
 	};
 } // namespace Ritsu
