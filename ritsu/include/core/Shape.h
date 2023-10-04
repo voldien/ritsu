@@ -42,9 +42,21 @@ namespace Ritsu {
 			this->dims = shape;
 			return *this;
 		}
+
 		auto &operator=(std::vector<T> &&shape) {
 			this->dims = shape;
 			return *this;
+		}
+
+		friend Shape<IndexType> operator+(const Shape<IndexType> &shapeA, const Shape<IndexType> &shapeB) {
+			// verify if operation is possible.
+
+			return {};
+		}
+
+		friend Shape<IndexType> operator-(const Shape<IndexType> &shapeA, const Shape<IndexType> &shapeB) {
+			// verify if operation is possible.
+			return {};
 		}
 
 		T operator[](T index) const { return this->getAxisDimensions(index); }
@@ -53,27 +65,28 @@ namespace Ritsu {
 		Shape<IndexType> operator()(T start, T end) const { return this->getSubShape(start, end); }
 
 		bool operator==(const Shape &shape) const {
+
+			/*	Same address => equal.	*/
 			if (&shape == this) {
 				return true;
 			}
-			return shape.dims == this->dims;
-		}
 
-		bool operator!=(const Shape &shape) const {
-			if (&shape != this) {
-				return true;
-			}
+			/*	If not same number dims => not the same.	*/
 			if (shape.getNrDimensions() != this->getNrDimensions()) {
 				return false;
 			}
-			for (size_t i = 0; i < shape.getNrElements(); i++) {
-				if (shape[i] != this->dims[i]) {
-					return true;
+
+			/*	Check all elements equal.	*/
+			for (size_t i = 0; i < shape.getNrDimensions(); i++) {
+				if (shape.dims[i] != this->dims[i]) {
+					return false;
 				}
 			}
 
-			return false;
+			return true;
 		}
+
+		bool operator!=(const Shape &shape) const { return !(*this == shape); }
 
 		Shape<IndexType> getSubShape(const size_t start, const size_t end) const {
 			std::vector<IndexType>::const_iterator first = this->dims.begin() + start;
@@ -90,10 +103,12 @@ namespace Ritsu {
 		Shape flatten() const { return Shape({static_cast<T>(Shape::computeNrElements<T>(this->dims))}); }
 
 		T getNrElements() const { return computeNrElements<T>(this->dims); }
-		T getAxisDimensions(const uint32_t index) const {
+
+		T getAxisDimensions(const uint32_t index) const noexcept {
 			return this->dims[Math::mod<size_t>(index, this->dims.size())];
 		}
-		T getNrDimensions() const { return this->dims.size(); }
+
+		T getNrDimensions() const noexcept { return this->dims.size(); }
 
 		friend std::ostream &operator<<(std::ostream &stream, const Shape &shape) {
 
@@ -113,8 +128,10 @@ namespace Ritsu {
 
 		// TODO add template to allow multiple of primtive types.
 		void reshape(const std::vector<T> &newDims) {
+			/*	Only allow reshape if both dims have the same number of elements.	*/
 			if (this->computeNrElements(newDims) == this->getNrElements()) {
 				this->dims = newDims;
+				// TODO determine if the data has to reshaped too.
 			} else {
 				// Failure
 				throw std::invalid_argument("Invalid Dimension");
@@ -134,7 +151,7 @@ namespace Ritsu {
 	  public:
 		Shape flatten(const Shape &shape) const { return Shape({(T)Shape::computeNrElements(shape.dims)}); }
 
-		template <typename U> static U computeNrElements(const std::vector<U> &dims) {
+		template <typename U> static U computeNrElements(const std::vector<U> &dims) noexcept {
 			static_assert(std::is_integral<U>::value, "Type must be a integral type.");
 
 			size_t totalSize = 1;

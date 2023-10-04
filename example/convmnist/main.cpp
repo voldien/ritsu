@@ -9,6 +9,7 @@ using namespace Ritsu;
 
 int main(int argc, const char **argv) {
 	const unsigned int batchSize = 1;
+	bool useResnet;
 
 	Input input0node({32, 32, 1}, "input");
 

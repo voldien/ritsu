@@ -74,7 +74,10 @@ namespace Ritsu {
 		}
 
 		auto &operator=(const Tensor &other) {
+			/*	*/
 			this->resizeBuffer(other.getShape(), Ritsu::Tensor::DTypeSize);
+
+			/*	*/
 			memcpy(this->buffer, other.buffer, other.getDatSize());
 
 			return *this;
@@ -218,10 +221,9 @@ namespace Ritsu {
 			}
 		}
 
-		template <typename U> auto getSubset(size_t start, size_t end, const Shape<IndexType>& newShape = {}) const {
+		template <typename U> auto getSubset(size_t start, size_t end, const Shape<IndexType> &newShape = {}) const {
 			// TODO update shape
-			if(newShape.getNrDimensions() == 0){
-
+			if (newShape.getNrDimensions() == 0) {
 			}
 			Tensor subset = U(static_cast<uint8_t *>(&this->buffer[start * DTypeSize]), end - start, newShape);
 			subset.ownAllocation = false;
@@ -243,10 +245,13 @@ namespace Ritsu {
 			return *this;
 		}
 
-		template <typename T> Tensor &append(T tensor) {
+		template <typename T> Tensor &append(const T tensor) {
 			/*	Resize.	*/
-			Shape<IndexType> newShape;
+			Shape<IndexType> newShape({1});
+
+			/*	Add additional data.	*/
 			this->resizeBuffer(newShape, DTypeSize);
+
 			/*	Copy new Data.	*/
 
 			return *this;
@@ -255,8 +260,15 @@ namespace Ritsu {
 		Tensor &dot(const Tensor &tensor) { return *this; }
 		friend Tensor dot(const Tensor &tensorA, const Tensor &tensorB) { return tensorA; }
 
-		Tensor &append(Tensor &tensor) {
+		Tensor &append(const Tensor &tensor) {
 			/*	Resize.	*/
+			Shape<IndexType> newShape = tensor.getShape() + this->getShape();
+			const size_t address_offset = this->getNrElements();
+
+			this->resizeBuffer(newShape, DTypeSize);
+
+			/*	Add additional data.	*/
+
 			return *this;
 		}
 
@@ -303,16 +315,14 @@ namespace Ritsu {
 		}
 
 		template <typename U> inline const U *getRawData() const { return reinterpret_cast<U *>(this->buffer); }
+		template <typename U> inline U *getRawData() { return reinterpret_cast<U *>(this->buffer); }
 
 		inline size_t getNrElements() const { return this->NrElements; }
 		inline size_t getDatSize() const { return this->getNrElements() * DTypeSize; }
 
-		static bool verifyShape(const Tensor &tensorA, const Tensor &tensorB) {
+		static bool verifyShape(const Tensor &tensorA, const Tensor &tensorB) noexcept {
 			/*	*/
-			if (tensorA.getShape() != tensorB.getShape()) {
-				return false;
-			}
-			return true;
+			return tensorA.getShape() == tensorB.getShape();
 		}
 		// TODO add template to allow multiple of primtive types.
 		void reshape(const Shape<IndexType> &newShape) { this->shape.reshape(newShape); }
@@ -356,6 +366,9 @@ namespace Ritsu {
 
 		template <typename U> static U mean(const Tensor &tensorA) {
 			// TODO fix tup
+			if (tensorA.getNrElements() == 0) {
+				return 0;
+			}
 			return static_cast<U>(Math::mean<float>(tensorA.getRawData<float>(), tensorA.getNrElements()));
 		}
 

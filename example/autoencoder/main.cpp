@@ -13,6 +13,11 @@ using namespace Ritsu;
 
 int main(int argc, const char **argv) {
 	const unsigned int batchSize = 1;
+	const unsigned int output_size = 10;
+	const unsigned int epochs = 128;
+	Shape<unsigned int> dataShape({32, 32, 1});
+	Shape<unsigned int> resultShape({10});
+	bool useResnet;
 
 	Input input0node({32, 32, 1}, "input");
 
@@ -21,6 +26,7 @@ int main(int argc, const char **argv) {
 	Conv2D conv2D_0(32, {3, 3}, {1, 1}, "same");
 	Relu relu_0;
 	BatchNormalization BatchNormalization_0;
+	Add encAdd0;
 
 	Conv2D conv2D_1(32, {3, 3}, {1, 1}, "same");
 	Relu relu_1;

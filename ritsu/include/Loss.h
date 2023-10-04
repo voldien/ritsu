@@ -1,6 +1,7 @@
 #pragma once
 #include "Tensor.h"
 #include <functional>
+#include <iostream>
 
 namespace Ritsu {
 
@@ -18,17 +19,18 @@ namespace Ritsu {
 		Loss(LossFunction lambda, const std::string &name = "loss") : name(name) { this->loss_function = lambda; }
 
 		virtual Tensor computeLoss(const Tensor &inputX0, const Tensor &inputX1) {
-			Tensor out(inputX0.getShape(), Tensor::DTypeSize);
+			Tensor batchLossResult(inputX0.getShape(), Tensor::DTypeSize);
 
+			/*	*/
 			if (!Tensor::verifyShape(inputX0, inputX1)) {
-				std::cout << inputX0.getShape() << inputX1.getShape() << "Bad Shape" << std::endl;
+				std::cerr << "Bad Shape " << inputX0.getShape() << " not equal " << inputX1.getShape() << std::endl;
 			}
 
-			this->loss_function(inputX0, inputX1, out);
+			this->loss_function(inputX0, inputX1, batchLossResult);
 
 			/*	Compute mean per each element in batch.	*/
 
-			return out;
+			return batchLossResult;
 		}
 
 	  private:

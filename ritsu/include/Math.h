@@ -230,7 +230,7 @@ namespace Ritsu {
 
 		template <typename T>
 		static inline void guassian(const T &guassian, unsigned int width, unsigned int height, T theta,
-									T standard_deviation) noexcept {
+									const T standard_deviation) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			for (unsigned int i = 0; i < height; i++) {
 				// guassian(guassian[i * width],)

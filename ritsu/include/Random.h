@@ -27,6 +27,11 @@ namespace Ritsu {
 		std::random_device random_device; // Will be used to obtain a seed for the random number engine
 	};
 
+	/**
+	 * @brief 
+	 * 
+	 * @tparam U 
+	 */
 	template <typename U> class RandomUniform : public Random<U> {
 	  public:
 		RandomUniform(const U min = 0.0, const U max = 1.0, const size_t seed = 0) {
@@ -40,6 +45,11 @@ namespace Ritsu {
 		std::default_random_engine generator;
 	};
 
+	/**
+	 * @brief 
+	 * 
+	 * @tparam U 
+	 */
 	template <typename U> class RandomNormal : public Random<U> {
 	  public:
 		RandomNormal(const U mean = 0.0, const U stddev = 1.0, const size_t seed = 0) {
@@ -55,6 +65,11 @@ namespace Ritsu {
 		std::mt19937 gen;
 	};
 
+	/**
+	 * @brief 
+	 * 
+	 * @tparam U 
+	 */
 	template <typename U> class RandomBernoulli : public Random<U> {
 	  public:
 		RandomBernoulli(const U perc = 1.0, const size_t seed = 0) {

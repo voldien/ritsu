@@ -78,7 +78,18 @@ namespace Ritsu {
 			layer.setOutputs({this});
 		}
 
+		/**
+		 * @brief Override
+		 *
+		 * @param layers
+		 */
 		virtual void setInputs(const std::vector<Layer<DType> *> &layers) = 0;
+
+		/**
+		 * @brief Override the input
+		 *
+		 * @param layers
+		 */
 		virtual void setOutputs(const std::vector<Layer<DType> *> &layers) = 0;
 
 		size_t getNrInputLayers() const { return this->getInputs().size(); }
@@ -86,6 +97,16 @@ namespace Ritsu {
 
 		virtual Tensor compute_derivative(const Tensor &tensorLoss) = 0;
 		virtual Tensor &compute_derivative(Tensor &tensorLoss) const = 0;
+
+		void addInputLayers(const std::vector<Layer<DType> *> &layers) {
+			/*	*/
+
+			this->setInputs(layers);
+		}
+		void addOutputLayers(const std::vector<Layer<DType> *> &layers) {
+			/*	*/
+			this->setOutputs(layers);
+		}
 
 	  private:
 	  protected:

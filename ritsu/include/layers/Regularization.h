@@ -13,26 +13,15 @@ namespace Ritsu {
 			: Layer<float>(name), l1(L1), l2(L2) {}
 
 		Tensor operator<<(const Tensor &tensor) override {
-
-			Tensor output = tensor;
-			// this->computeElementSum(this-> output);
+			Tensor output = std::move(tensor);
 			return output;
 		}
 
-		Tensor &operator<<(Tensor &tensor) override {
-			//	this->computeElementSum(tensor);
-			return tensor;
-		}
+		Tensor &operator<<(Tensor &tensor) override { return tensor; }
 
-		Tensor operator>>(Tensor &tensor) override {
-			// this->computeElementSum(tensor);
-			return tensor;
-		}
+		Tensor operator>>(Tensor &tensor) override { return tensor; }
 
-		Tensor &operator()(Tensor &tensor) override {
-			// this->computeElementSum(tensor);
-			return tensor;
-		}
+		Tensor &operator()(Tensor &tensor) override { return tensor; }
 
 		template <class U> auto &operator()(U &layer) {
 
@@ -70,7 +59,7 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 		Tensor compute_derivative(const Tensor &tensorLoss) override {
-			Tensor output;
+			Tensor output(tensorLoss.getShape());
 
 			if (this->l1 > 0) {
 				computeL1(tensorLoss, this->l1, output);
@@ -100,6 +89,7 @@ namespace Ritsu {
 		static inline void computeElementSum(Tensor &inputA, const Tensor &inputB) { inputA = inputA + inputB; }
 
 		static void computeL1(const Tensor &tensor, const DType L1, Tensor &output) {
+			/*	*/
 #pragma omp parallel shared(output, tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
 				output.getValue<DType>(i) = L1 * std::abs(tensor.getValue<DType>(i));
@@ -107,6 +97,7 @@ namespace Ritsu {
 		}
 
 		static void computeL2(const Tensor &tensor, const DType L2, Tensor &output) {
+			/*	*/
 #pragma omp parallel shared(output, tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
 				output.getValue<DType>(i) = L2 * (tensor.getValue<DType>(i) * tensor.getValue<DType>(i));

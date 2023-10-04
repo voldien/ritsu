@@ -5,8 +5,8 @@
 namespace Ritsu {
 
 	/**
-	 * @brief 
-	 * 
+	 * @brief
+	 *
 	 */
 	class Reshape : public Layer<float> {
 	  public:
@@ -38,9 +38,14 @@ namespace Ritsu {
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
-			this->input = layers[0];
 
-			this->shape = this->input->getShape().flatten();
+			Layer<DType> *layer = layers[0];
+			/*	*/
+			if (layer->getShape().getNrElements() != this->getShape().getNrElements()) {
+				/*	*/
+			}
+
+			this->input = layers[0];
 		}
 
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
@@ -54,6 +59,7 @@ namespace Ritsu {
 		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
 		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
 
+	  protected:
 	  private:
 		Layer<DType> *input;
 		std::vector<Layer<DType> *> outputs;
