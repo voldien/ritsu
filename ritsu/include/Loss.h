@@ -21,16 +21,15 @@ namespace Ritsu {
 		virtual Tensor computeLoss(const Tensor &inputX0, const Tensor &inputX1) {
 			Tensor batchLossResult(inputX0.getShape(), Tensor::DTypeSize);
 
-			/*	*/
-			if (!Tensor::verifyShape(inputX0, inputX1)) {
-				std::cerr << "Bad Shape " << inputX0.getShape() << " not equal " << inputX1.getShape() << std::endl;
-			}
-
 			this->loss_function(inputX0, inputX1, batchLossResult);
 
 			/*	Compute mean per each element in batch.	*/
 
 			return batchLossResult;
+		}
+
+		virtual Tensor operator()(const Tensor &inputX0, const Tensor &inputX1) {
+			return this->computeLoss(inputX0, inputX1);
 		}
 
 	  private:
@@ -39,6 +38,11 @@ namespace Ritsu {
 	};
 
 	static void loss_mse(const Tensor &evoluated, const Tensor &expected, Tensor &output_result) {
+		/*	*/
+		if (!Tensor::verifyShape(evoluated, expected)) {
+			std::cerr << "Bad Shape " << evoluated.getShape() << " not equal " << expected.getShape() << std::endl;
+		}
+
 		output_result = evoluated;
 		output_result = output_result - expected;
 		output_result = output_result * output_result;
@@ -62,8 +66,21 @@ namespace Ritsu {
 		output = -expected * A + (one - expected) * A;
 	}
 
+	// TODO convert to one shot vector.
 	static void loss_cross_catagorial_entropy(const Tensor &evoluated, const Tensor &expected, Tensor &output) {
 		output = std::move(expected * Tensor::log10(evoluated) * -1.0f);
+
+		/*Tensor A = inputA * log(inputB);*/
+	}
+
+	// SparseCategoricalCrossentropy
+
+	static void sparse_categorical_crossentropy(const Tensor &evoluated, const Tensor &expected, Tensor &output) {
+
+		Tensor expected_one_shot = Tensor::zero(evoluated.getShape());
+		expected_one_shot.getValue<float>((uint32_t)expected.getValue<float>(0)) = 1;
+
+		return loss_cross_catagorial_entropy(evoluated, expected_one_shot, output);
 
 		/*Tensor A = inputA * log(inputB);*/
 	}

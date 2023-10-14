@@ -376,5 +376,13 @@ namespace Ritsu {
 			// TODO fix tup
 			return static_cast<U>(Math::variance<float>(tensorA.getRawData<float>(), tensorA.getNrElements(), mean));
 		}
+
+		static Tensor zero(const Shape<IndexType> &shape) {
+			Tensor zeroTesnor(shape);
+
+			memset(zeroTesnor.getRawData<void *>(), 0, zeroTesnor.getNrElements() * DTypeSize);
+
+			return zeroTesnor;
+		}
 	};
 } // namespace Ritsu

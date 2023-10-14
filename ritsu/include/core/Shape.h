@@ -90,7 +90,11 @@ namespace Ritsu {
 
 		Shape<IndexType> getSubShape(const size_t start, const size_t end) const {
 			std::vector<IndexType>::const_iterator first = this->dims.begin() + start;
-			std::vector<IndexType>::const_iterator last = this->dims.begin() + end;
+			std::vector<IndexType>::const_iterator last =
+				this->dims.begin() + Math::mod<size_t>(end, this->dims.size());
+
+			last++; // Inclusive.
+
 			std::vector<IndexType> newVec(first, last);
 			return Shape<IndexType>(newVec);
 		}

@@ -21,16 +21,16 @@ namespace Ritsu {
 		Random() {}
 		virtual ~Random() = default;
 
-		virtual DType rand() = 0;
+		virtual DType rand() noexcept = 0;
 
 	  protected:
 		std::random_device random_device; // Will be used to obtain a seed for the random number engine
 	};
 
 	/**
-	 * @brief 
-	 * 
-	 * @tparam U 
+	 * @brief
+	 *
+	 * @tparam U
 	 */
 	template <typename U> class RandomUniform : public Random<U> {
 	  public:
@@ -38,7 +38,7 @@ namespace Ritsu {
 			this->distribution = std::uniform_real_distribution<U>(min, max);
 		}
 
-		U rand() override { return this->distribution(this->generator); }
+		U rand() noexcept override { return this->distribution(this->generator); }
 
 	  private:
 		std::uniform_real_distribution<U> distribution;
@@ -46,9 +46,9 @@ namespace Ritsu {
 	};
 
 	/**
-	 * @brief 
-	 * 
-	 * @tparam U 
+	 * @brief
+	 *
+	 * @tparam U
 	 */
 	template <typename U> class RandomNormal : public Random<U> {
 	  public:
@@ -58,7 +58,7 @@ namespace Ritsu {
 			this->gen = std::mt19937(random_device()); // Standard mersenne_twister_engine seeded with rd()
 		}
 
-		U rand() override { return this->distribution(this->gen); }
+		U rand() noexcept override { return this->distribution(this->gen); }
 
 	  private:
 		std::normal_distribution<U> distribution;
@@ -66,9 +66,9 @@ namespace Ritsu {
 	};
 
 	/**
-	 * @brief 
-	 * 
-	 * @tparam U 
+	 * @brief
+	 *
+	 * @tparam U
 	 */
 	template <typename U> class RandomBernoulli : public Random<U> {
 	  public:
@@ -79,7 +79,7 @@ namespace Ritsu {
 				std::default_random_engine(random_device()); // Standard mersenne_twister_engine seeded with rd()
 		}
 
-		U rand() override { return this->distribution(this->generator); }
+		U rand() noexcept override { return this->distribution(this->generator); }
 
 	  private:
 		std::bernoulli_distribution distribution;

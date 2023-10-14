@@ -12,7 +12,7 @@ namespace Ritsu {
 	 */
 	class Math {
 	  public:
-		template <class T> inline constexpr static T clamp(T value, T min, T max) {
+		template <class T> inline constexpr static T clamp(T value, T min, T max) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return Math::max<T>(min, Math::min<T>(max, value));
@@ -21,7 +21,7 @@ namespace Ritsu {
 		/**
 		 *	Get max value of a and b.
 		 */
-		template <typename T> inline constexpr static T max(T value0, T value1) {
+		template <typename T> inline constexpr static T max(T value0, T value1) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return (static_cast<T>(value0) < static_cast<T>(value1)) ? static_cast<T>(value1) : static_cast<T>(value0);
@@ -47,7 +47,7 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
-			#pragma omp parallel shared(list) 
+#pragma omp parallel shared(list)
 			for (size_t i = 0; i < list.size(); i++) {
 				sum += list[i];
 			}
@@ -58,7 +58,7 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
-			#pragma omp parallel shared(list)
+#pragma omp parallel shared(list)
 			for (size_t i = 0; i < nrElements; i++) {
 				sum += list[i];
 			}
@@ -250,12 +250,12 @@ namespace Ritsu {
 			return std::pow(gamma, exponent);
 		}
 
-		template <typename T> static inline T random() {
+		template <typename T> static inline T random() noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			return {static_cast<T>(::drand48()), static_cast<T>(::drand48())};
 		}
 
-		template <typename T> static inline constexpr T align(T size, T alignment) {
+		template <typename T> static inline constexpr T align(T size, T alignment) noexcept {
 			static_assert(std::is_integral<T>::value, "Must be an integral type.");
 			return size + (alignment - (size % alignment));
 		}
