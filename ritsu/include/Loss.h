@@ -10,7 +10,17 @@ namespace Ritsu {
 	 *
 	 */
 	// TODO add template.
+	// template <typename T>
 	class Loss {
+	  public:
+		// static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+		//			  "Must be a decimal type(float/double/half) or integer.");
+		//
+		// using IndexType = unsigned int;
+		// static constexpr size_t IndexTypeSize = sizeof(IndexType);
+		// using DType = T;
+		// const size_t DTypeSize = sizeof(DType);
+
 	  public:
 		using LossFunction = void (*)(const Tensor &evoluated, const Tensor &expected, Tensor &output_result);
 
@@ -73,7 +83,11 @@ namespace Ritsu {
 		/*Tensor A = inputA * log(inputB);*/
 	}
 
-	class SparseCategoricalCrossentropy : public Loss {
+	class MSE : public Loss  {
+	  public:
+	};
+
+	class SparseCategoricalCrossentropy : public Loss  {
 	  public:
 	};
 

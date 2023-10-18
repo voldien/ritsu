@@ -44,6 +44,7 @@ namespace Ritsu {
 		void fit(const size_t epochs, const Tensor &inputData, const Tensor &expectedData, const size_t batch_size = 1,
 				 const float validation_split = 0.0f, const bool shuffle = false, const bool verbose = true) {
 
+			const size_t batch_shape_index = 0; // TODO fix
 			/*	*/
 			if (!this->is_build()) {
 				/*	Invalid state.	*/
@@ -61,24 +62,24 @@ namespace Ritsu {
 			// TODO add support
 
 			/*	Number of batches in dataset.	*/
-			const size_t batchXIndex = inputData.getShape()[-1];
-			const size_t batchYIndex = expectedData.getShape()[-1];
+			const size_t batchXIndex = inputData.getShape()[0];
+			const size_t batchYIndex = expectedData.getShape()[0];
 
 			/*	*/
 			Tensor validationData;
 			Tensor validationExpected;
 
-			/*	Batch Size.	*/
-			const Shape<Tensor::IndexType> dataShape =
-				inputData.getShape()(batch_size, inputData.getShape().getNrDimensions());
-			const Shape<Tensor::IndexType> expectedShape =
-				expectedData.getShape()(batch_size, expectedData.getShape().getNrDimensions());
+			/*	Batch Shape Size.	*/
+			Shape<Tensor::IndexType> batchDataShape = inputData.getShape();
+			batchDataShape[batch_shape_index] = batch_size;
+			Shape<Tensor::IndexType> batchExpectedShape = expectedData.getShape();
+			batchExpectedShape[batch_shape_index] = batch_size;
 
 			std::map<std::string, Tensor> cachedResult;
 
 			/*	*/
-			const size_t batchDataElementSize = dataShape.getNrElements();
-			const size_t batchExpectedElementSize = expectedShape.getNrElements();
+			const size_t batchDataElementSize = batchDataShape.getNrElements();
+			const size_t batchExpectedElementSize = batchExpectedShape.getNrElements();
 
 			for (size_t nthEpoch = 0; nthEpoch < epochs; nthEpoch++) {
 				std::cout << "Epoch: " << nthEpoch << " / " << epochs << std::endl << std::flush;
@@ -91,11 +92,11 @@ namespace Ritsu {
 					/*	Extract subset of the data.	*/
 					const Tensor subsetBatchX = std::move(
 						inputData.getSubset<Tensor>(ibatch * batch_size * batchDataElementSize,
-													(ibatch + 1) * batch_size * batchDataElementSize, dataShape));
+													(ibatch + 1) * batch_size * batchDataElementSize, batchDataShape));
 
 					const Tensor subsetExpecetedBatch = std::move(expectedData.getSubset<Tensor>(
 						ibatch * batch_size * batchExpectedElementSize,
-						(ibatch + 1) * batch_size * batchExpectedElementSize, expectedShape));
+						(ibatch + 1) * batch_size * batchExpectedElementSize, batchExpectedShape));
 
 					/*	Compute network forward.	*/
 					this->forwardPropgation(subsetBatchX, batchResult, batch_size, &cachedResult);
@@ -103,6 +104,7 @@ namespace Ritsu {
 					/*	Compute the loss/cost.	*/
 					Tensor loss_error = std::move(this->lossFunction.computeLoss(batchResult, subsetExpecetedBatch));
 
+					/*	Apply metric update.	*/
 					for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
 						this->metrics[m_index]->update_state(loss_error);
 					}
@@ -129,7 +131,7 @@ namespace Ritsu {
 					std::cout << std::flush;
 				}
 
-				/*	Validation Pass.	*/
+				/*	Validation Pass. Only compute, no backpropgation.	*/
 				for (size_t ibatch = 0; ibatch < nrValidationBatches; ibatch++) {
 
 					/*	Extract subset of the data.	*/
@@ -156,6 +158,15 @@ namespace Ritsu {
 
 				std::cout << std::endl << std::flush;
 			}
+		}
+
+		Tensor evaluate(const Tensor &XData, const Tensor &YData, const size_t batch = 1, const bool verbose = false) {
+
+			Tensor result;
+
+			this->forwardPropgation(XData, result, batch);
+
+			return result;
 		}
 
 		Tensor predict(const Tensor &inputTensor, const size_t batch = 1, const bool verbose = false) {
@@ -248,31 +259,34 @@ namespace Ritsu {
 							   std::map<std::string, Tensor> *cacheResult = nullptr) {
 
 			Layer<T> *current = this->inputs[0];
-			Tensor res = std::move(inputData); // std::move((*current) << (inputData));
+			Tensor layerResult = std::move(inputData); // std::move((*current) << (inputData));
 
 			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
 				Layer<T> *current = (*it);
 
-				/*	*/
-				// std::cout << current->getName() << " " << current->getShape() << std::endl;
+				for (size_t i = 0; i < batchSize; i++) {
+					// TODO fix.
 
-				if (res.getShape() != current->getShape()) {
+					/*	Perform layer on data.	*/
+					layerResult = std::move((*current) << ((const Tensor &)layerResult));
+
 					/*	*/
+					auto shape = layerResult.getShape().getSubShape(1);
+					if (shape != current->getShape()) {
+						/*	*/
+						std::cerr << "Invalid Shape: " << shape << " " << current->getShape() << std::endl;
+					}
+
+					// std::cout << "Result Tensor Shape"
+					//		  << " " << res.getShape() << std::endl;
 				}
 
-				/*	*/
-				res = std::move((*current) << ((const Tensor &)res));
-
-				/*	*/
+				/*	Assign result if memory provided.	*/
 				if (cacheResult != nullptr) {
-					(*cacheResult)[(*current).getName()] = res;
+					(*cacheResult)[(*current).getName()] = layerResult;
 				}
-				// Verify shape
-
-				// std::cout << "Result Tensor Shape"
-				//		  << " " << res.getShape() << std::endl;
 			}
-			result = std::move(res);
+			result = std::move(layerResult);
 		}
 
 		void backPropagation(const Tensor &result, std::map<std::string, Tensor> &cacheResult) {

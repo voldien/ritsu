@@ -40,7 +40,7 @@
 #include "layers/Rescaling.h"
 #include "layers/Reshape.h"
 #include "layers/Swish.h"
-#include "layers/UpScale.h"
+#include "layers/UpSampling2D.h"
 
 #include "Metric.h"
 #include "Model.h"
@@ -61,5 +61,7 @@ namespace Ritsu {
 	// using TensorI = Tensor<std::int32_t>;
 	// using TensorI = Tensor<std::uint32_t>;
 	// using TensorLI = Tensor<std::int64_t>;
+	using ShapeI = Shape<uint32_t>;
+	using ShapeL = Shape<uint64_t>;
 
-}
+} // namespace Ritsu

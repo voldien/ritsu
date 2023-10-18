@@ -21,7 +21,7 @@ int main(int argc, const char **argv) {
 	Shape<unsigned int> dataShape({32, 32, 1});
 	Shape<unsigned int> resultShape({10});
 
-		/*	*/
+	/*	*/
 	Tensor inputResY, inputResTestY;
 	Tensor inputDataX, inputTestX;
 

@@ -1,6 +1,7 @@
 #include "Metric.h"
 #include "Tensor.h"
 #include "layers/Regularization.h"
+#include "layers/Rescaling.h"
 #include "mnist_dataset.h"
 #include <Ritsu.h>
 #include <cstdint>
@@ -34,10 +35,15 @@ int main(int argc, const char **argv) {
 	Shape<unsigned int> resultShape = inputResY.getShape().getSubShape(1, 1);
 	const unsigned int output_size = 10;
 
+	inputDataX = inputDataX.cast<float>();
+	inputTestX = inputTestX.cast<float>();
+
 	/*	*/
 	std::cout << "Train Object Size: " << dataShape << " Expected result Size: " << resultShape << std::endl;
 
 	Input input0node(dataShape, "input");
+	Cast<uint8_t, float> cast2Float;
+	Rescaling normalizedLayer(1.0f / 255.0f);
 
 	Flatten flattenInput("flatten0");
 	Flatten flatten("flatten1");
@@ -58,7 +64,8 @@ int main(int argc, const char **argv) {
 
 	/*	*/
 	{
-		Layer<float> &output = regulation(outputAct(fw2(relu1(BN1(fw1(relu0(BN0(fw0(flattenInput(input0node))))))))));
+		Layer<float> &output = regulation(
+			outputAct(fw2(relu1(BN1(fw1(relu0(BN0(fw0(flattenInput(normalizedLayer(cast2Float(input0node))))))))))));
 
 		Model<float> forwardModel({&input0node}, {&output});
 

@@ -69,14 +69,16 @@ namespace Ritsu {
 		template <typename T> constexpr static T mean(const T *list, size_t nrElements) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
-			T sum = Math::sum<T>(list, nrElements);
+			/*	*/
+			const T sum = Math::sum<T>(list, nrElements);
+
 			return (static_cast<T>(1) / static_cast<T>(nrElements)) * sum;
 		}
 
 		template <typename T> constexpr static T mean(const std::vector<T> &list) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
-			T sum = Math::sum<T>(list);
+			const T sum = Math::sum<T>(list);
 			return (static_cast<T>(1) / static_cast<T>(list.size())) * sum;
 		}
 

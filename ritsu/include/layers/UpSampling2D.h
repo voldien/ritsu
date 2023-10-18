@@ -9,10 +9,10 @@ namespace Ritsu {
 	 * 
 	 * @tparam T 
 	 */
-	template <typename T> class UpScale : public Layer<T> {
+	template <typename T> class UpSampling2D : public Layer<T> {
 
 	  public:
-		UpScale(uint32_t scale, const std::string &name = "upscale") : Layer<T>(name) {}
+		UpSampling2D(uint32_t scale, const std::string &name = "upscale") : Layer<T>(name) {}
 
 		void setOutputs(const std::vector<Layer<T> *> &layers) override {
 			/*	Set input layer */

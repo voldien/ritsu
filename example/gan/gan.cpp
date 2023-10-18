@@ -5,7 +5,7 @@
 #include "layers/Regularization.h"
 #include "layers/Reshape.h"
 #include "layers/Tanh.h"
-#include "layers/UpScale.h"
+#include "layers/UpSampling2D.h"
 #include "mnist_dataset.h"
 #include <Ritsu.h>
 #include <cstdint>
@@ -24,7 +24,7 @@ int main(int argc, const char **argv) {
 	const size_t dataBufferSize = 5;
 	const float learningRate = 0.002f;
 
-	Shape<unsigned int> generatorInputSize = {64, 1};
+	Shape<unsigned int> generatorInputSize;// = {64, 1};
 
 	/*	*/
 	Tensor inputResY, inputResTestY;
@@ -66,17 +66,18 @@ int main(int argc, const char **argv) {
 	Input inputG(generatorInputSize, "");
 
 	Dense base0(49);
-	Reshape reshape({7, 7});
+	Shape<unsigned int> reshapeShape;
+	Reshape reshape(reshapeShape);
 
 	/*	Process to 14.	*/
 	Conv2D conv_0(32, {1, 1}, {1, 1}, "same");
 	LeakyRelu leaky_0(0.2f);
-	UpScale<float> upscale_0(2);
+	UpSampling2D<float> upscale_0(2);
 
 	/*	Process to 28.	*/
 	Conv2D conv_1(32, {1, 1}, {1, 1}, "same");
 	LeakyRelu leaky_1(0.2f);
-	UpScale<float> upscale_1(2);
+	UpSampling2D<float> upscale_1(2);
 
 	Tahn outputAc;
 

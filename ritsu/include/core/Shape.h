@@ -78,9 +78,10 @@ namespace Ritsu {
 
 			/*	Check all elements equal.	*/
 			for (size_t i = 0; i < shape.getNrDimensions(); i++) {
-				if (shape.dims[i] != this->dims[i]) {
-					return false;
+				if (shape.dims[i] == this->dims[i]) {
+					continue;
 				}
+				return false;
 			}
 
 			return true;
@@ -89,20 +90,30 @@ namespace Ritsu {
 		bool operator!=(const Shape &shape) const { return !(*this == shape); }
 
 		Shape<IndexType> getSubShape(const size_t start, const size_t end) const {
+
+			/*	*/
 			std::vector<IndexType>::const_iterator first = this->dims.begin() + start;
 			std::vector<IndexType>::const_iterator last =
-				this->dims.begin() + Math::mod<size_t>(end, this->dims.size());
-
-			last++; // Inclusive.
+				(this->dims.begin() + Math::mod<size_t>(end, this->dims.size())) + 1; // Inclusive.
 
 			std::vector<IndexType> newVec(first, last);
 			return Shape<IndexType>(newVec);
+		}
+
+		Shape<IndexType> getSubShape(const size_t start) const {
+			return this->getSubShape(start, this->getNrDimensions() - 1);
 		}
 
 		// implicit
 		operator std::vector<T>() const { return this->dims; }
 		// explicit conversion
 		explicit operator const std::vector<T> &() const { return this->dims; }
+
+		Shape<IndexType> &reduce() const {
+			// Remove 1 axis.
+			for (size_t i = 0; i < this->getNrDimensions(); i++) {
+			}
+		}
 
 		Shape flatten() const { return Shape({static_cast<T>(Shape::computeNrElements<T>(this->dims))}); }
 
@@ -141,6 +152,8 @@ namespace Ritsu {
 				throw std::invalid_argument("Invalid Dimension");
 			}
 		}
+
+		void append(const std::vector<T> &additionalDims) {}
 
 		static size_t computeIndex(const std::vector<IndexType> &dim) {
 			size_t totalSize = 1;

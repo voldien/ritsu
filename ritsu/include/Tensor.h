@@ -272,6 +272,19 @@ namespace Ritsu {
 			return *this;
 		}
 
+		template <typename U> Tensor &cast() {
+			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
+						  "Must be a decimal type(float/double/half) or integer.");
+			const size_t cast_element_size = sizeof(U);
+
+			/*	Resize.	*/
+			if (this->element_size != cast_element_size) {
+			}
+
+			// Convert value.
+			return *this;
+		}
+
 		DType operator[](const std::vector<IndexType> &location) const { return this->getValue<DType>(location); }
 		DType &operator[](const std::vector<IndexType> &location) { return this->getValue<DType>(location); }
 
@@ -303,6 +316,8 @@ namespace Ritsu {
 		}
 
 		const Shape<IndexType> &getShape() const { return this->shape; }
+
+
 
 		inline size_t computeIndex(const std::vector<IndexType> &dim) const {
 			size_t totalSize = 1;
@@ -343,6 +358,7 @@ namespace Ritsu {
 		};
 		// TODO  add shared data
 		bool ownAllocation = true;
+		uint32_t element_size;
 
 	  public: // TOOD relocate
 		static Tensor log10(const Tensor &tensorA) {

@@ -62,7 +62,7 @@ void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &la
 
 		const size_t ImageSize = static_cast<size_t>(width) * static_cast<size_t>(height);
 
-		dataX = Tensor({nr_images, width, height, 1}, sizeof(uint8_t));
+		dataX = Tensor({static_cast<unsigned int>(nr_images), static_cast<unsigned int>(width), static_cast<unsigned int>(height), 1}, sizeof(uint8_t));
 		uint8_t *raw = dataX.getRawData<uint8_t>();
 
 		uint8_t *imageData = (uint8_t *)malloc(ImageSize);
