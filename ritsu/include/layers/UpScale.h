@@ -4,6 +4,11 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief 
+	 * 
+	 * @tparam T 
+	 */
 	template <typename T> class UpScale : public Layer<T> {
 
 	  public:

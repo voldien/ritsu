@@ -5,6 +5,10 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief 
+	 * 
+	 */
 	class MaxPooling2D : public Layer<float> {
 
 	  public:

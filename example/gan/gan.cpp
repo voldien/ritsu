@@ -1,6 +1,11 @@
 #include "Metric.h"
 #include "Tensor.h"
+#include "layers/Conv2D.h"
+#include "layers/LeakyRelu.h"
 #include "layers/Regularization.h"
+#include "layers/Reshape.h"
+#include "layers/Tanh.h"
+#include "layers/UpScale.h"
 #include "mnist_dataset.h"
 #include <Ritsu.h>
 #include <cstdint>
@@ -19,6 +24,8 @@ int main(int argc, const char **argv) {
 	const size_t dataBufferSize = 5;
 	const float learningRate = 0.002f;
 
+	Shape<unsigned int> generatorInputSize = {64, 1};
+
 	/*	*/
 	Tensor inputResY, inputResTestY;
 	Tensor inputDataX, inputTestX;
@@ -32,7 +39,7 @@ int main(int argc, const char **argv) {
 	/*	*/
 	Shape<unsigned int> dataShape = inputDataX.getShape().getSubShape(1, 3);
 	Shape<unsigned int> resultShape = inputResY.getShape().getSubShape(1, 1);
-	const unsigned int output_size = 10;
+	const unsigned int output_size = 1;
 
 	/*	*/
 	std::cout << "Train Object Size: " << dataShape << " Expected result Size: " << resultShape << std::endl;
@@ -56,24 +63,43 @@ int main(int argc, const char **argv) {
 
 	Sigmoid outputAct;
 
+	Input inputG(generatorInputSize, "");
+
+	Dense base0(49);
+	Reshape reshape({7, 7});
+
+	/*	Process to 14.	*/
+	Conv2D conv_0(32, {1, 1}, {1, 1}, "same");
+	LeakyRelu leaky_0(0.2f);
+	UpScale<float> upscale_0(2);
+
+	/*	Process to 28.	*/
+	Conv2D conv_1(32, {1, 1}, {1, 1}, "same");
+	LeakyRelu leaky_1(0.2f);
+	UpScale<float> upscale_1(2);
+
+	Tahn outputAc;
+
 	/*	*/
 	{
-		Layer<float> &output = regulation(outputAct(fw2(relu1(BN1(fw1(relu0(BN0(fw0(flattenInput(input0node))))))))));
+		Layer<float> &DiscOutput =
+			regulation(outputAct(fw2(relu1(BN1(fw1(relu0(BN0(fw0(flattenInput(input0node))))))))));
+		Model<float> discriminatorModel({&input0node}, {&DiscOutput});
 
-		Model<float> forwardModel({&input0node}, {&output});
+		Layer<float> &GenOutput = conv_0(reshape(base0(inputG)));
 
 		SGD<float> optimizer(learningRate, 0.0);
 
 		MetricAccuracy accuracy;
 		MetricMean lossmetric("loss");
 
-		Loss mse_loss(sparse_categorical_crossentropy);
-		forwardModel.compile(&optimizer, mse_loss, {dynamic_cast<Metric *>(&lossmetric), (Metric *)&accuracy});
-		std::cout << forwardModel.summary() << std::endl;
+		Loss mse_loss(loss_mse);
+		discriminatorModel.compile(&optimizer, mse_loss, {dynamic_cast<Metric *>(&lossmetric), (Metric *)&accuracy});
+		std::cout << discriminatorModel.summary() << std::endl;
 
-		forwardModel.fit(epochs, inputDataX, inputResY, batchSize);
+		discriminatorModel.fit(epochs, inputDataX, inputResY, batchSize);
 
-		Tensor predict = std::move(forwardModel.predict(inputTestX));
+		Tensor predict = std::move(discriminatorModel.predict(inputTestX));
 		// TODO Compare.
 		// TODO Accuracy.
 		std::cout << "Predict " << predict << std::endl;

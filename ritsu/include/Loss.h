@@ -73,7 +73,9 @@ namespace Ritsu {
 		/*Tensor A = inputA * log(inputB);*/
 	}
 
-	// SparseCategoricalCrossentropy
+	class SparseCategoricalCrossentropy : public Loss {
+	  public:
+	};
 
 	static void sparse_categorical_crossentropy(const Tensor &evoluated, const Tensor &expected, Tensor &output) {
 

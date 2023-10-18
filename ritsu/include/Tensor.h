@@ -384,5 +384,12 @@ namespace Ritsu {
 
 			return zeroTesnor;
 		}
+
+		static Tensor OneShot(const Shape<IndexType> &shape, size_t value) {
+			Tensor tensor = Tensor::zero(shape);
+			tensor.getValue<float>(value) = 1.0f;
+
+			return tensor;
+		}
 	};
 } // namespace Ritsu

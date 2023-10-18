@@ -1,4 +1,5 @@
 #include "mnist_dataset.h"
+#include <cstdint>
 #include <exception>
 #include <stdexcept>
 
@@ -9,6 +10,7 @@ template <typename T> static T swap_endian(T value) {
 	uint32_t b0, b1, b2, b3;
 	uint32_t res;
 
+	/*	*/
 	b0 = (value & 0x000000ff) << 24u;
 	b1 = (value & 0x0000ff00) << 8u;
 	b2 = (value & 0x00ff0000) >> 8u;
@@ -20,33 +22,41 @@ template <typename T> static T swap_endian(T value) {
 void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &labelPath,
 							 const std::string &imageTestPath, const std::string &labelTestPath, Ritsu::Tensor &dataX,
 							 Ritsu::Tensor &dataY, Ritsu::Tensor &testX, Ritsu::Tensor &testY) {
+
 	/*	*/
-	std::ifstream imageStream(imagePath, std::ios::in | std::ios::binary);
-	std::ifstream labelStream(labelPath, std::ios::in | std::ios::binary);
+	std::ifstream imageTrainStream(imagePath, std::ios::in | std::ios::binary);
+	std::ifstream labelTrainStream(labelPath, std::ios::in | std::ios::binary);
 
-	if (!imageStream.is_open()) {
+	/*	*/
+	std::ifstream imageTestStream(imageTestPath, std::ios::in | std::ios::binary);
+	std::ifstream labelTestStream(labelTestPath, std::ios::in | std::ios::binary);
+
+	if (!imageTrainStream.is_open()) {
 		throw std::runtime_error("Failed to open file image path");
-	}
-
-	else {
+	} else {
 
 		/*	*/
 		int32_t width, height, nr_images, image_magic;
 
-		imageStream.seekg(0, std::ios::beg);
+		/*	*/
+		imageTrainStream.seekg(0, std::ios::beg);
 
-		imageStream.read((char *)&image_magic, sizeof(image_magic));
-		imageStream.read((char *)&nr_images, sizeof(nr_images));
-		imageStream.read((char *)&width, sizeof(width));
-		imageStream.read((char *)&height, sizeof(height));
+		/*	*/
+		imageTrainStream.read((char *)&image_magic, sizeof(image_magic));
+		imageTrainStream.read((char *)&nr_images, sizeof(nr_images));
+		imageTrainStream.read((char *)&width, sizeof(width));
+		imageTrainStream.read((char *)&height, sizeof(height));
 
+		/*	*/
 		image_magic = swap_endian(image_magic);
 		nr_images = swap_endian(nr_images);
 		width = swap_endian(width);
 		height = swap_endian(height);
 
+		const uint32_t magic_number = 0x00000803;
+
 		// Verify
-		if (image_magic != 0x00000803) {
+		if (image_magic != magic_number) {
 			throw std::runtime_error("Invalid magic number for image training data.");
 		}
 
@@ -58,7 +68,7 @@ void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &la
 		uint8_t *imageData = (uint8_t *)malloc(ImageSize);
 
 		for (size_t i = 0; i < nr_images; i++) {
-			imageStream.read((char *)&imageData[0], ImageSize);
+			imageTrainStream.read((char *)&imageData[0], ImageSize);
 			// swap value...
 
 			memcpy(&raw[i * ImageSize], imageData, ImageSize);
@@ -67,29 +77,35 @@ void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &la
 		free(imageData);
 	}
 
-	if (!labelStream.is_open()) {
+	if (!labelTrainStream.is_open()) {
 		throw std::runtime_error("Failed to open file label path");
 	} else {
 
 		uint32_t label_magic, nr_label;
 
-		labelStream.seekg(0, std::ios::beg);
-		labelStream.read((char *)&label_magic, sizeof(label_magic));
-		labelStream.read((char *)&nr_label, sizeof(nr_label));
+		labelTrainStream.seekg(0, std::ios::beg);
 
+		/*	*/
+		labelTrainStream.read((char *)&label_magic, sizeof(label_magic));
+		labelTrainStream.read((char *)&nr_label, sizeof(nr_label));
+
+		/*	*/
 		label_magic = swap_endian(label_magic);
 		nr_label = swap_endian(nr_label);
 
+		const uint32_t magic_number = 0x00000801;
+
 		// Verify
-		if (label_magic != 0x00000801) {
+		if (label_magic != magic_number) {
 			throw std::runtime_error("Invalid magic number for label training data.");
 		}
 
 		dataY = Tensor({nr_label, 1}, sizeof(uint32_t));
 		uint32_t label;
+
 		for (size_t i = 0; i < nr_label; i++) {
 
-			labelStream.read((char *)&label, sizeof(label));
+			labelTrainStream.read((char *)&label, sizeof(label));
 			dataX.getValue<uint32_t>(i) = label;
 		}
 	}

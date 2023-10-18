@@ -3,6 +3,7 @@
 #include "layers/Regularization.h"
 #include "layers/Reshape.h"
 #include "layers/Tanh.h"
+#include "mnist_dataset.h"
 #include <Ritsu.h>
 #include <cstdio>
 #include <iostream>
@@ -12,25 +13,38 @@
 using namespace Ritsu;
 
 int main(int argc, const char **argv) {
+
 	const unsigned int batchSize = 1;
 	const unsigned int output_size = 10;
 	const unsigned int epochs = 128;
+
 	Shape<unsigned int> dataShape({32, 32, 1});
 	Shape<unsigned int> resultShape({10});
-	bool useResnet;
+
+		/*	*/
+	Tensor inputResY, inputResTestY;
+	Tensor inputDataX, inputTestX;
+
+	/*	*/
+	RitsuDataSet::loadMNIST("train-images.idx3-ubyte", "train-labels.idx1-ubyte", "t10k-images.idx3-ubyte",
+							"t10k-labels.idx1-ubyte", inputDataX, inputResY, inputTestX, inputResTestY);
 
 	Input input0node({32, 32, 1}, "input");
 
 	GuassianNoise noiseLayer(0.2, 0.3f);
 
-	Conv2D conv2D_0(32, {3, 3}, {1, 1}, "same");
+	Conv2D conv2D_0(32, {3, 3}, {2, 2}, "same");
 	Relu relu_0;
 	BatchNormalization BatchNormalization_0;
 	Add encAdd0;
 
-	Conv2D conv2D_1(32, {3, 3}, {1, 1}, "same");
+	Conv2D conv2D_1(64, {3, 3}, {1, 1}, "same");
 	Relu relu_1;
 	BatchNormalization BatchNormalization_1;
+
+	Conv2D conv2D_2(64, {3, 3}, {1, 1}, "same");
+	Relu relu_2;
+	BatchNormalization BatchNormalization_2;
 
 	Flatten flatten0("flatten0");
 	Sigmoid sigmoid;
@@ -47,4 +61,8 @@ int main(int argc, const char **argv) {
 
 	//
 	Model<float> model({&input0node}, {&decoder});
+
+	Tensor predict = std::move(model.predict(inputTestX));
+	// Compare.
+	std::cout << "Predict " << predict << std::endl;
 }
