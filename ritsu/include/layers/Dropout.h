@@ -5,13 +5,14 @@
 namespace Ritsu {
 
 	/**
-	 * @brief 
-	 * 
+	 * @brief
+	 *
 	 */
 	class Dropout : public Layer<float> {
 
 	  public:
-		Dropout(const DType perc, const std::string &name = "dropout") : Layer(name), perc(perc) {
+		Dropout(const DType perc, const size_t seed = 0, const std::string &name = "dropout")
+			: Layer(name), perc(perc) {
 			this->random = new RandomBernoulli<DType>(perc);
 		}
 

@@ -257,6 +257,8 @@ namespace Ritsu {
 			return *this;
 		}
 
+		template <typename T> Tensor &insert(const T tensor) { return *this; }
+
 		Tensor &dot(const Tensor &tensor) { return *this; }
 		friend Tensor dot(const Tensor &tensorA, const Tensor &tensorB) { return tensorA; }
 
@@ -279,11 +281,14 @@ namespace Ritsu {
 
 			/*	Resize.	*/
 			if (this->element_size != cast_element_size) {
+				
 			}
 
 			// Convert value.
 			return *this;
 		}
+
+		Tensor &transpose() { return *this; }
 
 		DType operator[](const std::vector<IndexType> &location) const { return this->getValue<DType>(location); }
 		DType &operator[](const std::vector<IndexType> &location) { return this->getValue<DType>(location); }
@@ -316,8 +321,6 @@ namespace Ritsu {
 		}
 
 		const Shape<IndexType> &getShape() const { return this->shape; }
-
-
 
 		inline size_t computeIndex(const std::vector<IndexType> &dim) const {
 			size_t totalSize = 1;

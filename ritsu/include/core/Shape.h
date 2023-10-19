@@ -3,6 +3,7 @@
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
+#include <initializer_list>
 #include <iostream>
 #include <istream>
 #include <omp.h>
@@ -25,6 +26,7 @@ namespace Ritsu {
 
 	  public:
 		Shape() = default;
+		//TODO: initializer_list
 		Shape(const std::vector<T> &shape) { this->dims = shape; }
 		Shape(const Shape &shape) { this->dims = shape.dims; }
 		Shape(Shape &&shape) { this->dims = std::move(shape.dims); }
@@ -112,7 +114,9 @@ namespace Ritsu {
 		Shape<IndexType> &reduce() const {
 			// Remove 1 axis.
 			for (size_t i = 0; i < this->getNrDimensions(); i++) {
+				// TODO
 			}
+			return *this;
 		}
 
 		Shape flatten() const { return Shape({static_cast<T>(Shape::computeNrElements<T>(this->dims))}); }
@@ -146,7 +150,11 @@ namespace Ritsu {
 			/*	Only allow reshape if both dims have the same number of elements.	*/
 			if (this->computeNrElements(newDims) == this->getNrElements()) {
 				this->dims = newDims;
+
 				// TODO determine if the data has to reshaped too.
+				if (*this != newDims) {
+					throw std::runtime_error("Failed to reshape");
+				}
 			} else {
 				// Failure
 				throw std::invalid_argument("Invalid Dimension");

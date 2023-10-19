@@ -83,11 +83,11 @@ namespace Ritsu {
 		/*Tensor A = inputA * log(inputB);*/
 	}
 
-	class MSE : public Loss  {
+	class MSE : public Loss {
 	  public:
 	};
 
-	class SparseCategoricalCrossentropy : public Loss  {
+	class SparseCategoricalCrossentropy : public Loss {
 	  public:
 	};
 
@@ -95,6 +95,11 @@ namespace Ritsu {
 
 		Tensor expected_one_shot = Tensor::zero(evoluated.getShape());
 		expected_one_shot.getValue<float>((uint32_t)expected.getValue<float>(0)) = 1;
+
+		/*	*/
+		if (!Tensor::verifyShape(evoluated, expected_one_shot)) {
+			std::cerr << "Sparse Categorical Crossentropy - Bad Shape " << expected_one_shot.getShape() << " not equal " << evoluated.getShape() << std::endl;
+		}
 
 		return loss_cross_catagorial_entropy(evoluated, expected_one_shot, output);
 

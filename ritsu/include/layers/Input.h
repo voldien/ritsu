@@ -4,6 +4,10 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief
+	 *
+	 */
 	class Input : public Layer<float> {
 	  public:
 		Input(const std::vector<IndexType> &input, const std::string &name = "input") : Layer<float>(name) {

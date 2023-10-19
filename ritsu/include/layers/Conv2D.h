@@ -7,6 +7,10 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief
+	 *
+	 */
 	class Conv2D : public Layer<float> {
 
 		//  kernel_initializer='glorot_uniform',
@@ -25,21 +29,19 @@ namespace Ritsu {
 
 		Tensor operator<<(const Tensor &tensor) override {
 
-			// Tensor output({this->units, 1}, DTypeSize);
-			//
-			// this->compute(tensor, output);
+			Tensor output(getShape());
+			this->computeConv2D(tensor, output);
 
-			// return output;
 			return tensor;
 		}
 
 		Tensor operator>>(Tensor &tensor) override {
-			this->compute(tensor, tensor);
+			this->computeConv2D(tensor, tensor);
 			return tensor;
 		}
 
 		Tensor &operator()(Tensor &tensor) override {
-			this->compute(tensor, tensor);
+			this->computeConv2D(tensor, tensor);
 			return tensor;
 		}
 		template <class U> auto &operator()(U &layer) {
@@ -47,12 +49,14 @@ namespace Ritsu {
 			this->setInputs({&layer});
 			layer.setOutputs({this});
 
+			this->build(layer.getShape());
+
 			return *this;
 		}
 
 		void build(const Shape<IndexType> &shape) override {
-			this->initbias();
-			this->initKernels();
+			this->initbias(shape);
+			this->initKernels(shape);
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
@@ -64,17 +68,23 @@ namespace Ritsu {
 	  protected:
 		// operator
 
-		void compute(const Tensor &input, Tensor &output) { /*	*/
+		void computeConv2D(const Tensor &input, Tensor &output) { /*	*/
 
-			const size_t nrFilters = getNrFilters();
-			for (size_t i = 0; i < nrFilters; i++){
-				
+			const size_t nrFilters = this->getNrFilters();
+			for (size_t i = 0; i < nrFilters; i++) {
+				// TODO add matrix multiplication.
+
+				for (size_t x = 0; x < 1; x++) {
+					for (size_t y = 0; y < 1; y++) {
+						_kernelWeight.getValue<float>(nrFilters * this->kernel.getNrElements());
+					}
+				}
 			}
 		}
 
-		void initKernels() noexcept {}
+		void initKernels(const Shape<IndexType> &shape) noexcept {}
 
-		void initbias() noexcept {
+		void initbias(const Shape<IndexType> &shape) noexcept {
 			// std::srand(std::time(NULL));
 			// for (int i = 0; i < bias.size(); i++) {
 			//	bias[i] = static_cast<double>(std::rand()) / RAND_MAX * 10.0f;
@@ -89,8 +99,8 @@ namespace Ritsu {
 		std::vector<DType> bias;
 		Tensor _bias;
 		Tensor _kernelWeight;
-		std::vector<uint32_t> kernel;
-		std::vector<uint32_t> stride;
+		Shape<IndexType> kernel;
+		Shape<IndexType> stride;
 		std::vector<DType> weight;
 	};
 } // namespace Ritsu

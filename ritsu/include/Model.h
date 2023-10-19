@@ -264,6 +264,8 @@ namespace Ritsu {
 			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
 				Layer<T> *current = (*it);
 
+				const bool junctionLayer = is_junction_layer(current);
+
 				for (size_t i = 0; i < batchSize; i++) {
 					// TODO fix.
 

@@ -18,7 +18,8 @@ namespace Ritsu {
 		//    bias_initializer='zeros',
 
 	  public:
-		EmbeddingLayer(uint32_t input_dim, uint32_t output_dim, const std::string &name = "Embedding Layer")
+		EmbeddingLayer(const uint32_t input_dim, const uint32_t output_dim, const std::string &embeddings_initializer = "uniform",
+					   const std::string &name = "Embedding Layer")
 			: Layer(name) {
 
 			/*	*/
@@ -97,7 +98,9 @@ namespace Ritsu {
 
 			// TODO verify flatten
 			Layer<DType> *inputLayer = layers[0];
+			
 			if (inputLayer->getShape().getNrDimensions() == 1) {
+
 			}
 
 			this->input = layers[0];

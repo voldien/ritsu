@@ -48,8 +48,8 @@ namespace Ritsu {
 		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
 		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
 
-		Tensor *getTrainableWeights() override { return nullptr; }
-		Tensor *getVariables() override { return nullptr; }
+		Tensor *getTrainableWeights() noexcept override { return nullptr; }
+		Tensor *getVariables() noexcept override { return nullptr; }
 
 	  private:
 		void compute(const Tensor &input, Tensor &output) {

@@ -63,8 +63,8 @@ namespace Ritsu {
 			return *this;
 		}
 
-		Tensor *getTrainableWeights() override { return &this->weight; }
-		Tensor *getVariables() override { return &this->bias; }
+		Tensor *getTrainableWeights() noexcept override { return &this->weight; }
+		Tensor *getVariables() noexcept override { return &this->bias; }
 
 		void build(const Shape<IndexType> &shape) override {
 
