@@ -1,6 +1,6 @@
 #pragma once
 #include "Layer.h"
-#include <cstdint>
+#include "Tensor.h"
 
 namespace Ritsu {
 
@@ -30,14 +30,15 @@ namespace Ritsu {
 		}
 
 		Tensor operator>>(Tensor &tensor) override {
-			this->computeConv2D(tensor, tensor);
+			this->computeUpSampling(tensor, tensor);
 			return tensor;
 		}
 
 		Tensor &operator()(Tensor &tensor) override {
-			this->computeConv2D(tensor, tensor);
+			this->computeUpSampling(tensor, tensor);
 			return tensor;
 		}
+
 		template <class U> auto &operator()(U &layer) {
 
 			this->setInputs({&layer});
@@ -55,6 +56,16 @@ namespace Ritsu {
 
 		void setInputs(const std::vector<Layer<T> *> &layers) override {}
 
+		void build(const Shape<typename Layer<T>::IndexType> &shape) override {
+
+			this->shape = shape;
+			this->shape[0] /= 2;
+			this->shape[1] /= 2;
+
+			/*	*/
+			assert(this->getShape().getNrDimensions() == 3);
+		}
+
 		Tensor compute_derivative(const Tensor &tensor) override {
 			Tensor output = tensor;
 
@@ -66,7 +77,8 @@ namespace Ritsu {
 		std::vector<Layer<T> *> getOutputs() const override { return {}; }
 
 	  private:
-		void computeUpSampling(const Tensor &a, const Tensor &b, Tensor &output) {}
+		void computeUpSampling(const Tensor &a, const Tensor &b) { //, Tensor &output) {}
+		}
 
 		std::vector<Layer<T> *> inputs;
 		std::vector<Layer<T> *> outputs;

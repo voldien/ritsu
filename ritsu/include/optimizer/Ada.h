@@ -6,7 +6,7 @@ namespace Ritsu {
 
 	template <typename T> class Ada : public Optimizer<T> {
 	  public:
-		Ada(T beta) {}
+		Ada(const T learningRate, T beta, const std::string &name = "ada") : Optimizer<T>(learningRate, name) {}
 	};
 
 } // namespace Ritsu

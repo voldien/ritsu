@@ -88,6 +88,7 @@ int main(int argc, const char **argv) {
 
 			Tensor predict = std::move(forwardModel.predict(inputTestX));
 			// TODO Compare.
+			
 			// TODO Accuracy.
 			std::cout << "Predict " << predict << std::endl;
 		}

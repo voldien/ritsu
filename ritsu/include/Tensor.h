@@ -207,7 +207,8 @@ namespace Ritsu {
 		}
 
 		template <typename U> auto &operator/(const Tensor &tensor) {
-			size_t nrElements = getNrElements();
+			size_t nrElements = this->getNrElements();
+			
 #pragma omp parallel shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = this->getValue<DType>(index) / tensor.getValue<DType>(index);

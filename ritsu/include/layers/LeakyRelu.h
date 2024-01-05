@@ -5,6 +5,10 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief
+	 *
+	 */
 	class LeakyRelu : public Layer<float> {
 	  public:
 		LeakyRelu(const DType alpha, const std::string &name = "leaky-relu") : Layer<DType>(name), alpha(alpha) {}

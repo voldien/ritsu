@@ -1,5 +1,6 @@
 #pragma once
 #include "Optimizer.h"
+#include <cassert>
 #include <functional>
 
 namespace Ritsu {
@@ -11,7 +12,7 @@ namespace Ritsu {
 	 */
 	template <typename T> class SGD : public Optimizer<T> {
 	  public:
-		SGD(const T learningRate, const T momentum, const std::string &name = "SGD")
+		SGD(const T learningRate, const T momentum = 0.0f, const std::string &name = "SGD")
 			: Optimizer<T>(learningRate, name) {
 			this->momentum = momentum;
 		}
@@ -27,8 +28,10 @@ namespace Ritsu {
 			} else {
 				Tensor gradientUpdate = tmpGradient * this->getLearningRate();
 
+				/*	*/
+				assert(gradientUpdate.getShape() == variable.getShape());
 				if (gradientUpdate.getShape() == variable.getShape()) {
-					// assert(train_variables->getShape() == differental_gradient.getShape());
+					// ;
 					variable = gradientUpdate;
 				}
 			}

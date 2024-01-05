@@ -1,6 +1,5 @@
 #pragma once
 #include "Layer.h"
-#include <cmath>
 
 namespace Ritsu {
 
@@ -31,6 +30,5 @@ namespace Ritsu {
 
 	  private:
 		std::vector<Layer<DType> *> outputs;
-		// void setInput(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }
 	};
 } // namespace Ritsu

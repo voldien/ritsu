@@ -106,6 +106,6 @@ namespace Ritsu {
 		/*Tensor A = inputA * log(inputB);*/
 	}
 
-	void loss_ssim(const Tensor &inputA, const Tensor &inputB, Tensor &output) { /*Tensor A = inputA * log(inputB);*/
+	static void loss_ssim(const Tensor &inputA, const Tensor &inputB, Tensor &output) { /*Tensor A = inputA * log(inputB);*/
 	}
 }; // namespace Ritsu

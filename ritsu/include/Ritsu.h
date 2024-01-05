@@ -39,6 +39,7 @@
 #include "layers/Regularization.h"
 #include "layers/Rescaling.h"
 #include "layers/Reshape.h"
+#include "layers/Subtract.h"
 #include "layers/Swish.h"
 #include "layers/UpSampling2D.h"
 
@@ -55,6 +56,10 @@
 #include "optimizer/SGD.h"
 
 namespace Ritsu {
+
+
+
+
 
 	// using TensorF = Tensor<float>;
 	// using TensorD = Tensor<double>;

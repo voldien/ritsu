@@ -3,6 +3,11 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief 
+	 * 
+	 * @tparam T 
+	 */
 	template <typename T> class Multiply : public Layer<float> {
 
 	  public:

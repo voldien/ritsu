@@ -6,6 +6,10 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief 
+	 * 
+	 */
 	class Regularization : public Layer<float> {
 
 	  public:

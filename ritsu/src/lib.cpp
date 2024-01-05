@@ -4,7 +4,7 @@
 
 namespace Ritsu {
 
-	// template class Shape<std::uint32_t>;
+	template class Shape<std::uint32_t>;
 	// template class Shape<std::int32_t>;
 
 	template class Model<std::float_t>;
@@ -24,12 +24,12 @@ namespace Ritsu {
 	// template class Tensor<std::int8_t>;
 
 	template class Optimizer<std::float_t>;
-	template class Optimizer<double>;
+	template class Optimizer<std::double_t>;
 
 	template class Adam<std::float_t>;
-	template class Adam<double>;
+	template class Adam<std::double_t>;
 
 	template class SGD<std::float_t>;
-	template class SGD<double>;
+	template class SGD<std::double_t>;
 
 } // namespace Ritsu

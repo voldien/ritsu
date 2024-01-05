@@ -65,10 +65,10 @@ namespace Ritsu {
 		virtual Tensor *getVariables() noexcept { return nullptr; }
 
 		// input
-		virtual std::vector<Layer<T> *> getInputs() const  { return {}; };
+		virtual std::vector<Layer<T> *> getInputs() const { return {}; };
 
 		// output
-		virtual std::vector<Layer<T> *> getOutputs() const  { return {}; }
+		virtual std::vector<Layer<T> *> getOutputs() const { return {}; }
 
 		// trainable.
 

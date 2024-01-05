@@ -1,16 +1,17 @@
 #pragma once
+#include "Object.h"
 #include "Tensor.h"
 #include <string>
 
 namespace Ritsu {
 
 	/**
-	 * @brief 
-	 * 
+	 * @brief
+	 *
 	 */
-	class Metric {
+	class Metric : public Object {
 	  public:
-		Metric(const std::string &m_name) { this->name = m_name; }
+		Metric(const std::string &m_name) : Object(m_name) {}
 
 		virtual void update_state(const Tensor &tensor) = 0;
 
@@ -18,21 +19,19 @@ namespace Ritsu {
 
 		virtual const Tensor &result() const = 0;
 
-		const std::string getName() const { return this->name; }
-
 	  private:
-		std::string name;
 	};
 
 	/**
-	 * @brief 
-	 * 
+	 * @brief
+	 *
 	 */
 	class MetricAccuracy : public Metric {
 	  public:
 		MetricAccuracy(const std::string &name = "accuracy") : Metric(name) { this->reset_state(); }
 
-		void update_state(const Tensor &tensor) override { /*	*/ }
+		void update_state(const Tensor &tensor) override { /*	*/
+		}
 
 		void reset_state() override { m_result = Tensor({1}); }
 
@@ -43,8 +42,8 @@ namespace Ritsu {
 	};
 
 	/**
-	 * @brief 
-	 * 
+	 * @brief
+	 *
 	 */
 	class MetricMean : public Metric {
 	  public:
