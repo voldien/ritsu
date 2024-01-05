@@ -20,14 +20,15 @@ namespace Ritsu {
 	 *
 	 */
 	/*template <class T = float> */ class Tensor {
-		// static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
-		//			  "Must be a decimal type(float/double/half) or integer.");
 
 	  public:
 		using DType = float;
 		static constexpr size_t DTypeSize = sizeof(DType);
 		using IndexType = unsigned int;
 		static constexpr size_t IndexTypeSize = sizeof(IndexType);
+
+		static_assert(std::is_floating_point<DType>::value || std::is_integral<DType>::value,
+					  "Must be a decimal type(float/double/half) or integer.");
 
 	  public:
 		Tensor() = default;
@@ -140,6 +141,9 @@ namespace Ritsu {
 		}
 
 		template <typename T> auto &operator+(const T &vec) {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+						  "Must be a decimal type(float/double/half) or integer.");
+
 			size_t nrElements = this->getNrElements();
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = this->getValue<DType>(index) + vec;
@@ -208,7 +212,7 @@ namespace Ritsu {
 
 		template <typename U> auto &operator/(const Tensor &tensor) {
 			size_t nrElements = this->getNrElements();
-			
+
 #pragma omp parallel shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = this->getValue<DType>(index) / tensor.getValue<DType>(index);
@@ -282,7 +286,6 @@ namespace Ritsu {
 
 			/*	Resize.	*/
 			if (this->element_size != cast_element_size) {
-				
 			}
 
 			// Convert value.

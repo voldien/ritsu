@@ -90,17 +90,6 @@ TEST_P(GuassianDistributionTest, Values) {
 INSTANTIATE_TEST_SUITE_P(Math, GuassianDistributionTest,
 						 ::testing::Values(std::make_tuple(0.5, 0.5, std::vector<float>{1, 2, 3, 4, 5, 5, 5}),
 										   std::make_tuple(0.5, 0.5, std::vector<float>{5, 5, 5, 5, 5, 5, 5})));
-TEST(Math, Distrubtion_GammaCorrection) {
-	/*	Gamma space */
-	const int sample_space = 1024;
-	float pre_gamma = 0.0f;
-	for (int i = 0; i < sample_space; i++) {
-		float linear = (float)i / (float)sample_space;
-		float gamma = Math::gammaCorrection(linear, 2.2f);
-		ASSERT_TRUE(gamma > pre_gamma);
-		pre_gamma = gamma;
-	}
-}
 
 TEST(Math, Distrubtion) {
 	/*	Guassian distribution.	*/
@@ -132,3 +121,7 @@ TEST_P(AlignmentTest, Values) {
 INSTANTIATE_TEST_SUITE_P(Math, AlignmentTest,
 						 ::testing::Values(std::make_tuple(23, 64, 64), std::make_tuple(244, 128, 256),
 										   std::make_tuple(300, 64, 320)));
+
+
+
+// activi

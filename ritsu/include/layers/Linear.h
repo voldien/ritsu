@@ -83,6 +83,6 @@ namespace Ritsu {
 	  private:
 		Layer<DType> *input;
 		std::vector<Layer<DType> *> outputs;
-		DType linear;
+		const DType linear;
 	};
 } // namespace Ritsu

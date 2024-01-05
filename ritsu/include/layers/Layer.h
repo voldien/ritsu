@@ -1,6 +1,7 @@
 #pragma once
 #include "../Object.h"
 #include "../Tensor.h"
+#include "../core/Initializers.h"
 #include "../core/Shape.h"
 #include <cstddef>
 #include <omp.h>
@@ -16,7 +17,7 @@ namespace Ritsu {
 	 * @tparam T
 	 */
 	// TODO add Object.
-	template <typename T> class Layer {
+	template <typename T> class Layer : public Object {
 	  public:
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -27,7 +28,7 @@ namespace Ritsu {
 		const size_t DTypeSize = sizeof(DType);
 
 	  public:
-		Layer(const std::string &name) : name(name) { this->shape = std::move(Shape<IndexType>()); }
+		Layer(const std::string &name) : Object(name) { this->shape = std::move(Shape<IndexType>()); }
 		virtual ~Layer() {}
 
 		virtual Tensor operator<<(const Tensor &tensor) { return tensor; }
@@ -71,10 +72,7 @@ namespace Ritsu {
 		virtual std::vector<Layer<T> *> getOutputs() const { return {}; }
 
 		// trainable.
-
-		const std::string &getName() const noexcept { return this->name; }
-		void setName(const std::string &name) noexcept { this->name = name; }
-
+		
 		Layer<T> &operator()(Layer<T> &layer) {
 			this->connectLayers(layer);
 			return *this;
@@ -110,6 +108,7 @@ namespace Ritsu {
 
 			this->setInputs(layers);
 		}
+
 		void addOutputLayers(const std::vector<Layer<DType> *> &layers) {
 			/*	*/
 			this->setOutputs(layers);
@@ -121,8 +120,5 @@ namespace Ritsu {
 
 		//		std::vector<Layer<DType> *> *input;
 		// std::vector<Layer<DType> *> outputs;
-
-	  private:
-		std::string name;
 	};
 } // namespace Ritsu

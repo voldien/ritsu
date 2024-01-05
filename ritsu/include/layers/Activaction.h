@@ -4,12 +4,12 @@
 namespace Ritsu {
 
 	/**
-	 * @brief 
-	 * 
+	 * @brief
+	 *
 	 */
 	class Activaction : public Layer<float> {
 	  public:
-		Activaction(const std::string &name = "") : Layer(name) {}
+		Activaction(const std::string &name = "activaction") : Layer(name) {}
 		~Activaction() override {}
 
 		// virtual Tensor operator<<(Tensor &tensor) override { return tensor; }

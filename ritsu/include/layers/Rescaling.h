@@ -33,13 +33,14 @@ namespace Ritsu {
 
 			this->setInputs({&layer});
 			layer.setOutputs({this});
+			/*	*/
+			this->build(this->getInputs()[0]->getShape());
 
 			return *this;
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
 			this->input = layers[0];
-
 			this->shape = this->input->getShape();
 		}
 
@@ -48,9 +49,11 @@ namespace Ritsu {
 			this->outputs = layers;
 		}
 
+		/*	*/
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
+		/*	*/
 		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
 		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
 

@@ -57,15 +57,14 @@
 
 namespace Ritsu {
 
-
-
-
+	enum class DistributionInitlization {};
 
 	// using TensorF = Tensor<float>;
 	// using TensorD = Tensor<double>;
 	// using TensorI = Tensor<std::int32_t>;
 	// using TensorI = Tensor<std::uint32_t>;
 	// using TensorLI = Tensor<std::int64_t>;
+
 	using ShapeI = Shape<uint32_t>;
 	using ShapeL = Shape<uint64_t>;
 

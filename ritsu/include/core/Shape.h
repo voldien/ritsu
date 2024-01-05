@@ -47,7 +47,7 @@ namespace Ritsu {
 		}
 
 		auto &operator=(std::vector<IndexType> &&shape) {
-			this->dims = shape;
+			this->dims = std::move(shape);
 			return *this;
 		}
 

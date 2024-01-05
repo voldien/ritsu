@@ -19,7 +19,6 @@ namespace Ritsu {
 
 			/*	*/
 			this->units = units;
-
 			/*	*/
 			this->shape = {this->units};
 
@@ -161,7 +160,7 @@ namespace Ritsu {
 		}
 
 		void initweight() noexcept {
-
+			// TODO improve
 			RandomNormal<DType> random(0.1, 1.0);
 #pragma omp parallel shared(weight)
 #pragma omp simd
@@ -172,7 +171,7 @@ namespace Ritsu {
 		}
 
 		void initbias() noexcept {
-
+			// TODO improve
 			RandomNormal<DType> random(0.1, 1.0);
 
 #pragma omp parallel shared(bias)

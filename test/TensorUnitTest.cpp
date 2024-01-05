@@ -7,11 +7,11 @@ TYPED_TEST_SUITE_P(TensorType);
 
 TYPED_TEST_P(TensorType, DefaultConstructor) {
 	// Tensor<TypeParam> shape;
-	ASSERT_NO_THROW(Tensor tensor({1, 1}, sizeof(TypeParam)));
+	ASSERT_NO_THROW(Tensor tensor({32, 32, 3}, sizeof(TypeParam)));
 }
 
 TYPED_TEST_P(TensorType, SetGetValues) {
-	Tensor tensor({1, 1}, sizeof(TypeParam));
+	Tensor tensor({32, 32, 3}, sizeof(TypeParam));
 
 	tensor.getValue<TypeParam>(0) = (TypeParam)0;
 
