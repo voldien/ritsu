@@ -58,7 +58,7 @@ namespace Ritsu {
 		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
 
 	  protected:
-		void computeScale(Tensor &tensor) {
+		void computeScale(Tensor &tensor) noexcept {
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
 				tensor.getValue<DType>(i) = scale * tensor.getValue<DType>(i);
 			}

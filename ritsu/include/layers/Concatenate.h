@@ -4,6 +4,10 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief
+	 *
+	 */
 	class Concatenate : public Layer<float> {
 
 	  public:

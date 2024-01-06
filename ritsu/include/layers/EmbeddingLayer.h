@@ -9,16 +9,18 @@
 #include <vector>
 
 namespace Ritsu {
-
+	
 	/**
-	 *
+	 * @brief 
+	 * 
 	 */
 	class EmbeddingLayer : public Layer<float> {
 		//  kernel_initializer='glorot_uniform',
 		//    bias_initializer='zeros',
 
 	  public:
-		EmbeddingLayer(const uint32_t input_dim, const uint32_t output_dim, const std::string &embeddings_initializer = "uniform",
+		EmbeddingLayer(const uint32_t input_dim, const uint32_t output_dim,
+					   const std::string &embeddings_initializer = "uniform",
 					   const std::string &name = "Embedding Layer")
 			: Layer(name) {
 
@@ -98,9 +100,8 @@ namespace Ritsu {
 
 			// TODO verify flatten
 			Layer<DType> *inputLayer = layers[0];
-			
-			if (inputLayer->getShape().getNrDimensions() == 1) {
 
+			if (inputLayer->getShape().getNrDimensions() == 1) {
 			}
 
 			this->input = layers[0];
@@ -128,6 +129,7 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> outputs;
 
 	  protected:
+
 		// operator
 		void compute(const Tensor &inputTesnor, Tensor &output) {
 			/*	*/

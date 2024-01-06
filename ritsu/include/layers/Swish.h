@@ -56,7 +56,7 @@ namespace Ritsu {
 
 	  private:
 		inline static constexpr DType computeSwish(const DType value) {
-
+			//TODO:
 			const DType e_ = std::exp(-value);
 			const DType _e_ = std::exp(value);
 
@@ -64,6 +64,7 @@ namespace Ritsu {
 		}
 
 		inline static constexpr DType computeSwishDerivative(DType value) {
+						//TODO:
 			return std::exp(-value) / std::pow(((std::exp(-value) + 1)), 2);
 		}
 

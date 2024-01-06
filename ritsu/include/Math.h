@@ -11,7 +11,7 @@ namespace Ritsu {
 	 */
 	class Math {
 	  public:
-		template <class T> inline constexpr static T clamp(T value, T min, T max) noexcept {
+		template <class T> inline constexpr static T clamp(const T value, const T min, const T max) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return Math::max<T>(min, Math::min<T>(max, value));
@@ -20,7 +20,7 @@ namespace Ritsu {
 		/**
 		 *	Get max value of a and b.
 		 */
-		template <typename T> inline constexpr static T max(T value0, T value1) noexcept {
+		template <typename T> inline constexpr static T max(const T value0, const T value1) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return (static_cast<T>(value0) < static_cast<T>(value1)) ? static_cast<T>(value1) : static_cast<T>(value0);
@@ -29,13 +29,13 @@ namespace Ritsu {
 		/**
 		 *	Get min value of a and b.
 		 */
-		template <typename T> inline constexpr static T min(T value0, T value1) noexcept {
+		template <typename T> inline constexpr static T min(const T value0, const T value1) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return (static_cast<T>(value1) < static_cast<T>(value0)) ? static_cast<T>(value1) : static_cast<T>(value0);
 		}
 
-		template <typename T> inline constexpr static T frac(T value) noexcept {
+		template <typename T> inline constexpr static T frac(const T value) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			T part;
 			std::modf(value, &part);
@@ -53,7 +53,7 @@ namespace Ritsu {
 			return sum;
 		}
 
-		template <typename T> constexpr static T sum(const T *list, size_t nrElements) noexcept {
+		template <typename T> constexpr static T sum(const T *list, const size_t nrElements) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
@@ -66,7 +66,7 @@ namespace Ritsu {
 
 		// accuracy.
 
-		template <typename T> constexpr static T mean(const T *list, size_t nrElements) noexcept {
+		template <typename T> constexpr static T mean(const T *list, const size_t nrElements) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			/*	*/
@@ -82,7 +82,8 @@ namespace Ritsu {
 			return (static_cast<T>(1) / static_cast<T>(list.size())) * sum;
 		}
 
-		template <typename T> constexpr static T variance(const T *list, size_t nrElements, T mean) noexcept {
+		template <typename T>
+		constexpr static T variance(const T *list, const size_t nrElements, const T mean) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
@@ -93,7 +94,7 @@ namespace Ritsu {
 			return (static_cast<T>(1) / static_cast<T>(nrElements)) * sum;
 		}
 
-		template <typename T> constexpr static T variance(const std::vector<T> &list, T mean) noexcept {
+		template <typename T> constexpr static T variance(const std::vector<T> &list, const T mean) {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
@@ -108,7 +109,7 @@ namespace Ritsu {
 		/**
 		 *	Convert degree to radian.
 		 */
-		template <typename T> inline constexpr static T degToRad(T deg) noexcept {
+		template <typename T> inline constexpr static T degToRad(const T deg) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			return deg * static_cast<T>(Deg2Rad);
 		}
@@ -116,7 +117,7 @@ namespace Ritsu {
 		/**
 		 *	Convert radian to degree.
 		 */
-		template <typename T> inline constexpr static T radToDeg(T deg) noexcept {
+		template <typename T> inline constexpr static T radToDeg(const T deg) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			return deg * static_cast<T>(Rad2Deg);
 		}
@@ -145,16 +146,17 @@ namespace Ritsu {
 		 * 	and will thus exceed eitehr the start or the end point.
 		 * @return constexpr T
 		 */
-		template <typename T> inline constexpr static T lerp(T value0, T value1, T interp) noexcept {
+		template <typename T> inline constexpr static T lerp(const T value0, const T value1, const T interp) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			return (value0 + (value1 - value0) * interp);
 		}
-		template <typename T> inline constexpr static T lerpClamped(T value0, T value1, T interp) noexcept {
+		template <typename T>
+		inline constexpr static T lerpClamped(const T value0, const T value1, const T interp) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			return (value0 + (value1 - value0) * Math::clamp<T>(interp, static_cast<T>(0.0), static_cast<T>(1.0)));
 		}
 
-		template <typename T> inline constexpr static T mod(T value, T mod) noexcept {
+		template <typename T> inline constexpr static T mod(const T value, const T mod) noexcept {
 			static_assert(std::is_integral<T>::value, "Must be a integer type.");
 			return (value % mod + mod) % mod;
 		}
@@ -171,10 +173,10 @@ namespace Ritsu {
 		static constexpr double Rad2Deg = 180.0 / Math::PI;
 		static constexpr double NegativeInfinity = 0;
 
-		template <typename T> static inline constexpr T NextPowerOfTwo(T v) {
+		template <typename T> static inline constexpr T NextPowerOfTwo(const T value) noexcept {
 			static_assert(std::is_integral<T>::value, "Must be a integer type.");
 			T res = 1;
-			while (res < v) {
+			while (res < value) {
 				res <<= 1;
 			}
 			return res;
@@ -183,15 +185,15 @@ namespace Ritsu {
 		/**
 		 *
 		 */
-		template <typename T> static inline constexpr T ClosestPowerOfTwo(T v) {
-			T n = NextPowerOfTwo(v);
+		template <typename T> static inline constexpr T ClosestPowerOfTwo(const T value) noexcept {
+			T n = NextPowerOfTwo(value);
 			T p = 0;
 			return 0;
 		}
 
-		template <typename T> static inline constexpr bool IsPowerOfTwo(T v) {
+		template <typename T> static inline constexpr bool IsPowerOfTwo(const T value) noexcept {
 			static_assert(std::is_integral<T>::value, "Must be a integer type.");
-			return !(v == 0) && !((v - 1) & v);
+			return !(value == 0) && !((value - 1) & value);
 		}
 
 		/**
@@ -204,7 +206,7 @@ namespace Ritsu {
 		}
 
 		template <typename T>
-		static void guassian(T &guassian, unsigned int height, T theta, T standard_deviation) noexcept {
+		static void guassian(T &guassian, unsigned int height, const T theta, const T standard_deviation) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			const T a = (static_cast<T>(1.0) / (standard_deviation * static_cast<T>(std::sqrt(2.0 * Math::PI))));
 
@@ -221,8 +223,8 @@ namespace Ritsu {
 		 *	Generate 2D guassian.
 		 */
 		template <typename T>
-		static inline void guassian(const std::vector<T> &guassian, unsigned int width, unsigned int height, T theta,
-									T standard_deviation) noexcept {
+		static inline void guassian(std::vector<T> &guassian, const unsigned int width, const unsigned int height,
+									const T theta, const T standard_deviation) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			/*	TODO validate size.	*/
 
@@ -230,21 +232,21 @@ namespace Ritsu {
 		}
 
 		template <typename T>
-		static inline void guassian(const T &guassian, unsigned int width, unsigned int height, T theta,
-									const T standard_deviation) noexcept {
+		static inline void guassian(const T &guassian, const unsigned int width, const unsigned int height,
+									const T theta, const T standard_deviation) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			for (unsigned int i = 0; i < height; i++) {
 				// guassian(guassian[i * width],)
 			}
 		}
 
-		template <typename T, typename U> static constexpr inline T gammaCorrection(T x, U gamma) noexcept {
+		template <typename T, typename U> static constexpr inline T gammaCorrection(T value, U gamma) noexcept {
 
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			// TODO add support for using vector components.
 			T exponent = static_cast<T>(1.0) / gamma;
 
-			return static_cast<T>(std::pow(x, exponent));
+			return static_cast<T>(std::pow(value, exponent));
 		}
 
 		template <typename T> static T gameSpaceToLinear(T gamma, T exponent) noexcept {

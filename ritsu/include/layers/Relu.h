@@ -5,7 +5,11 @@
 #include <cmath>
 
 namespace Ritsu {
-
+	
+	/**
+	 * @brief 
+	 * 
+	 */
 	class Relu : public Activaction {
 	  public:
 		Relu(const std::string &name = "relu") : Activaction(name) {}

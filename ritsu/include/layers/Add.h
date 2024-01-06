@@ -8,12 +8,10 @@ namespace Ritsu {
 	 *
 	 */
 	class Add : public Layer<float> {
-
 	  public:
 		Add(const std::string &name = "Add") : Layer<float>(name) {}
 
 		Tensor operator<<(const Tensor &tensor) override {
-
 			Tensor output = tensor;
 			// this->computeElementSum(this-> output);
 			return output;

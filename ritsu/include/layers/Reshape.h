@@ -59,7 +59,6 @@ namespace Ritsu {
 		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
 		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
 
-	  protected:
 	  private:
 		Layer<DType> *input;
 		std::vector<Layer<DType> *> outputs;

@@ -33,6 +33,7 @@
 #include "layers/ExpLinear.h"
 #include "layers/GaussianNoise.h"
 #include "layers/Input.h"
+#include "layers/LambdaOp.h"
 #include "layers/LeakyRelu.h"
 #include "layers/Linear.h"
 #include "layers/MinPooling2D.h"
@@ -41,7 +42,11 @@
 #include "layers/Reshape.h"
 #include "layers/Subtract.h"
 #include "layers/Swish.h"
+#include "layers/Tanh.h"
 #include "layers/UpSampling2D.h"
+
+#include "Activations.h"
+#include "core/Initializers.h"
 
 #include "Metric.h"
 #include "Model.h"

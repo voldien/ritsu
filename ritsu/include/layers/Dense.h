@@ -25,7 +25,6 @@ namespace Ritsu {
 			/*	*/
 			if (use_bias) {
 				this->bias = Tensor({units}, DTypeSize);
-				this->initbias();
 			}
 		}
 
@@ -59,6 +58,9 @@ namespace Ritsu {
 			this->setInputs({&layer});
 			layer.setOutputs({this});
 
+
+			this->build(layer.getShape());
+
 			return *this;
 		}
 
@@ -70,7 +72,8 @@ namespace Ritsu {
 			/*	Validate */
 
 			/*	*/
-			this->weight = Tensor(Shape<IndexType>({static_cast<IndexType>(this->units), shape[0]}), this->DTypeSize);
+			Shape<IndexType> weightShape = Shape<IndexType>({static_cast<IndexType>(this->units), shape[0]});
+			this->weight = Tensor(weightShape, this->DTypeSize);
 
 			/*	*/
 			this->initweight();
@@ -88,9 +91,8 @@ namespace Ritsu {
 			this->outputs = layers;
 
 			// TODO verify flatten
-
 			/*	*/
-			this->build(this->getInputs()[0]->getShape());
+			Layer<DType> *layer = this->getInputs()[0];
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
@@ -100,15 +102,15 @@ namespace Ritsu {
 			if (inputLayer->getShape().getNrDimensions() == 1) {
 			}
 
-			this->input = layers[0];
+			this->input = inputLayer;
 
 			assert(layers.size() == 1);
 		}
 
 		// input
 
-		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
-		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
+		std::vector<Layer<DType> *> getInputs() const override { return {this->input}; }
+		std::vector<Layer<DType> *> getOutputs() const override { return this->outputs; }
 
 		Tensor compute_derivative(const Tensor &tensor) override {
 			Tensor output(this->weight.getShape());
