@@ -122,6 +122,7 @@ INSTANTIATE_TEST_SUITE_P(Math, AlignmentTest,
 						 ::testing::Values(std::make_tuple(23, 64, 64), std::make_tuple(244, 128, 256),
 										   std::make_tuple(300, 64, 320)));
 
-
-
-// activi
+// mean
+// variance
+// covariance
+// deviate

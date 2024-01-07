@@ -1,5 +1,6 @@
 
 #pragma once
+#include "../core/Initializers.h"
 #include "Layer.h"
 #include <cstdint>
 #include <ctime>
@@ -17,13 +18,15 @@ namespace Ritsu {
 		//    bias_initializer='zeros',
 
 	  public:
-		Conv2D(uint32_t filters, const std::vector<uint32_t> &kernel_size, const std::vector<uint32_t> &strides,
-			   const std::string &padding, bool useBias = false, const std::string &kernel_init = "",
-			   const std::string &bias_init = "", const std::string &name = "Conv2D")
+		Conv2D(const uint32_t filters, const std::vector<uint32_t> &kernel_size, const std::array<uint32_t, 2> &stride,
+			   const std::string &padding, bool useBias = true,
+			   const Initializer<DType> &kernel_init = RandomNormalInitializer<DType>(),
+			   const Initializer<DType> &bias_init = RandomNormalInitializer<DType>(),
+			   const std::string &name = "Conv2D")
 			: Layer<float>(name) {
 
 			this->filters = filters;
-			this->stride = strides;
+			this->stride = stride;
 			this->kernel = kernel_size;
 		}
 
@@ -44,6 +47,7 @@ namespace Ritsu {
 			this->computeConv2D(tensor, tensor);
 			return tensor;
 		}
+
 		template <class U> auto &operator()(U &layer) {
 
 			this->setInputs({&layer});
@@ -100,7 +104,7 @@ namespace Ritsu {
 		Tensor _bias;
 		Tensor _kernelWeight;
 		Shape<IndexType> kernel;
-		Shape<IndexType> stride;
+		std::array<uint32_t, 2> stride;
 		std::vector<DType> weight;
 	};
 } // namespace Ritsu

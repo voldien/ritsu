@@ -1,4 +1,5 @@
 #pragma once
+#include "Random.h"
 #include "Tensor.h"
 #include "core/Shape.h"
 #include <random>
@@ -23,7 +24,30 @@ namespace Ritsu {
 	};
 
 	template <typename T> class RandomNormalInitializer : public Initializer<T> {
-		RandomNormalInitializer(T mean = 0.0, T stddev = 0.05, int seed = 0) {}
+	  public:
+		RandomNormalInitializer(T mean = 0.0, T stddev = 1.0, int seed = 0) {
+			this->random = new RandomNormal<T>(mean, stddev);
+		}
+
+		Tensor get(const Shape<unsigned int> &shape) override {
+
+			Tensor tensor(shape);
+#pragma omp parallel shared(tensor)
+#pragma omp simd
+			for (size_t i = 0; i < tensor.getNrElements(); i++) {
+				tensor.getValue<T>(i) = this->random->rand();
+			}
+
+			return tensor;
+		}
+
+	  private:
+		Random<T> *random;
+	};
+
+	template <typename T> class ZeroInitializer : public Initializer<T> {
+	  public:
+		ZeroInitializer() {}
 
 		Tensor get(const Shape<unsigned int> &shape) override {
 
@@ -34,7 +58,7 @@ namespace Ritsu {
 				tensor.getValue<T>(i) = 0;
 			}
 
-            return tensor;
+			return tensor;
 		}
-	}; // namespace Ritsu
+	};
 } // namespace Ritsu

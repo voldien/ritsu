@@ -63,7 +63,7 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-	  private:
+	  protected:
 		inline static constexpr DType computeTanh(DType value) {
 
 			const DType e_ = std::exp(-value);

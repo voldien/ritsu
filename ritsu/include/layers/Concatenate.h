@@ -17,6 +17,22 @@ namespace Ritsu {
 			this->inputs = layers;
 		}
 
+		template <class U> auto &operator()(U &layer) {
+
+			this->setInputs({&layer});
+			layer.setOutputs({this});
+
+			this->build(layer.getShape());
+
+			return *this;
+		}
+
+		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
+		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
+
+		Tensor compute_derivative(const Tensor &tensorLoss) override {}
+		Tensor &compute_derivative(Tensor &tensorLoss) const override {}
+
 	  private:
 		static void concatenate(const Tensor &tensorA, const Tensor &tensorB, Tensor &output) {
 			Tensor copyA = tensorA;

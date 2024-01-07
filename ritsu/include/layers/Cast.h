@@ -53,14 +53,20 @@ namespace Ritsu {
 
 	  protected:
 		// TODO fix performance memory with reference..
+		//
 		Tensor createCastTensor(const Tensor &tensor) {
 			Tensor castTensor(tensor.getShape(), sizeof(T));
+			return createCastTensor(castTensor);
+		}
 
+		Tensor &createCastTensor(Tensor &tensor) {
+			/*	*/
+#pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
-				castTensor.getValue<T>(i) = static_cast<T>(tensor.getValue<A>(i));
+				tensor.getValue<T>(i) = static_cast<T>(tensor.getValue<A>(i));
 			}
 
-			return castTensor;
+			return tensor;
 		}
 
 	  private:

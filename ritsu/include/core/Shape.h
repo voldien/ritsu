@@ -62,7 +62,7 @@ namespace Ritsu {
 		}
 
 		IndexType operator[](T index) const { return this->getAxisDimensions(index); }
-		IndexType &operator[](T index) { return this->dims[index]; }
+		IndexType &operator[](T index) { return this->getAxisDimensions(index); }
 
 		Shape<IndexType> operator()(T start, T end) const { return this->getSubShape(start, end); }
 
@@ -119,11 +119,17 @@ namespace Ritsu {
 			return *this;
 		}
 
-		Shape<IndexType> flatten() const { return Shape({static_cast<T>(Shape::computeNrElements<IndexType>(this->dims))}); }
+		Shape<IndexType> flatten() const {
+			return Shape({static_cast<T>(Shape::computeNrElements<IndexType>(this->dims))});
+		}
 
 		T getNrElements() const { return computeNrElements<IndexType>(this->dims); }
 
 		T getAxisDimensions(const uint32_t index) const noexcept {
+			return this->dims[Math::mod<size_t>(index, this->dims.size())];
+		}
+
+		T &getAxisDimensions(const uint32_t index) noexcept {
 			return this->dims[Math::mod<size_t>(index, this->dims.size())];
 		}
 

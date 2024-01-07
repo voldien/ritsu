@@ -19,6 +19,7 @@ namespace Ritsu {
 	 * @brief Multi dimensional array
 	 *
 	 */
+	// TODO: align
 	/*template <class T = float> */ class Tensor {
 
 	  public:

@@ -54,15 +54,15 @@ int main(int argc, const char **argv) {
 		Flatten flattenInput("flatten0");
 		Flatten flatten("flatten1");
 
-		Dense fw0(256, true, "layer0");
+		Dense fw0(256, true, RandomNormalInitializer<float>(), "layer0");
 		BatchNormalization BN0;
 		Relu relu0;
 
-		Dense fw1 = Dense(128, true, "layer1");
+		Dense fw1 = Dense(128, true, RandomNormalInitializer<float>(), "layer1");
 		BatchNormalization BN1;
 		Relu relu1;
 
-		Dense fw2 = Dense(output_size, true, "layer2");
+		Dense fw2 = Dense(output_size, true, RandomNormalInitializer<float>(), "layer2");
 
 		Regularization regulation(0.001f, 0.001f);
 
@@ -88,7 +88,7 @@ int main(int argc, const char **argv) {
 
 			Tensor predict = std::move(forwardModel.predict(inputTestX));
 			// TODO Compare.
-			
+
 			// TODO Accuracy.
 			std::cout << "Predict " << predict << std::endl;
 		}

@@ -27,6 +27,30 @@ namespace Ritsu {
 			return tmpOutput;
 		}
 
+		Tensor &operator()(Tensor &tensor) override {
+			this->computeDropout(tensor);
+			return tensor;
+		}
+
+		template <class U> auto &operator()(U &layer) {
+
+			this->setInputs({&layer});
+			layer.setOutputs({this});
+
+			return *this;
+		}
+
+		void setInputs(const std::vector<Layer<DType> *> &layers) override {
+			this->input = layers[0];
+
+			this->shape = this->input->getShape();
+		}
+
+		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
+			/*	Set input layer */
+			this->outputs = layers;
+		}
+
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 

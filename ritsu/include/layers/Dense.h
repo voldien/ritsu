@@ -1,5 +1,6 @@
 #pragma once
 #include "../Random.h"
+#include "../core/Initializers.h"
 #include "Layer.h"
 #include "Tensor.h"
 #include <cassert>
@@ -15,7 +16,10 @@ namespace Ritsu {
 		//    bias_initializer='zeros',
 
 	  public:
-		Dense(uint32_t units, bool use_bias = true, const std::string &name = "dense") : Layer(name) {
+		Dense(uint32_t units, bool use_bias = true,
+			  const Initializer<DType> &weight_init = RandomNormalInitializer<DType>(),
+			  const std::string &name = "dense")
+			: Layer(name) {
 
 			/*	*/
 			this->units = units;
@@ -57,7 +61,6 @@ namespace Ritsu {
 
 			this->setInputs({&layer});
 			layer.setOutputs({this});
-
 
 			this->build(layer.getShape());
 

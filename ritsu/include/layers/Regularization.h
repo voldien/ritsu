@@ -7,8 +7,8 @@
 namespace Ritsu {
 
 	/**
-	 * @brief 
-	 * 
+	 * @brief
+	 *
 	 */
 	class Regularization : public Layer<float> {
 
@@ -66,10 +66,10 @@ namespace Ritsu {
 			Tensor output(tensorLoss.getShape());
 
 			if (this->l1 > 0) {
-				computeL1(tensorLoss, this->l1, output);
+				Regularization::computeL1(tensorLoss, this->l1, output);
 			}
 			if (this->l2 > 0) {
-				computeL2(tensorLoss, this->l2, output);
+				Regularization::computeL2(tensorLoss, this->l2, output);
 			}
 
 			return output;
@@ -92,7 +92,7 @@ namespace Ritsu {
 	  private:
 		static inline void computeElementSum(Tensor &inputA, const Tensor &inputB) { inputA = inputA + inputB; }
 
-		static void computeL1(const Tensor &tensor, const DType L1, Tensor &output) {
+		static void computeL1(const Tensor &tensor, const DType L1, Tensor &output) noexcept {
 			/*	*/
 #pragma omp parallel shared(output, tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
@@ -100,7 +100,7 @@ namespace Ritsu {
 			}
 		}
 
-		static void computeL2(const Tensor &tensor, const DType L2, Tensor &output) {
+		static void computeL2(const Tensor &tensor, const DType L2, Tensor &output) noexcept {
 			/*	*/
 #pragma omp parallel shared(output, tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {

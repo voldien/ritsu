@@ -19,6 +19,7 @@ namespace Ritsu {
 			: Layer<T>(name) {
 			this->scale = scale;
 		}
+
 		Tensor operator<<(const Tensor &tensor) override {
 
 			// Tensor output({this->units, 1}, DTypeSize);
@@ -78,10 +79,25 @@ namespace Ritsu {
 
 	  private:
 		void computeUpSampling(const Tensor &a, const Tensor &b) { //, Tensor &output) {}
+			switch (this->interpolation) {
+			case Interpolation::NEAREST:
+				break;
+			case Interpolation::BILINEAR:
+				break;
+			case Interpolation::BICUBIC:
+				break;
+			default:
+				break;
+			}
 		}
+
+		inline static void computeUpscaleNearest() {}
+		inline static void computeUpscaleBilinear() {}
+		inline static void computeUpscaleBiCubic() {}
 
 		std::vector<Layer<T> *> inputs;
 		std::vector<Layer<T> *> outputs;
 		uint32_t scale;
+		Interpolation interpolation;
 	};
 } // namespace Ritsu
