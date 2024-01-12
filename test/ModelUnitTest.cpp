@@ -9,6 +9,15 @@ class ModelTest : public ::testing::TestWithParam<std::tuple<uint32_t, uint32_t,
 TEST_P(ModelTest, Setup) {
 	auto [x, y, expected] = GetParam();
 
+	Input input0node(expected, "input");
+	Cast<uint8_t, float> cast2Float;
+	Rescaling normalizedLayer(1.0f / 255.0f);
+	GuassianNoise noise(0.1, 0.1f);
+
+	//Layer<float> &output = regulation(
+	//	outputAct(fw2(relu1(BN1(fw1(relu0(BN0(normalizedLayer(cast2Float(input0node))))))))));
+
+	//Model<float> forwardModel({&input0node}, {&output});
 	// EXPECT_EQ(output.getShape(), expected);
 }
 

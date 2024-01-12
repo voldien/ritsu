@@ -188,7 +188,7 @@ namespace Ritsu {
 
 			/*	*/
 			for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
-				this->history[this->metrics[m_index]->getName()] = Tensor({0});
+				this->history[this->metrics[m_index]->getName()] = Tensor({1});
 			}
 		}
 

@@ -90,7 +90,7 @@ TEST_P(LayerUniformShapeSizeTest, SwishLayerShapeSize) {
 }
 /*	*/
 
-TEST_P(LayerUniformShapeSizeTest, TanhLayerShapeSize) {
+TEST_P(LayerUniformShapeSizeTest, TahnLayerShapeSize) {
 	auto [x, expected] = GetParam();
 
 	Ritsu::Input input(x);

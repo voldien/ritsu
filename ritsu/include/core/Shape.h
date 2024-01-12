@@ -21,7 +21,7 @@ namespace Ritsu {
 	template <typename T> class Shape {
 		static_assert(std::is_integral<T>::value, "Type must be a integral type.");
 
-		using IndexType =  T;
+		using IndexType = T;
 		static constexpr size_t IndexTypeSize = sizeof(IndexType);
 
 	  public:
@@ -116,13 +116,19 @@ namespace Ritsu {
 			for (size_t i = 0; i < this->getNrDimensions(); i++) {
 				// TODO
 			}
-			
+
 			return *this;
 		}
 
 		Shape<IndexType> flatten() const {
 			return Shape({static_cast<IndexType>(Shape::computeNrElements<IndexType>(this->dims))});
 		}
+
+		Shape<IndexType> &flatten() {
+			*this = Shape({static_cast<IndexType>(Shape::computeNrElements<IndexType>(this->dims))});
+			return *this;
+		}
+		static Shape flatten(const Shape &shape) { return Shape({(IndexType)Shape::computeNrElements(shape.dims)}); }
 
 		IndexType getNrElements() const { return computeNrElements<IndexType>(this->dims); }
 
@@ -154,7 +160,7 @@ namespace Ritsu {
 		}
 
 		// TODO add template to allow multiple of primtive types.
-		void reshape(const std::vector<IndexType> &newDims) {
+		Shape<IndexType> &reshape(const std::vector<IndexType> &newDims) {
 			/*	Only allow reshape if both dims have the same number of elements.	*/
 			if (this->computeNrElements(newDims) == this->getNrElements()) {
 				this->dims = newDims;
@@ -167,6 +173,7 @@ namespace Ritsu {
 				// Failure
 				throw std::invalid_argument("Invalid Dimension");
 			}
+			return *this;
 		}
 
 		void append(const std::vector<IndexType> &additionalDims) {}
@@ -182,20 +189,10 @@ namespace Ritsu {
 		}
 
 	  public:
-		Shape flatten(const Shape &shape) const { return Shape({(IndexType)Shape::computeNrElements(shape.dims)}); }
-
 		template <typename U> static U computeNrElements(const std::vector<U> &dims) noexcept {
 			static_assert(std::is_integral<U>::value, "Type must be a integral type.");
 
-			size_t totalSize = 1;
-
-			/*	*/
-#pragma omp for simd
-			for (size_t i = 0; i < dims.size(); i++) {
-				totalSize *= dims[i];
-			}
-			/*	*/
-			return totalSize;
+			return Math::product(dims);
 		}
 
 	  private:

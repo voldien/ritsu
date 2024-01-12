@@ -20,24 +20,22 @@ TYPED_TEST_P(ShapeType, SetGetValues) {
 	ASSERT_EQ(shape[0], 3);
 	ASSERT_EQ(shape[1], 24);
 	ASSERT_EQ(shape[2], 22);
-	// shape.getNrDimensions();
+	ASSERT_EQ(shape.getNrDimensions(), 3);
 }
 
 TYPED_TEST_P(ShapeType, Flatten) {
 	Ritsu::Shape<TypeParam> shape({32, 32, 3});
 
-	auto flatten = shape.flatten();
-	ASSERT_EQ(flatten, Ritsu::Shape<TypeParam>({32 * 32 * 1}));
+	auto& flatten = shape.flatten();
+	ASSERT_EQ(flatten, Ritsu::Shape<TypeParam>({32 * 32 * 3}));
 	ASSERT_EQ(flatten.getNrDimensions(), 1);
-	// shape.getNrDimensions();
 }
 
 TYPED_TEST_P(ShapeType, Reshape) {
 	Ritsu::Shape<TypeParam> shape({32, 32, 3});
 
-	// auto flatten =
-	// shape.reshape({16, 16, 3 * 2 * 2});
-	// shape.getNrDimensions();
+	shape.reshape({16, 16, 3 * 2 * 2});
+	ASSERT_EQ(shape.getNrDimensions(), 3);
 }
 
 TYPED_TEST_P(ShapeType, SubShape) {
@@ -48,30 +46,22 @@ TYPED_TEST_P(ShapeType, SubShape) {
 }
 
 TYPED_TEST_P(ShapeType, Reduce) {
-	// Ritsu::Shape<TypeParam> shape({32, 32, 3});
+	Ritsu::Shape<TypeParam> shape({32, 32, 3});
 
-	// auto flatten = shape.reduce();
+	auto &flatten = shape.reduce();
 }
 
-REGISTER_TYPED_TEST_SUITE_P(ShapeType, DefaultConstructor, SetGetValues, Flatten, Reshape, SubShape, Reduce);
+TYPED_TEST_P(ShapeType, ComputeIndex) {
+	Ritsu::Shape<TypeParam> shape({32, 32, 3});
+
+	// auto &flatten = shape.reduce();
+}
+
+REGISTER_TYPED_TEST_SUITE_P(ShapeType, DefaultConstructor, SetGetValues, Flatten, Reshape, SubShape, Reduce,
+							ComputeIndex);
 
 using ShapePrimitiveDataTypes = ::testing::Types<uint16_t, uint32_t, size_t>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Shape, ShapeType, ShapePrimitiveDataTypes);
 
 // Number of elements.
-// Sub shape
 // Axis dim
-// compute index
-
-/*  */
-// template <class T> class LayerType : public ::testing::Test {};
-// TYPED_TEST_SUITE_P(LayerType);
-//
-// TYPED_TEST_P(LayerType, DefaultConstructor) { Ritsu::Layer<TypeParam> layer; }
-//
-// TYPED_TEST_P(LayerType, SetGetValues) {}
-//
-// REGISTER_TYPED_TEST_SUITE_P(LayerType, DefaultConstructor, SetGetValues);
-//
-// using LayerPrimitiveDataTypes = ::testing::Types<uint16_t, uint32_t, size_t>;
-// INSTANTIATE_TYPED_TEST_SUITE_P(Layer, LayerType, LayerPrimitiveDataTypes);

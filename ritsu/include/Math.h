@@ -42,29 +42,52 @@ namespace Ritsu {
 			return part;
 		}
 
-		template <typename T> static T sum(const std::vector<T> &list) noexcept {
+		template <typename T> static inline T sum(const std::vector<T> &list) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
-			T sum = 0;
-#pragma omp parallel shared(list)
-			for (size_t i = 0; i < list.size(); i++) {
-				sum += list[i];
-			}
-			return sum;
+			return Math::sum<T>(list.data(), list.size());
 		}
 
 		template <typename T> static T sum(const T *list, const size_t nrElements) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
-#pragma omp parallel shared(list)
+#pragma omp parallel for simd reduction(+ : sum) shared(list, nrElements)
 			for (size_t i = 0; i < nrElements; i++) {
 				sum += list[i];
 			}
 			return sum;
 		}
 
-		// accuracy.
+		template <typename T> static inline T product(const std::vector<T> &list) noexcept {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+						  "Type Must Support addition operation.");
+			return Math::product<T>(list.data(), list.size());
+		}
+
+		template <typename T> static T product(const T *list, const size_t nrElements) noexcept {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+						  "Type Must Support addition operation.");
+			T product_combined = 1;
+#pragma omp parallel for reduction(* : product_combined) shared(list, nrElements)
+			for (size_t i = 0; i < nrElements; i++) {
+				product_combined *= list[i];
+			}
+			return product_combined;
+		}
+
+		template <typename T> static T dot(const T *listA, const T *listB, const size_t nrElements) noexcept {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+						  "Type Must Support addition operation.");
+			T sum = 0;
+#pragma omp parallel for simd reduction(+ : sum) shared(listA, listB, nrElements)
+			for (size_t i = 0; i < nrElements; i++) {
+				sum += listA[i] * listB[i];
+			}
+			return sum;
+		}
+
+		// TODO: accuracy.
 
 		template <typename T> constexpr static T mean(const T *list, const size_t nrElements) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
@@ -86,28 +109,21 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
-#pragma omp parallel shared(list, sum)
+#pragma omp parallel for simd reduction(+:sum) shared(list, mean)
 			for (size_t i = 0; i < nrElements; i++) {
 				sum += (list[i] - mean) * (list[i] - mean);
 			}
 
-			return (static_cast<T>(1) / static_cast<T>(nrElements)) * sum;
+			return (static_cast<T>(1) / static_cast<T>((nrElements - 1))) * sum;
 		}
 
-		template <typename T> static T variance(const std::vector<T> &list, const T mean) {
+		template <typename T> static inline T variance(const std::vector<T> &list, const T mean) {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
-			T sum = 0;
-
-#pragma omp parallel shared(list, sum)
-			for (size_t i = 0; i < list.size(); i++) {
-				sum += (list[i] - mean) * (list[i] - mean);
-			}
-
-			return (static_cast<T>(1) / static_cast<T>(list.size())) * sum;
+			return Math::variance<T>(list.data(), list.size(), mean);
 		}
 
-		template <typename T> constexpr static T standardDeviation(const std::vector<T> &list, const T mean) {
+		template <typename T> constexpr static inline T standardDeviation(const std::vector<T> &list, const T mean) {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			return std::sqrt<T>(variance<T>(list, mean));
@@ -238,7 +254,7 @@ namespace Ritsu {
 
 			/*	*/
 			T *pGuass = static_cast<T *>(&guassian);
-
+#pragma omp parallel for simd
 			for (unsigned int i = 0; i < height; i++) {
 				const T b = (-1.0f / 2.0f) * std::pow<T>(((i - standard_deviation) / theta), 2.0f);
 				pGuass[i] = a * std::pow<T>(Math::E, b);

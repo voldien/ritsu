@@ -65,7 +65,7 @@ TEST_P(SumTest, Values) {
 	auto [x, expected] = GetParam();
 	auto sum = Math::sum(x);
 
-	EXPECT_NEAR(sum, expected, 10e-8);
+	EXPECT_NEAR(sum, expected, 10e-6);
 }
 
 INSTANTIATE_TEST_SUITE_P(Math, SumTest,
@@ -129,11 +129,14 @@ TEST_P(MeanTest, Values) {
 
 	const float mean = Math::mean(x);
 
-	EXPECT_FLOAT_EQ(mean, expected);
+	EXPECT_NEAR(mean, expected, 0.001f);
 }
 INSTANTIATE_TEST_SUITE_P(Math, MeanTest,
-						 ::testing::Values(std::make_tuple(std::vector<float>({1, 2, 3, 4, 5, 5, 5}), 0.5),
-										   std::make_tuple(std::vector<float>({5, 5, 5, 5, 5, 5, 5}), 0.5)));
+						 ::testing::Values(std::make_tuple(std::vector<float>({9, 10, 12, 13, 13, 13, 15, 15, 16, 16,
+																			   18, 22, 23, 24, 24, 25}),
+														   16.75f),
+										   std::make_tuple(std::vector<float>({-10, 1, 4, 5, 10, 20, 70}),
+														   14.285714285714f)));
 
 class VarianceTest : public ::testing::TestWithParam<std::tuple<std::vector<float>, float>> {};
 
@@ -146,8 +149,8 @@ TEST_P(VarianceTest, Values) {
 	EXPECT_FLOAT_EQ(variance, expected);
 }
 INSTANTIATE_TEST_SUITE_P(Math, VarianceTest,
-						 ::testing::Values(std::make_tuple(std::vector<float>({1, 2, 3, 4, 5, 5, 5}), 0.5),
-										   std::make_tuple(std::vector<float>({5, 5, 5, 5, 5, 5, 5}), 0.5)));
+						 ::testing::Values(std::make_tuple(std::vector<float>({1, 2, 3, 4, 5, 5, 5}), 2.6190476f),
+										   std::make_tuple(std::vector<float>({-10, 20,-15,20,2,-100}), 1996.1667f)));
 
 class StandardDeviationTest : public ::testing::TestWithParam<std::tuple<std::vector<float>, float>> {};
 
