@@ -122,7 +122,45 @@ INSTANTIATE_TEST_SUITE_P(Math, AlignmentTest,
 						 ::testing::Values(std::make_tuple(23, 64, 64), std::make_tuple(244, 128, 256),
 										   std::make_tuple(300, 64, 320)));
 
-// mean
-// variance
+class MeanTest : public ::testing::TestWithParam<std::tuple<const std::vector<float>, float>> {};
+
+TEST_P(MeanTest, Values) {
+	auto [x, expected] = GetParam();
+
+	const float mean = Math::mean(x);
+
+	EXPECT_FLOAT_EQ(mean, expected);
+}
+INSTANTIATE_TEST_SUITE_P(Math, MeanTest,
+						 ::testing::Values(std::make_tuple(std::vector<float>({1, 2, 3, 4, 5, 5, 5}), 0.5),
+										   std::make_tuple(std::vector<float>({5, 5, 5, 5, 5, 5, 5}), 0.5)));
+
+class VarianceTest : public ::testing::TestWithParam<std::tuple<std::vector<float>, float>> {};
+
+TEST_P(VarianceTest, Values) {
+	auto [x, expected] = GetParam();
+
+	const float mean = Math::mean<float>(x);
+	const float variance = Math::variance<float>(x, mean);
+
+	EXPECT_FLOAT_EQ(variance, expected);
+}
+INSTANTIATE_TEST_SUITE_P(Math, VarianceTest,
+						 ::testing::Values(std::make_tuple(std::vector<float>({1, 2, 3, 4, 5, 5, 5}), 0.5),
+										   std::make_tuple(std::vector<float>({5, 5, 5, 5, 5, 5, 5}), 0.5)));
+
+class StandardDeviationTest : public ::testing::TestWithParam<std::tuple<std::vector<float>, float>> {};
+
+TEST_P(StandardDeviationTest, Values) {
+	auto [x, expected] = GetParam();
+
+	const float mean = Math::mean<float>(x);
+	const float variance = Math::variance<float>(x, mean);
+
+	EXPECT_FLOAT_EQ(variance, expected);
+}
+INSTANTIATE_TEST_SUITE_P(Math, StandardDeviationTest,
+						 ::testing::Values(std::make_tuple(std::vector<float>({1, 2, 3, 4, 5, 5, 5}), 0.5),
+										   std::make_tuple(std::vector<float>({5, 5, 5, 5, 5, 5, 5}), 0.5)));
+
 // covariance
-// deviate

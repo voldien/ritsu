@@ -24,6 +24,7 @@ logo
 - **Linear**
 - **Swish**
 - **ExpLinear**
+- **Linear**
 
 ### Layer
 - **Dense**
@@ -32,9 +33,9 @@ logo
 
 - **GuassianNoise**
 
-- **MaxPooling2D/3D**
-- **AveragePooling2D/3D**
-- **MinPooling2D/3D**
+- **MaxPooling2D**
+- **AveragePooling2D**
+- **MinPooling2D**
 
 
 - **Convolution2D**
@@ -42,6 +43,8 @@ logo
 
 - **Flatten**
 - **Reshape**
+
+- **EmbeedingLayer**
 
 - **Concatenate**
 - **Add**

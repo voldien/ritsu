@@ -21,7 +21,7 @@ namespace Ritsu {
 	template <typename T> class Shape {
 		static_assert(std::is_integral<T>::value, "Type must be a integral type.");
 
-		using IndexType = unsigned int;
+		using IndexType =  T;
 		static constexpr size_t IndexTypeSize = sizeof(IndexType);
 
 	  public:
@@ -61,15 +61,15 @@ namespace Ritsu {
 			return {};
 		}
 
-		IndexType operator[](T index) const { return this->getAxisDimensions(index); }
-		IndexType &operator[](T index) { return this->getAxisDimensions(index); }
+		IndexType operator[](IndexType index) const { return this->getAxisDimensions(index); }
+		IndexType &operator[](IndexType index) { return this->getAxisDimensions(index); }
 
-		Shape<IndexType> operator()(T start, T end) const { return this->getSubShape(start, end); }
+		Shape<IndexType> operator()(IndexType start, IndexType end) const { return this->getSubShape(start, end); }
 
 		bool operator==(const Shape<IndexType> &shape) const {
 
 			/*	Same address => equal.	*/
-			if (&shape == this) {
+			if (static_cast<const void *>(&shape) == static_cast<const void *>(this)) {
 				return true;
 			}
 
@@ -94,8 +94,8 @@ namespace Ritsu {
 		Shape<IndexType> getSubShape(const size_t start, const size_t end) const {
 
 			/*	*/
-			std::vector<IndexType>::const_iterator first = this->dims.begin() + start;
-			std::vector<IndexType>::const_iterator last =
+			typename std::vector<IndexType>::const_iterator first = this->dims.begin() + start;
+			typename std::vector<IndexType>::const_iterator last =
 				(this->dims.begin() + Math::mod<size_t>(end, this->dims.size())) + 1; // Inclusive.
 
 			std::vector<IndexType> newVec(first, last);
@@ -107,7 +107,7 @@ namespace Ritsu {
 		}
 
 		// implicit
-		operator std::vector<T>() const { return this->dims; }
+		operator std::vector<IndexType>() const { return this->dims; }
 		// explicit conversion
 		explicit operator const std::vector<T> &() const { return this->dims; }
 
@@ -116,24 +116,25 @@ namespace Ritsu {
 			for (size_t i = 0; i < this->getNrDimensions(); i++) {
 				// TODO
 			}
+			
 			return *this;
 		}
 
 		Shape<IndexType> flatten() const {
-			return Shape({static_cast<T>(Shape::computeNrElements<IndexType>(this->dims))});
+			return Shape({static_cast<IndexType>(Shape::computeNrElements<IndexType>(this->dims))});
 		}
 
-		T getNrElements() const { return computeNrElements<IndexType>(this->dims); }
+		IndexType getNrElements() const { return computeNrElements<IndexType>(this->dims); }
 
-		T getAxisDimensions(const uint32_t index) const noexcept {
+		IndexType getAxisDimensions(const uint32_t index) const noexcept {
 			return this->dims[Math::mod<size_t>(index, this->dims.size())];
 		}
 
-		T &getAxisDimensions(const uint32_t index) noexcept {
+		IndexType &getAxisDimensions(const uint32_t index) noexcept {
 			return this->dims[Math::mod<size_t>(index, this->dims.size())];
 		}
 
-		T getNrDimensions() const noexcept { return this->dims.size(); }
+		IndexType getNrDimensions() const noexcept { return this->dims.size(); }
 
 		friend std::ostream &operator<<(std::ostream &stream, const Shape &shape) {
 
@@ -141,7 +142,7 @@ namespace Ritsu {
 			for (int i = 0; i < shape.dims.size(); i++) {
 
 				const size_t index = i;
-				const T value = shape.dims[i];
+				const IndexType value = shape.dims[i];
 				stream << value;
 				if (i < shape.dims.size() - 1) {
 					stream << ",";
@@ -198,6 +199,6 @@ namespace Ritsu {
 		}
 
 	  private:
-		std::vector<T> dims;
+		std::vector<IndexType> dims;
 	};
 } // namespace Ritsu

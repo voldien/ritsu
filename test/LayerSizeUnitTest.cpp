@@ -273,8 +273,12 @@ INSTANTIATE_TEST_SUITE_P(
 					  std::make_tuple(std::array<uint32_t, 2>({2, 2}), Ritsu::Shape<uint32_t>({256, 256, 1}),
 									  Ritsu::Shape<uint32_t>({128, 128, 1}))));
 
+class LayerUp2DScaleShapeSizeTest
+	: public ::testing::TestWithParam<
+		  std::tuple<std::array<uint32_t, 2>, Ritsu::Shape<uint32_t>, Ritsu::Shape<uint32_t>>> {};
+
 /*	*/
-TEST_P(LayerDown2DScaleShapeSizeTest, UpSampling2D) {
+TEST_P(LayerUp2DScaleShapeSizeTest, UpSampling2D) {
 	auto [stride, x, expected] = GetParam();
 
 	Ritsu::UpSampling2D<float> upscale(2, UpSampling2D<float>::Interpolation::NEAREST);
@@ -282,17 +286,22 @@ TEST_P(LayerDown2DScaleShapeSizeTest, UpSampling2D) {
 	EXPECT_EQ(upscale.getShape(), expected);
 }
 
-TEST_P(LayerDown2DScaleShapeSizeTest, Conv2DTranspose) {
+TEST_P(LayerUp2DScaleShapeSizeTest, Conv2DTranspose) {
 	auto [stride, x, expected] = GetParam();
 
 	Ritsu::Conv2DTranspose conv2DTranspose(64, {2, 2});
 
 	EXPECT_EQ(conv2DTranspose.getShape(), expected);
 }
+INSTANTIATE_TEST_SUITE_P(
+	Math, LayerUp2DScaleShapeSizeTest,
+	::testing::Values(std::make_tuple(std::array<uint32_t, 2>({2, 2}), Ritsu::Shape<uint32_t>({16, 16, 3}),
+									  Ritsu::Shape<uint32_t>({8, 8, 3})),
+					  std::make_tuple(std::array<uint32_t, 2>({2, 2}), Ritsu::Shape<uint32_t>({256, 256, 1}),
+									  Ritsu::Shape<uint32_t>({128, 128, 1}))));
 
 class LayerConcatenateShapeSizeTest
 	: public ::testing::TestWithParam<std::tuple<Ritsu::Shape<uint32_t>, Ritsu::Shape<uint32_t>>> {};
-
 TEST_P(LayerConcatenateShapeSizeTest, Concatenate) {
 	auto [x, expected] = GetParam();
 
@@ -304,7 +313,10 @@ TEST_P(LayerConcatenateShapeSizeTest, Concatenate) {
 	// EXPECT_EQ(cat.getShape(), expected);
 }
 
-TEST_P(LayerConcatenateShapeSizeTest, Reshape) {
+//TODO: add one more argument, from to, expected
+class LayerReshapeShapeSizeTest
+	: public ::testing::TestWithParam<std::tuple<Ritsu::Shape<uint32_t>, Ritsu::Shape<uint32_t>>> {};
+TEST_P(LayerReshapeShapeSizeTest, Reshape) {
 	auto [x, expected] = GetParam();
 
 	Ritsu::Input input0(x);
@@ -314,6 +326,9 @@ TEST_P(LayerConcatenateShapeSizeTest, Reshape) {
 
 	EXPECT_EQ(reshape.getShape(), expected);
 }
+INSTANTIATE_TEST_SUITE_P(Reshape, LayerReshapeShapeSizeTest,
+						 ::testing::Values(std::make_tuple(Ritsu::Shape<uint32_t>({16, 16, 3}),
+														   Ritsu::Shape<uint32_t>({2, 8, 8, 3}))));
 
 TEST_P(LayerUniformShapeSizeTest, Values) {
 	auto [x, expected] = GetParam();

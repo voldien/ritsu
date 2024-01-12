@@ -369,6 +369,7 @@ namespace Ritsu {
 		uint32_t element_size;
 
 	  public: // TOOD relocate
+	  
 		static Tensor log10(const Tensor &tensorA) {
 			Tensor output(tensorA.getShape());
 #pragma omp parallel shared(tensorA, output)

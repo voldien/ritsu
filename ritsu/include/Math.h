@@ -42,7 +42,7 @@ namespace Ritsu {
 			return part;
 		}
 
-		template <typename T> constexpr static T sum(const std::vector<T> &list) noexcept {
+		template <typename T> static T sum(const std::vector<T> &list) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
@@ -53,7 +53,7 @@ namespace Ritsu {
 			return sum;
 		}
 
-		template <typename T> constexpr static T sum(const T *list, const size_t nrElements) noexcept {
+		template <typename T> static T sum(const T *list, const size_t nrElements) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
@@ -82,11 +82,11 @@ namespace Ritsu {
 			return (static_cast<T>(1) / static_cast<T>(list.size())) * sum;
 		}
 
-		template <typename T>
-		constexpr static T variance(const T *list, const size_t nrElements, const T mean) noexcept {
+		template <typename T> static T variance(const T *list, const size_t nrElements, const T mean) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
+#pragma omp parallel shared(list, sum)
 			for (size_t i = 0; i < nrElements; i++) {
 				sum += (list[i] - mean) * (list[i] - mean);
 			}
@@ -94,16 +94,42 @@ namespace Ritsu {
 			return (static_cast<T>(1) / static_cast<T>(nrElements)) * sum;
 		}
 
-		template <typename T> constexpr static T variance(const std::vector<T> &list, const T mean) {
+		template <typename T> static T variance(const std::vector<T> &list, const T mean) {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
 
+#pragma omp parallel shared(list, sum)
 			for (size_t i = 0; i < list.size(); i++) {
 				sum += (list[i] - mean) * (list[i] - mean);
 			}
 
 			return (static_cast<T>(1) / static_cast<T>(list.size())) * sum;
+		}
+
+		template <typename T> constexpr static T standardDeviation(const std::vector<T> &list, const T mean) {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+						  "Type Must Support addition operation.");
+			return std::sqrt<T>(variance<T>(list, mean));
+		}
+
+		template <typename T>
+		constexpr static T cov(const std::vector<T> &listA, const std::vector<T> &listB, const T meanA, const T meanB) {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+						  "Type Must Support addition operation.");
+			T sum = 0;
+			// Check same size.
+
+			variance(listB, meanB) * variance(listA, meanA);
+
+			return (static_cast<T>(1) / static_cast<T>(listA.size())) * sum;
+		}
+
+		template <typename T>
+		constexpr static T cor(const std::vector<T> &listA, const std::vector<T> &listB, const T meanA, const T meanB) {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+						  "Type Must Support addition operation.");
+			return cov(listA, listB, meanA, meanB) / (std::sqrt(variance(listB, meanB) * variance(listA, meanA)));
 		}
 
 		/**
