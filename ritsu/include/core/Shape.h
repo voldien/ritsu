@@ -130,7 +130,7 @@ namespace Ritsu {
 		}
 		static Shape flatten(const Shape &shape) { return Shape({(IndexType)Shape::computeNrElements(shape.dims)}); }
 
-		IndexType getNrElements() const { return computeNrElements<IndexType>(this->dims); }
+		IndexType getNrElements() const { return Shape::computeNrElements<IndexType>(this->dims); }
 
 		IndexType getAxisDimensions(const uint32_t index) const noexcept {
 			return this->dims[Math::mod<size_t>(index, this->dims.size())];
@@ -191,7 +191,6 @@ namespace Ritsu {
 	  public:
 		template <typename U> static U computeNrElements(const std::vector<U> &dims) noexcept {
 			static_assert(std::is_integral<U>::value, "Type must be a integral type.");
-
 			return Math::product(dims);
 		}
 

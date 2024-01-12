@@ -73,6 +73,20 @@ INSTANTIATE_TEST_SUITE_P(Math, SumTest,
 										   std::make_tuple(std::vector<float>{5, 5, 5, 5, 5}, 25),
 										   std::make_tuple(std::vector<float>{-5, 5, -5, 5, 5}, 5)));
 
+class ProductTest : public ::testing::TestWithParam<std::tuple<std::vector<float>, float>> {};
+
+TEST_P(ProductTest, Values) {
+	auto [x, expected] = GetParam();
+	auto sum = Math::product(x);
+
+	EXPECT_NEAR(sum, expected, 10e-6);
+}
+
+INSTANTIATE_TEST_SUITE_P(Math, ProductTest,
+						 ::testing::Values(std::make_tuple(std::vector<float>{1, 2, 3, 4, 5}, 15),
+										   std::make_tuple(std::vector<float>{5, 5, 5, 5, 5}, 25),
+										   std::make_tuple(std::vector<float>{-5, 5, -5, 5, 5}, 5)));
+
 class GuassianDistributionTest : public ::testing::TestWithParam<std::tuple<float, float, std::vector<float>>> {};
 
 TEST_P(GuassianDistributionTest, Values) {
@@ -150,7 +164,8 @@ TEST_P(VarianceTest, Values) {
 }
 INSTANTIATE_TEST_SUITE_P(Math, VarianceTest,
 						 ::testing::Values(std::make_tuple(std::vector<float>({1, 2, 3, 4, 5, 5, 5}), 2.6190476f),
-										   std::make_tuple(std::vector<float>({-10, 20,-15,20,2,-100}), 1996.1667f)));
+										   std::make_tuple(std::vector<float>({-10, 20, -15, 20, 2, -100}),
+														   1996.1667f)));
 
 class StandardDeviationTest : public ::testing::TestWithParam<std::tuple<std::vector<float>, float>> {};
 

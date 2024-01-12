@@ -42,31 +42,37 @@ namespace Ritsu {
 		 * @param elementSize
 		 */
 		// TODO remove element size, replace with the generic type size.
-		Tensor(const std::vector<IndexType> &dimensions, size_t elementSize = sizeof(DType)) {
+		Tensor(const std::vector<IndexType> &dimensions, const size_t elementSize = DTypeSize) {
+			this->ownAllocation = true;
 			this->resizeBuffer(dimensions, elementSize);
 		}
 
-		Tensor(const Shape<IndexType> &shape, size_t elementSize = sizeof(DType)) {
+		Tensor(const Shape<IndexType> &shape, const size_t elementSize = DTypeSize) {
+			this->ownAllocation = true;
 			this->resizeBuffer(static_cast<const std::vector<IndexType> &>(shape), elementSize);
 		}
 
-		Tensor(uint8_t *buffer, size_t size, const std::vector<IndexType> &dimensions) {
+		Tensor(uint8_t *buffer, size_t size, const std::vector<IndexType> &dimensions,
+			   const size_t elementSize = DTypeSize) {
 			this->buffer = buffer;
 			this->shape = dimensions;
 			this->NrElements = this->getShape().getNrElements();
+			this->element_size = elementSize;
 			this->ownAllocation = false;
 		}
 
 		Tensor(const Tensor &other) {
+			this->ownAllocation = true;
 			this->resizeBuffer(other.getShape(), Ritsu::Tensor::DTypeSize);
 			memcpy(this->buffer, other.buffer, other.getDatSize());
 		}
 
 		Tensor(Tensor &&other) {
 			this->buffer = std::exchange(other.buffer, nullptr);
-			this->shape = other.shape;
+			this->shape = std::move(other.shape);
 			this->NrElements = other.NrElements;
 			this->ownAllocation = other.ownAllocation;
+			this->element_size = other.element_size;
 		}
 
 		~Tensor() {
@@ -78,8 +84,8 @@ namespace Ritsu {
 
 		auto &operator=(const Tensor &other) {
 			/*	*/
+			this->ownAllocation = true;
 			this->resizeBuffer(other.getShape(), Ritsu::Tensor::DTypeSize);
-
 			/*	*/
 			memcpy(this->buffer, other.buffer, other.getDatSize());
 
@@ -88,44 +94,41 @@ namespace Ritsu {
 
 		auto &operator=(Tensor &&other) {
 			this->buffer = std::exchange(other.buffer, nullptr);
-			this->shape = other.shape;
+			this->shape = std::move(other.shape);
 			this->NrElements = other.NrElements;
+			this->element_size = other.element_size;
 			this->ownAllocation = other.ownAllocation;
 			return *this;
 		}
 
 		// operations of data.
-		template <typename U> inline const auto &getValue(const std::vector<IndexType> &location) const {
+		template <typename U> inline U getValue(const std::vector<IndexType> &location) const {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 
 			const size_t index = this->computeIndex(location);
-
-			const U *addr = reinterpret_cast<const U *>(&this->buffer[index * DTypeSize]);
-			return *addr;
+			return Tensor::getValue<U>((IndexType)index);
 		}
 
-		template <typename U> inline auto &getValue(const std::vector<IndexType> &location) {
+		template <typename U> inline U &getValue(const std::vector<IndexType> &location) {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 
 			const size_t index = this->computeIndex(location);
+			return Tensor::getValue<U>((IndexType)index);
+		}
 
-			U *addr = reinterpret_cast<U *>(&this->buffer[index * DTypeSize]);
+		template <typename U> inline U &getValue(const IndexType index) {
+			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
+						  "Must be a decimal type(float/double/half) or integer.");
+			U *addr = reinterpret_cast<U *>(&this->buffer[index * this->element_size]);
 			return *addr;
 		}
 
-		template <typename U> inline auto &getValue(const IndexType index) {
+		template <typename U> inline U getValue(const IndexType index) const {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
-			U *addr = reinterpret_cast<U *>(&this->buffer[index * DTypeSize]);
-			return *addr;
-		}
-
-		template <typename U> inline const auto &getValue(const IndexType index) const {
-			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
-						  "Must be a decimal type(float/double/half) or integer.");
-			const U *addr = reinterpret_cast<const U *>(&this->buffer[index * DTypeSize]);
+			const U *addr = reinterpret_cast<const U *>(&this->buffer[index * this->element_size]);
 			return *addr;
 		}
 
@@ -224,10 +227,10 @@ namespace Ritsu {
 			return *this;
 		}
 
-		void assignInitValue(const DType initValue) {
+		void assignInitValue(const DType initValue) noexcept {
 			const IndexType nrElements = this->getNrElements();
 
-//#pragma omp parallel for simd 
+#pragma omp parallel for simd
 			for (size_t i = 0; i < nrElements; i++) {
 				this->getValue<DType>(i) = initValue;
 			}
@@ -310,8 +313,9 @@ namespace Ritsu {
 		void resizeBuffer(const Shape<IndexType> &shape, const size_t elementSize) {
 			const size_t total_elements = shape.getNrElements();
 
-			if (this->buffer != nullptr && this->ownAllocation) {
+			if (this->buffer != nullptr && !this->ownAllocation) {
 				/*	*/
+				throw std::runtime_error("Invalid State");
 			}
 
 			if (total_elements == 0) {
@@ -328,6 +332,7 @@ namespace Ritsu {
 
 			this->shape = shape;
 			this->NrElements = total_elements;
+			this->element_size = elementSize;
 		}
 
 		friend std::ostream &operator<<(std::ostream &stream, Tensor &tensor) {
@@ -383,7 +388,7 @@ namespace Ritsu {
 		};
 		// TODO  add shared data
 		bool ownAllocation = true;
-		uint32_t element_size;
+		uint32_t element_size = 0;
 
 	  public: // TOOD relocate
 		static Tensor log10(const Tensor &tensorA) {

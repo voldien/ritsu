@@ -12,6 +12,14 @@ TYPED_TEST_P(TensorType, DefaultConstructor) {
 	ASSERT_NO_THROW(Tensor tensor(Shape<uint32_t>({32, 32, 3}), sizeof(TypeParam)));
 }
 
+TYPED_TEST_P(TensorType, ElementCount) {
+	Tensor tensor({32, 32, 3}, sizeof(TypeParam));
+	ASSERT_EQ(tensor.getNrElements(), 32 * 32 * 3);
+
+	Tensor tensorB({32, 32, 6}, sizeof(TypeParam));
+	ASSERT_EQ(tensorB.getNrElements(), 32 * 32 * 6);
+}
+
 // TODO:
 TYPED_TEST_P(TensorType, FromArray) {
 	// Tensor<TypeParam> shape;
@@ -21,10 +29,11 @@ TYPED_TEST_P(TensorType, FromArray) {
 TYPED_TEST_P(TensorType, SetGetValues) {
 	Tensor tensor({32, 32, 3}, sizeof(TypeParam));
 
-	const TypeParam randomValue = static_cast<TypeParam>(rand());
-	tensor.getValue<TypeParam>(0) = (TypeParam)randomValue;
-
-	ASSERT_EQ(tensor.getValue<TypeParam>(0), (TypeParam)randomValue);
+	for (size_t i = 0; i < tensor.getNrElements(); i++) {
+		const TypeParam randomValue = static_cast<TypeParam>(rand());
+		tensor.getValue<TypeParam>(i) = (TypeParam)randomValue;
+		ASSERT_EQ(tensor.getValue<TypeParam>(i), (TypeParam)randomValue);
+	}
 }
 
 TYPED_TEST_P(TensorType, Log10) {
@@ -70,18 +79,17 @@ TYPED_TEST_P(TensorType, InnerProduct) {
 	Tensor tensorB(Shape<uint32_t>({32, 32, 3}), sizeof(TypeParam));
 
 	tensorA.assignInitValue(1);
-	tensorB.assignInitValue(2);
+	tensorB.assignInitValue(1);
 
-	// ASSERT_NEAR(Tensor::dot(tensorA, tensorB), (32 * 32 * 3) * 2, 0.0001f);
+	ASSERT_NEAR(Tensor::dot(tensorA, tensorB), (32 * 32 * 3) * 1, 0.0001f);
 }
 
-REGISTER_TYPED_TEST_SUITE_P(TensorType, DefaultConstructor, FromArray, SetGetValues, Log10, Mean, Flatten,
+REGISTER_TYPED_TEST_SUITE_P(TensorType, DefaultConstructor, ElementCount, FromArray, SetGetValues, Log10, Mean, Flatten,
 							InnerProduct);
 
 using TensorPrimitiveDataTypes = ::testing::Types<uint16_t, uint32_t, size_t, float, double>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Parameter, TensorType, TensorPrimitiveDataTypes);
 
-// flatten
 // resize
 // append
 // Number of elements.
