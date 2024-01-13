@@ -83,9 +83,9 @@ TEST_P(ProductTest, Values) {
 }
 
 INSTANTIATE_TEST_SUITE_P(Math, ProductTest,
-						 ::testing::Values(std::make_tuple(std::vector<float>{1, 2, 3, 4, 5}, 15),
-										   std::make_tuple(std::vector<float>{5, 5, 5, 5, 5}, 25),
-										   std::make_tuple(std::vector<float>{-5, 5, -5, 5, 5}, 5)));
+						 ::testing::Values(std::make_tuple(std::vector<float>{1, 2, 3, 4, 5}, 120),
+										   std::make_tuple(std::vector<float>{5, 5, 5, 5, 5}, 3125),
+										   std::make_tuple(std::vector<float>{-1, 2, -10, 5, 5}, 500)));
 
 class GuassianDistributionTest : public ::testing::TestWithParam<std::tuple<float, float, std::vector<float>>> {};
 
@@ -143,7 +143,7 @@ TEST_P(MeanTest, Values) {
 
 	const float mean = Math::mean(x);
 
-	EXPECT_NEAR(mean, expected, 0.001f);
+	EXPECT_FLOAT_EQ(mean, expected);
 }
 INSTANTIATE_TEST_SUITE_P(Math, MeanTest,
 						 ::testing::Values(std::make_tuple(std::vector<float>({9, 10, 12, 13, 13, 13, 15, 15, 16, 16,
@@ -173,12 +173,13 @@ TEST_P(StandardDeviationTest, Values) {
 	auto [x, expected] = GetParam();
 
 	const float mean = Math::mean<float>(x);
-	const float variance = Math::variance<float>(x, mean);
+	const float variance = Math::standardDeviation<float>(x, mean);
 
 	EXPECT_FLOAT_EQ(variance, expected);
 }
 INSTANTIATE_TEST_SUITE_P(Math, StandardDeviationTest,
-						 ::testing::Values(std::make_tuple(std::vector<float>({1, 2, 3, 4, 5, 5, 5}), 0.5),
-										   std::make_tuple(std::vector<float>({5, 5, 5, 5, 5, 5, 5}), 0.5)));
+						 ::testing::Values(std::make_tuple(std::vector<float>({1, 2, 3, 4, 5, 5, 5}), 1.6183472f),
+										   std::make_tuple(std::vector<float>({-10, 20, -15, 20, 2, -100}),
+														   44.678481f)));
 
 // covariance

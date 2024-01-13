@@ -75,24 +75,36 @@ TYPED_TEST_P(TensorType, Flatten) {
 
 TYPED_TEST_P(TensorType, InnerProduct) {
 
-	Tensor tensorA(Shape<uint32_t>({32, 32, 3}), sizeof(TypeParam));
-	Tensor tensorB(Shape<uint32_t>({32, 32, 3}), sizeof(TypeParam));
+	Tensor tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+	Tensor tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
 
 	tensorA.assignInitValue(1);
 	tensorB.assignInitValue(1);
 
-	ASSERT_NEAR(Tensor::dot(tensorA, tensorB), (32 * 32 * 3) * 1, 0.0001f);
+	ASSERT_NEAR(Tensor::dot(tensorA, tensorB), (8 * 8 * 3) * 1, 0.0001f);
+}
+
+TYPED_TEST_P(TensorType, Append) {
+
+	Tensor tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+	Tensor tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+
+	tensorB.assignInitValue(1);
+	tensorA.assignInitValue(1);
+
+	ASSERT_NO_THROW(tensorA.append(tensorB));
+
+	//TODO:
+	ASSERT_EQ(tensorA.getShape(), Shape<uint32_t>({8, 8, 3}));
 }
 
 REGISTER_TYPED_TEST_SUITE_P(TensorType, DefaultConstructor, ElementCount, FromArray, SetGetValues, Log10, Mean, Flatten,
-							InnerProduct);
+							InnerProduct, Append);
 
 using TensorPrimitiveDataTypes = ::testing::Types<uint16_t, uint32_t, size_t, float, double>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Parameter, TensorType, TensorPrimitiveDataTypes);
 
 // resize
-// append
 // Number of elements.
 // Sub shape
 // Axis dim
-// compute index

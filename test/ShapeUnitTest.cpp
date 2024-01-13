@@ -19,14 +19,14 @@ TYPED_TEST_P(ShapeType, SetGetValues) {
 	shape[2] = 22;
 	ASSERT_EQ(shape[0], 3);
 	ASSERT_EQ(shape[1], 24);
-	ASSERT_EQ(shape[2], 22);
+	ASSERT_EQ(shape[2], 22);	
 	ASSERT_EQ(shape.getNrDimensions(), 3);
 }
 
 TYPED_TEST_P(ShapeType, Flatten) {
 	Ritsu::Shape<TypeParam> shape({32, 32, 3});
 
-	auto& flatten = shape.flatten();
+	auto &flatten = shape.flatten();
 	ASSERT_EQ(flatten, Ritsu::Shape<TypeParam>({32 * 32 * 3}));
 	ASSERT_EQ(flatten.getNrDimensions(), 1);
 }
@@ -48,17 +48,31 @@ TYPED_TEST_P(ShapeType, SubShape) {
 TYPED_TEST_P(ShapeType, Reduce) {
 	Ritsu::Shape<TypeParam> shape({32, 32, 3});
 
-	auto &flatten = shape.reduce();
+	auto &reduce = shape.reduce();
+
+	ASSERT_EQ(reduce, Shape<TypeParam>({8, 8, 3}));
 }
 
 TYPED_TEST_P(ShapeType, ComputeIndex) {
 	Ritsu::Shape<TypeParam> shape({32, 32, 3});
 
-	// auto &flatten = shape.reduce();
+	auto &flatten = shape.reduce();
+}
+
+TYPED_TEST_P(ShapeType, Append) {
+
+	Shape<uint32_t> a({8, 8, 3});
+	Shape<uint32_t> b({8, 8, 3});
+	Shape<uint32_t> c;
+
+	ASSERT_NO_THROW(c = a + b);
+
+	// TODO:
+	ASSERT_EQ(c, Shape<uint32_t>({8, 8, 3}));
 }
 
 REGISTER_TYPED_TEST_SUITE_P(ShapeType, DefaultConstructor, SetGetValues, Flatten, Reshape, SubShape, Reduce,
-							ComputeIndex);
+							ComputeIndex, Append);
 
 using ShapePrimitiveDataTypes = ::testing::Types<uint16_t, uint32_t, size_t>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Shape, ShapeType, ShapePrimitiveDataTypes);

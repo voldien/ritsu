@@ -109,7 +109,7 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
-#pragma omp parallel for simd reduction(+:sum) shared(list, mean)
+#pragma omp parallel for simd reduction(+ : sum) shared(list, mean)
 			for (size_t i = 0; i < nrElements; i++) {
 				sum += (list[i] - mean) * (list[i] - mean);
 			}
@@ -126,7 +126,7 @@ namespace Ritsu {
 		template <typename T> constexpr static inline T standardDeviation(const std::vector<T> &list, const T mean) {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
-			return std::sqrt<T>(variance<T>(list, mean));
+			return static_cast<T>(std::sqrt(Math::variance<T>(list, mean)));
 		}
 
 		template <typename T>
@@ -136,15 +136,15 @@ namespace Ritsu {
 			T sum = 0;
 			// Check same size.
 
-			variance(listB, meanB) * variance(listA, meanA);
+			Math::variance(listB, meanB) * Math::variance(listA, meanA);
 
 			return (static_cast<T>(1) / static_cast<T>(listA.size())) * sum;
 		}
 
 		template <typename T>
 		constexpr static T cor(const std::vector<T> &listA, const std::vector<T> &listB, const T meanA, const T meanB) {
-			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
-						  "Type Must Support addition operation.");
+			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
+			
 			return cov(listA, listB, meanA, meanB) / (std::sqrt(variance(listB, meanB) * variance(listA, meanA)));
 		}
 

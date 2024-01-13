@@ -14,12 +14,11 @@ TEST_P(ModelTest, Setup) {
 	Rescaling normalizedLayer(1.0f / 255.0f);
 	GuassianNoise noise(0.1, 0.1f);
 
-	//Layer<float> &output = regulation(
-	//	outputAct(fw2(relu1(BN1(fw1(relu0(BN0(normalizedLayer(cast2Float(input0node))))))))));
+	Layer<float> &output = noise(normalizedLayer(cast2Float(input0node)));
 
-	//Model<float> forwardModel({&input0node}, {&output});
-	// EXPECT_EQ(output.getShape(), expected);
+	Model<float> forwardModel({&input0node}, {&output});
+	EXPECT_EQ(output.getShape(), expected);
 }
 
-INSTANTIATE_TEST_SUITE_P(Setup, ModelTest,
+INSTANTIATE_TEST_SUITE_P(Model, ModelTest,
 						 ::testing::Values(std::make_tuple(16, 32, Ritsu::Shape<uint32_t>({16 * 32}))));

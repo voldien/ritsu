@@ -118,14 +118,14 @@ namespace Ritsu {
 			return Tensor::getValue<U>((IndexType)index);
 		}
 
-		template <typename U> inline U &getValue(const IndexType index) {
+		template <typename U> inline U &getValue(const IndexType index) noexcept {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			U *addr = reinterpret_cast<U *>(&this->buffer[index * this->element_size]);
 			return *addr;
 		}
 
-		template <typename U> inline U getValue(const IndexType index) const {
+		template <typename U> inline U getValue(const IndexType index) const noexcept {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			const U *addr = reinterpret_cast<const U *>(&this->buffer[index * this->element_size]);
@@ -155,7 +155,7 @@ namespace Ritsu {
 			return *this;
 		}
 
-		auto &operator-() {
+		auto &operator-() noexcept {
 			size_t nrElements = this->getNrElements();
 			// #pragma omp parallel shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
@@ -174,7 +174,7 @@ namespace Ritsu {
 			return output;
 		}
 
-		auto &operator-(const Tensor &tensor) {
+		auto &operator-(const Tensor &tensor) noexcept {
 			size_t nrElements = this->getNrElements();
 #pragma omp parallel for shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
@@ -183,7 +183,7 @@ namespace Ritsu {
 			return *this;
 		}
 
-		auto &operator*(const Tensor &tensor) {
+		auto &operator*(const Tensor &tensor) noexcept {
 			size_t nrElements = this->getNrElements();
 #pragma omp parallel for shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
@@ -206,7 +206,7 @@ namespace Ritsu {
 			return output;
 		}
 
-		template <typename U> Tensor &operator*(U vec) {
+		template <typename U> Tensor &operator*(U vec) noexcept {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Type Must Support addition operation.");
 
@@ -274,9 +274,9 @@ namespace Ritsu {
 
 		template <typename T> Tensor &insert(const T tensor) { return *this; }
 
-		DType dot(const Tensor &tensor) const { return Tensor::dot(*this, tensor); }
+		DType dot(const Tensor &tensor) const noexcept { return Tensor::dot(*this, tensor); }
 
-		static DType dot(const Tensor &tensorA, const Tensor &tensorB) {
+		static DType dot(const Tensor &tensorA, const Tensor &tensorB) noexcept {
 			return Math::dot<DType>(tensorA.getRawData<DType>(), tensorB.getRawData<DType>(), tensorA.getNrElements());
 		}
 
@@ -293,6 +293,19 @@ namespace Ritsu {
 		}
 
 		template <typename U> Tensor &cast() {
+			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
+						  "Must be a decimal type(float/double/half) or integer.");
+			const size_t cast_element_size = sizeof(U);
+
+			/*	Resize.	*/
+			if (this->element_size != cast_element_size) {
+			}
+
+			// Convert value.
+			return *this;
+		}
+
+		template <typename U> Tensor cast() const {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			const size_t cast_element_size = sizeof(U);
@@ -322,7 +335,7 @@ namespace Ritsu {
 				throw std::runtime_error("Must be greater than 0");
 			}
 
-			const size_t nrBytesAllocate = total_elements * elementSize;
+			const size_t nrBytesAllocate = Math::align<size_t>(total_elements * elementSize, 4);
 
 			// TODO handle if not the same pointer is returned.
 			this->buffer = static_cast<uint8_t *>(realloc(this->buffer, nrBytesAllocate));
@@ -359,10 +372,12 @@ namespace Ritsu {
 			return totalSize;
 		}
 
-		template <typename U> inline const U *getRawData() const { return reinterpret_cast<const U *>(this->buffer); }
-		template <typename U> inline U *getRawData() { return reinterpret_cast<U *>(this->buffer); }
+		template <typename U> inline const U *getRawData() const noexcept {
+			return reinterpret_cast<const U *>(this->buffer);
+		}
+		template <typename U> inline U *getRawData() noexcept { return reinterpret_cast<U *>(this->buffer); }
 
-		inline IndexType getNrElements() const { return this->NrElements; }
+		inline IndexType getNrElements() const noexcept { return this->NrElements; }
 		inline IndexType getDatSize() const { return this->getNrElements() * DTypeSize; }
 
 		static bool verifyShape(const Tensor &tensorA, const Tensor &tensorB) noexcept {
@@ -410,7 +425,7 @@ namespace Ritsu {
 			return output;
 		}
 
-		template <typename U> static U mean(const Tensor &tensorA) {
+		template <typename U> static U mean(const Tensor &tensorA) noexcept {
 
 			if (tensorA.getNrElements() == 0) {
 				return 0;
@@ -418,7 +433,7 @@ namespace Ritsu {
 			return static_cast<U>(Math::mean<float>(tensorA.getRawData<float>(), tensorA.getNrElements()));
 		}
 
-		template <typename U> static U variance(const Tensor &tensorA, const U mean) {
+		template <typename U> static U variance(const Tensor &tensorA, const U mean) noexcept {
 
 			return static_cast<U>(Math::variance<float>(tensorA.getRawData<float>(), tensorA.getNrElements(), mean));
 		}

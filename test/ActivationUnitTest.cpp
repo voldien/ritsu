@@ -23,7 +23,7 @@ TEST_P(ReluDerivativeActivationFunctionTest, Relu) {
 	EXPECT_FLOAT_EQ(reluDeriviate(x), expected_activation);
 }
 INSTANTIATE_TEST_SUITE_P(ActivationRelu, ReluDerivativeActivationFunctionTest,
-						 ::testing::Values(std::make_tuple(5, 5), std::make_tuple(3, 3), std::make_tuple(-1000, 0)));
+						 ::testing::Values(std::make_tuple(5, 1), std::make_tuple(3, 1), std::make_tuple(-1000, 0)));
 
 /*	*/
 class SigmoidActivationFunctionTest : public ActivationFunctionTest {};
@@ -33,7 +33,7 @@ TEST_P(SigmoidActivationFunctionTest, Sigmoid) {
 	EXPECT_FLOAT_EQ(computeSigmoid(x), expected_activation);
 }
 INSTANTIATE_TEST_SUITE_P(ActivationSigmoid, SigmoidActivationFunctionTest,
-						 ::testing::Values(std::make_tuple(5, 4), std::make_tuple(1, 3), std::make_tuple(-1000, 3)));
+						 ::testing::Values(std::make_tuple(5, 0.99330714907572), std::make_tuple(1, 3), std::make_tuple(-1000, 3)));
 
 /*	*/
 class SigmoidDerivativeActivationFunctionTest : public ActivationFunctionTest {};
