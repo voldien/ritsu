@@ -64,6 +64,8 @@
 #include "optimizer/Adam.h"
 #include "optimizer/SGD.h"
 
+#include "Loss.h"
+
 namespace Ritsu {
 
 	enum class DistributionInitlization {};

@@ -4,6 +4,7 @@
 #include <cmath>
 #include <cstdint>
 #include <cstring>
+#include <initializer_list>
 #include <iostream>
 #include <istream>
 #include <memory>
@@ -52,7 +53,7 @@ namespace Ritsu {
 			this->resizeBuffer(static_cast<const std::vector<IndexType> &>(shape), elementSize);
 		}
 
-		Tensor(uint8_t *buffer, size_t size, const std::vector<IndexType> &dimensions,
+		Tensor(uint8_t *buffer, const size_t sizeInBytes, const std::vector<IndexType> &dimensions,
 			   const size_t elementSize = DTypeSize) {
 			this->buffer = buffer;
 			this->shape = dimensions;
@@ -101,6 +102,32 @@ namespace Ritsu {
 			return *this;
 		}
 
+		bool operator==(const Tensor &tensor) const {
+
+			/*	Same address => equal.	*/
+			if (static_cast<const void *>(&tensor) == static_cast<const void *>(this)) {
+				return true;
+			}
+
+			if (static_cast<const void *>(&tensor.buffer) == static_cast<const void *>(this->buffer)) {
+				return true;
+			}
+
+			// TODO: add shape.
+			if (this->getNrElements() != tensor.getNrElements() || this->getDatSize() != tensor.getDatSize()) {
+				return false;
+			}
+
+			// TODO: validate.
+			if (memcmp(this->buffer, tensor.buffer, this->getDatSize()) != 0) {
+				return false;
+			}
+
+			return true;
+		}
+
+		bool operator!=(const Tensor &tensor) const { return !(*this == shape); }
+
 		// operations of data.
 		template <typename U> inline U getValue(const std::vector<IndexType> &location) const {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
@@ -137,7 +164,7 @@ namespace Ritsu {
 			}
 
 			const size_t nrElements = this->getNrElements();
-#pragma omp parallel shared(tensor)
+#pragma omp parallel for simd shared(tensor, nrElements)
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = this->getValue<DType>(index) + tensor.getValue<DType>(index);
 			}
@@ -158,6 +185,7 @@ namespace Ritsu {
 		auto &operator-() noexcept {
 			size_t nrElements = this->getNrElements();
 			// #pragma omp parallel shared(tensor)
+			#pragma omp parallel for simd
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = -this->getValue<DType>(index);
 			}
@@ -181,6 +209,16 @@ namespace Ritsu {
 				this->getValue<DType>(index) = this->getValue<DType>(index) - tensor.getValue<DType>(index);
 			}
 			return *this;
+		}
+
+		Tensor operator-(const Tensor &tensor) const {
+			Tensor tmp = *this;
+			size_t nrElements = this->getNrElements();
+#pragma omp parallel for shared(tensor)
+			for (size_t index = 0; index < nrElements; index++) {
+				tmp.getValue<DType>(index) = this->getValue<DType>(index) - tensor.getValue<DType>(index);
+			}
+			return tmp;
 		}
 
 		auto &operator*(const Tensor &tensor) noexcept {
@@ -236,18 +274,16 @@ namespace Ritsu {
 			}
 		}
 
-		template <typename U> auto getSubset(size_t start, size_t end, const Shape<IndexType> &newShape = {}) const {
+		Tensor getSubset(size_t start, size_t end, const Shape<IndexType> &newShape = {}) const {
 			// TODO update shape
 			if (newShape.getNrDimensions() == 0) {
 			}
-			Tensor subset = U(static_cast<uint8_t *>(&this->buffer[start * DTypeSize]), end - start, newShape);
-			subset.ownAllocation = false;
-
+			Tensor subset = Tensor(static_cast<uint8_t *>(&this->buffer[start * DTypeSize]), end - start, newShape,
+								   this->element_size);
 			return subset;
 		}
 
-		template <typename U>
-		auto getSubset(const std::vector<IndexType> &start, const std::vector<IndexType> &end) const {
+		Tensor getSubset(const std::vector<IndexType> &start, const std::vector<IndexType> &end) const {
 			Tensor
 				subset; // = T(static_cast<uint8_t *>(&this->buffer[start * DTypeSize]), end - start, this->dimensions);
 			subset.ownAllocation = false;
@@ -280,6 +316,11 @@ namespace Ritsu {
 			return Math::dot<DType>(tensorA.getRawData<DType>(), tensorB.getRawData<DType>(), tensorA.getNrElements());
 		}
 
+		Tensor &pow(const DType value) noexcept {
+			Math::pow<DType>(value, this->getRawData<DType>(), this->getNrElements());
+			return *this;
+		}
+
 		Tensor &append(const Tensor &tensor) {
 			/*	Resize.	*/
 			Shape<IndexType> newShape = tensor.getShape() + this->getShape();
@@ -301,6 +342,8 @@ namespace Ritsu {
 			if (this->element_size != cast_element_size) {
 			}
 
+			this->element_size = cast_element_size;
+
 			// Convert value.
 			return *this;
 		}
@@ -313,6 +356,8 @@ namespace Ritsu {
 			/*	Resize.	*/
 			if (this->element_size != cast_element_size) {
 			}
+
+			// this->element_size = cast_element_size;
 
 			// Convert value.
 			return *this;
@@ -349,7 +394,7 @@ namespace Ritsu {
 		}
 
 		friend std::ostream &operator<<(std::ostream &stream, Tensor &tensor) {
-			size_t number_elements = tensor.getNrElements();
+			const size_t number_elements = tensor.getNrElements();
 
 			for (int i = 0; i < number_elements; i++) {
 				size_t index = i;
@@ -362,7 +407,7 @@ namespace Ritsu {
 
 		const Shape<IndexType> &getShape() const { return this->shape; }
 
-		inline size_t computeIndex(const std::vector<IndexType> &dim) const {
+		inline size_t computeIndex(const std::vector<IndexType> &dim) const noexcept {
 			size_t totalSize = 1;
 
 			for (size_t i = dim.size() - 1; i >= dim.size(); i--) {
@@ -372,13 +417,13 @@ namespace Ritsu {
 			return totalSize;
 		}
 
-		template <typename U> inline const U *getRawData() const noexcept {
+		template <typename U> inline constexpr const U *getRawData() const noexcept {
 			return reinterpret_cast<const U *>(this->buffer);
 		}
-		template <typename U> inline U *getRawData() noexcept { return reinterpret_cast<U *>(this->buffer); }
+		template <typename U> inline constexpr U *getRawData() noexcept { return reinterpret_cast<U *>(this->buffer); }
 
 		inline IndexType getNrElements() const noexcept { return this->NrElements; }
-		inline IndexType getDatSize() const { return this->getNrElements() * DTypeSize; }
+		inline IndexType getDatSize() const noexcept { return this->getNrElements() * this->element_size; }
 
 		static bool verifyShape(const Tensor &tensorA, const Tensor &tensorB) noexcept {
 			/*	*/
@@ -438,7 +483,7 @@ namespace Ritsu {
 			return static_cast<U>(Math::variance<float>(tensorA.getRawData<float>(), tensorA.getNrElements(), mean));
 		}
 
-		static Tensor zero(const Shape<IndexType> &shape) {
+		static Tensor zero(const Shape<IndexType> &shape, const size_t elementSize = DTypeSize) {
 			Tensor zeroTesnor(shape);
 
 			memset(zeroTesnor.getRawData<void *>(), 0, zeroTesnor.getNrElements() * DTypeSize);
@@ -451,6 +496,40 @@ namespace Ritsu {
 			tensor.getValue<float>(value) = 1.0f;
 
 			return tensor;
+		}
+
+		static Tensor matrixMultiply(const Tensor &tensorA, const Tensor &tensorB) {
+
+			Tensor output(Shape<IndexType>({tensorA.getShape()[0], tensorB.getShape()[1]}));
+
+#pragma omp parallel for simd
+			for (size_t y = 0; y < tensorA.getShape()[0]; y++) {
+				DType sum = 0;
+
+				for (size_t x = 0; x < tensorA.getShape()[1]; x++) {
+
+					size_t index = y * tensorA.getShape()[0] + x;
+					sum = tensorA.getValue<DType>(index) * tensorB.getValue<DType>(y);
+				}
+				output.getValue<DType>(y) = sum;
+			}
+
+			return output;
+		}
+
+		static Tensor equal(const Tensor &tensorA, const Tensor &tensorB) {
+
+			Tensor output(tensorA.getShape(), sizeof(uint8_t));
+
+#pragma omp parallel for shared(tensorA, tensorB, output)
+			for (size_t i = 0; i < tensorA.getNrElements(); i++) {
+				output.getValue<DType>(i) = tensorA.getValue<DType>(i) == tensorB.getValue<DType>(i);
+			}
+			return output;
+		}
+
+		template <typename T> static Tensor fromArray(const std::initializer_list<T> &list) {
+			return Tensor({1}, sizeof(T));
 		}
 	};
 } // namespace Ritsu

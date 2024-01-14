@@ -18,7 +18,7 @@ namespace Ritsu {
 	  public:
 		Dense(uint32_t units, bool use_bias = true,
 			  const Initializer<DType> &weight_init = RandomNormalInitializer<DType>(),
-			  const std::string &name = "dense")
+			  const Initializer<DType> &bias_init = RandomNormalInitializer<DType>(), const std::string &name = "dense")
 			: Layer(name) {
 
 			/*	*/
@@ -28,7 +28,7 @@ namespace Ritsu {
 
 			/*	*/
 			if (use_bias) {
-				this->bias = Tensor({units}, DTypeSize);
+				this->bias = Tensor(Shape<IndexType>({units}));
 			}
 		}
 
@@ -93,7 +93,6 @@ namespace Ritsu {
 			/*	Set input layer */
 			this->outputs = layers;
 
-			// TODO verify flatten
 			/*	*/
 			Layer<DType> *layer = this->getInputs()[0];
 		}
@@ -132,21 +131,13 @@ namespace Ritsu {
 
 	  protected:
 		// operator
-		void compute(const Tensor &inputTesnor, Tensor &output) {
-			/*	*/
-			// assert(inputTesnor.getShape() == this->bias.getShape());
-			// TODO improve
-			//#pragma omp parallel
-			// Verify the shape.
-
-			// TODO matrix multiplication
-			output = computeMatrix(this->weight, inputTesnor) + this->bias;
-		}
+		void compute(const Tensor &inputTesnor, Tensor &output) {}
 
 		void computeDerivative(const Tensor &error, Tensor &result) {
 			result = this->weight * -1.0f; // computeMatrix(this->weight, error);
 		}
 
+		// TODO relocate, and make sure it works.
 		// TODO relocate
 		Tensor computeMatrix(const Tensor &TensorA, const Tensor &TensorB) {
 
@@ -167,8 +158,7 @@ namespace Ritsu {
 		void initweight() noexcept {
 			// TODO improve
 			RandomNormal<DType> random(0.1, 1.0);
-#pragma omp parallel shared(weight)
-#pragma omp simd
+#pragma omp parallel for simd shared(weight)
 
 			for (size_t i = 0; i < this->weight.getNrElements(); i++) {
 				this->weight.getValue<DType>(i) = random.rand();

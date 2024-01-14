@@ -98,7 +98,8 @@ namespace Ritsu {
 
 		/*	*/
 		if (!Tensor::verifyShape(evoluated, expected_one_shot)) {
-			std::cerr << "Sparse Categorical Crossentropy - Bad Shape " << expected_one_shot.getShape() << " not equal " << evoluated.getShape() << std::endl;
+			std::cerr << "Sparse Categorical Crossentropy - Bad Shape " << expected_one_shot.getShape() << " not equal "
+					  << evoluated.getShape() << std::endl;
 		}
 
 		return loss_cross_catagorial_entropy(evoluated, expected_one_shot, output);
@@ -106,6 +107,16 @@ namespace Ritsu {
 		/*Tensor A = inputA * log(inputB);*/
 	}
 
-	static void loss_ssim(const Tensor &inputA, const Tensor &inputB, Tensor &output) { /*Tensor A = inputA * log(inputB);*/
+	static void loss_ssim(const Tensor &inputA, const Tensor &inputB, Tensor &output) {
+		/*Tensor A = inputA * log(inputB);*/
+	}
+
+	static void loss_psnr(const Tensor &inputA, const Tensor &inputB, Tensor &output) {
+
+		Tensor &diff = (inputA - inputB).flatten();
+
+		float rmse = std::sqrt(Tensor::mean<float>(diff.pow(2.0f)));
+
+		// output = 20 * std::log10(255.0 / rmse);
 	}
 }; // namespace Ritsu

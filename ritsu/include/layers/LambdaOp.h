@@ -8,6 +8,8 @@ namespace Ritsu {
 	 *
 	 */
 	class LambdaOp : public Layer<float> {
+		using CustomLayerOp = void (*)(const Tensor &input, const Tensor &result);
+
 	  public:
 	};
 } // namespace Ritsu

@@ -5,18 +5,16 @@
 
 using namespace Ritsu;
 
-template <typename T> static T swap_endian(T value) {
+template <typename T> static inline constexpr T swap_endian(const T value) {
 	// Swap endian (big to little) or (little to big)
-	uint32_t b0, b1, b2, b3;
-	uint32_t res;
 
 	/*	*/
-	b0 = (value & 0x000000ff) << 24u;
-	b1 = (value & 0x0000ff00) << 8u;
-	b2 = (value & 0x00ff0000) >> 8u;
-	b3 = (value & 0xff000000) >> 24u;
+	const uint32_t bi0 = (value & 0x000000ff) << 24u;
+	const uint32_t bi1 = (value & 0x0000ff00) << 8u;
+	const uint32_t bi2 = (value & 0x00ff0000) >> 8u;
+	const uint32_t bi3 = (value & 0xff000000) >> 24u;
 
-	return b0 | b1 | b2 | b3;
+	return bi0 | bi1 | bi2 | bi3;
 }
 
 void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &labelPath,
@@ -33,8 +31,9 @@ void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &la
 
 	if (!imageTrainStream.is_open()) {
 		throw std::runtime_error("Failed to open file image path");
-	} else {
+	}
 
+	{
 		/*	*/
 		int32_t width, height, nr_images, image_magic;
 
@@ -62,7 +61,9 @@ void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &la
 
 		const size_t ImageSize = static_cast<size_t>(width) * static_cast<size_t>(height);
 
-		dataX = Tensor({static_cast<unsigned int>(nr_images), static_cast<unsigned int>(width), static_cast<unsigned int>(height), 1}, sizeof(uint8_t));
+		dataX = Tensor({static_cast<unsigned int>(nr_images), static_cast<unsigned int>(width),
+						static_cast<unsigned int>(height), 1},
+					   sizeof(uint8_t));
 		uint8_t *raw = dataX.getRawData<uint8_t>();
 
 		uint8_t *imageData = (uint8_t *)malloc(ImageSize);
@@ -79,7 +80,8 @@ void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &la
 
 	if (!labelTrainStream.is_open()) {
 		throw std::runtime_error("Failed to open file label path");
-	} else {
+	}
+	{
 
 		uint32_t label_magic, nr_label;
 

@@ -88,6 +88,15 @@ namespace Ritsu {
 		}
 
 		// TODO: accuracy.
+		template <typename T> constexpr static T pow(const T exponent, T *list, const size_t nrElements) noexcept {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+						  "Type Must Support addition operation.");
+			/*	*/
+#pragma omp parallel for simd shared(list, nrElements)
+			for (size_t i = 0; i < nrElements; i++) {
+				list[i] = std::pow(list[i], exponent);
+			}
+		}
 
 		template <typename T> constexpr static T mean(const T *list, const size_t nrElements) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
@@ -144,7 +153,7 @@ namespace Ritsu {
 		template <typename T>
 		constexpr static T cor(const std::vector<T> &listA, const std::vector<T> &listB, const T meanA, const T meanB) {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-			
+
 			return cov(listA, listB, meanA, meanB) / (std::sqrt(variance(listB, meanB) * variance(listA, meanA)));
 		}
 
@@ -178,6 +187,7 @@ namespace Ritsu {
 			return angle;
 		}
 
+#pragma omp declare simd uniform(value0, value1, interp)
 		/**
 		 * @brief Linear interpolation.
 		 *
@@ -192,6 +202,7 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			return (value0 + (value1 - value0) * interp);
 		}
+#pragma omp declare simd uniform(value0, value1, interp)
 		template <typename T>
 		inline constexpr static T lerpClamped(const T value0, const T value1, const T interp) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");

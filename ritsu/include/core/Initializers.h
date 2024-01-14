@@ -25,24 +25,22 @@ namespace Ritsu {
 
 	template <typename T> class RandomNormalInitializer : public Initializer<T> {
 	  public:
-		RandomNormalInitializer(T mean = 0.0, T stddev = 1.0, int seed = 0) {
-			this->random = new RandomNormal<T>(mean, stddev);
-		}
+		RandomNormalInitializer(T mean = 0.0, T stddev = 1.0, int seed = 0) : random(RandomNormal<T>(mean, stddev)) {}
 
 		Tensor get(const Shape<unsigned int> &shape) override {
 
-			Tensor tensor(shape);
-#pragma omp parallel shared(tensor)
-#pragma omp simd
+			Tensor tensor(shape, sizeof(T));
+
+#pragma omp parallel for simd shared(tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
-				tensor.getValue<T>(i) = this->random->rand();
+				tensor.getValue<T>(i) = this->random.rand();
 			}
 
 			return tensor;
 		}
 
 	  private:
-		Random<T> *random;
+		RandomNormal<T> random;
 	};
 
 	template <typename T> class ZeroInitializer : public Initializer<T> {
@@ -51,9 +49,8 @@ namespace Ritsu {
 
 		Tensor get(const Shape<unsigned int> &shape) override {
 
-			Tensor tensor(shape);
-#pragma omp parallel shared(tensor)
-#pragma omp simd
+			Tensor tensor(shape, sizeof(T));
+#pragma omp parallel for simd shared(tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
 				tensor.getValue<T>(i) = 0;
 			}

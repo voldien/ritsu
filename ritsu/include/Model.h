@@ -91,10 +91,10 @@ namespace Ritsu {
 
 					/*	Extract subset of the data.	*/
 					const Tensor subsetBatchX = std::move(
-						inputData.getSubset<Tensor>(ibatch * batch_size * batchDataElementSize,
+						inputData.getSubset(ibatch * batch_size * batchDataElementSize,
 													(ibatch + 1) * batch_size * batchDataElementSize, batchDataShape));
 
-					const Tensor subsetExpecetedBatch = std::move(expectedData.getSubset<Tensor>(
+					const Tensor subsetExpecetedBatch = std::move(expectedData.getSubset(
 						ibatch * batch_size * batchExpectedElementSize,
 						(ibatch + 1) * batch_size * batchExpectedElementSize, batchExpectedShape));
 
@@ -106,17 +106,11 @@ namespace Ritsu {
 
 					/*	Apply metric update.	*/
 					for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
-						this->metrics[m_index]->update_state(loss_error);
+						this->metrics[m_index]->update_state(loss_error, batchResult);
 					}
 
 					/*	*/
 					this->backPropagation(loss_error, cachedResult);
-
-					/*	*/
-					// const DType averageCost = static_cast<float>(Math::mean<DType>(
-					//	loss_error.getRawData<DType>(), static_cast<DType>(loss_error.getNrElements())));
-					//
-					// const DType accuracy = 0;
 
 					this->print_status(std::cout);
 
@@ -135,11 +129,11 @@ namespace Ritsu {
 				for (size_t ibatch = 0; ibatch < nrValidationBatches; ibatch++) {
 
 					/*	Extract subset of the data.	*/
-					const Tensor subsetBatchX = std::move(inputData.getSubset<Tensor>(
+					const Tensor subsetBatchX = std::move(inputData.getSubset (
 						ibatch * batch_size * batchDataElementSize, (ibatch + 1) * batch_size * batchDataElementSize));
 
 					const Tensor subsetExpecetedBatch =
-						std::move(expectedData.getSubset<Tensor>(ibatch * batch_size * batchExpectedElementSize,
+						std::move(expectedData.getSubset (ibatch * batch_size * batchExpectedElementSize,
 																 (ibatch + 1) * batch_size * batchExpectedElementSize));
 
 					/*	Compute network forward.	*/

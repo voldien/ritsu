@@ -64,7 +64,7 @@ namespace Ritsu {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 
-#pragma omp parallel shared(tensor)
+#pragma omp parallel for simd shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
 				tensor.getValue<DType>(i) = Linear::computeLinear(this->linear, tensor.getValue<DType>(i));
 			}
@@ -74,7 +74,7 @@ namespace Ritsu {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 
-#pragma omp parallel shared(tensor)
+#pragma omp parallel for shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
 				tensor.getValue<DType>(i) = Linear::computeLinearDerivative(this->linear);
 			}

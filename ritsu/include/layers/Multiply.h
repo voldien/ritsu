@@ -14,11 +14,8 @@ namespace Ritsu {
 		Multiply(const std::string &name = "multiply") : Layer<T>(name) {}
 
 		Tensor operator<<(const Tensor &tensor) override { return tensor; }
-
 		Tensor &operator<<(Tensor &tensor) override { return tensor; }
-
 		Tensor operator>>(Tensor &tensor) override { return tensor; }
-
 		Tensor &operator()(Tensor &tensor) override { return tensor; }
 
 		template <class U> auto &operator()(U &layer) {

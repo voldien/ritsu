@@ -14,7 +14,6 @@ TEST_P(DenseTest, Setup) {
 	Dense a1(y);
 
 	Layer<float> &output = a0(a1);
-
 	EXPECT_EQ(output.getShape(), expected);
 }
 
@@ -48,5 +47,19 @@ TEST_P(DenseTest, ComputeResult) {
 	EXPECT_EQ(result.getShape(), expected);
 }
 
-INSTANTIATE_TEST_SUITE_P(Math, DenseTest,
+TEST_P(DenseTest, ComputeDerivativeResult) {
+	auto [x, y, expected] = GetParam();
+
+	Input a0({x, 1});
+	Dense a1(y);
+
+	Tensor a({x, 1});
+
+	Layer<float> &output = a0(a1);
+	Tensor result = a0(a);
+
+	EXPECT_EQ(result.getShape(), expected);
+}
+
+INSTANTIATE_TEST_SUITE_P(Dense, DenseTest,
 						 ::testing::Values(std::make_tuple(16, 32, Ritsu::Shape<uint32_t>({16 * 32}))));

@@ -94,12 +94,47 @@ TYPED_TEST_P(TensorType, Append) {
 
 	ASSERT_NO_THROW(tensorA.append(tensorB));
 
-	//TODO:
+	// TODO:
 	ASSERT_EQ(tensorA.getShape(), Shape<uint32_t>({8, 8, 3}));
 }
 
+TYPED_TEST_P(TensorType, SubSet) {
+
+	Tensor tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+	Tensor tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+
+	Tensor subset = std::move(tensorA.getSubset(0, 1, Shape<uint32_t>({1})));
+
+	// TODO:
+	ASSERT_EQ(subset.getShape(), Shape<uint32_t>({8, 8, 3}));
+}
+
+TYPED_TEST_P(TensorType, MatrixMultiplication) {
+
+	Tensor tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+	Tensor tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+
+	tensorB.assignInitValue(1);
+	tensorA.assignInitValue(1);
+
+	// TODO:
+	// ASSERT_EQ(subset.getShape(), Shape<uint32_t>({8, 8, 3}));
+}
+
+TYPED_TEST_P(TensorType, Equal) {
+
+	Tensor tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+	Tensor tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+
+	tensorB.assignInitValue(1);
+	tensorA.assignInitValue(1);
+
+	// TODO:
+	ASSERT_EQ(tensorA, tensorB);
+}
+
 REGISTER_TYPED_TEST_SUITE_P(TensorType, DefaultConstructor, ElementCount, FromArray, SetGetValues, Log10, Mean, Flatten,
-							InnerProduct, Append);
+							InnerProduct, Append, SubSet, MatrixMultiplication, Equal);
 
 using TensorPrimitiveDataTypes = ::testing::Types<uint16_t, uint32_t, size_t, float, double>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Parameter, TensorType, TensorPrimitiveDataTypes);

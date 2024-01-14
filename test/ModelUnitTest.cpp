@@ -16,8 +16,10 @@ TEST_P(ModelTest, Setup) {
 
 	Layer<float> &output = noise(normalizedLayer(cast2Float(input0node)));
 
-	Model<float> forwardModel({&input0node}, {&output});
+	Model<float> *forwardModel;
+	ASSERT_NO_THROW(forwardModel = new Model<float>({&input0node}, {&output}));
 	EXPECT_EQ(output.getShape(), expected);
+	delete forwardModel;
 }
 
 INSTANTIATE_TEST_SUITE_P(Model, ModelTest,

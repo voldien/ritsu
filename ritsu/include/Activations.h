@@ -1,13 +1,18 @@
 #pragma once
 #include "Math.h"
 #include "Tensor.h"
+#include <cmath>
 
 namespace Ritsu {
+
+	class ActivactionMath {
+	  public:
+	};
 
 	template <typename T> inline static T computeSigmoid(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
-		return static_cast<T>(1) / (static_cast<T>(1) + std::exp(-value));
+		return static_cast<T>(1) / (std::exp(-value) + static_cast<T>(1));
 	}
 	template <typename T> inline static T computeSigmoidDerivate(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
@@ -33,7 +38,7 @@ namespace Ritsu {
 	}
 
 #pragma omp declare simd uniform(value, alpha)
-	template <typename T> inline static constexpr T leakyRelu(T value, const T alpha) noexcept {
+	template <typename T> inline static constexpr T leakyRelu(const T value, const T alpha) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		if (value < 0) {
@@ -56,17 +61,18 @@ namespace Ritsu {
 	template <typename T> inline static constexpr T computeTanh(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
-		const T e_ = std::exp(-value);
-		const T _e_ = std::exp(value);
+		// TODO: c++ tanh check
+		const T negative_e = static_cast<T>(std::exp(-value));
+		const T positive_e = static_cast<T>(std::exp(value));
 
-		return (e_ - _e_) / (e_ + _e_);
+		return (positive_e - negative_e) / (positive_e + negative_e);
 	}
 
 #pragma omp declare simd uniform(value)
-	template <typename T> inline static constexpr T computeTanhDerivate(T value) noexcept {
+	template <typename T> inline static constexpr T computeTanhDerivate(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
-		return std::exp(-value) / std::pow(((std::exp(-value) + static_cast<T>(1))), static_cast<T>(2));
+		return static_cast<T>(std::exp(-value)) / std::pow(((std::exp(-value) + static_cast<T>(1))), static_cast<T>(2));
 	}
 
 #pragma omp declare simd uniform(coeff, value)
@@ -105,7 +111,7 @@ namespace Ritsu {
 	}
 
 #pragma omp declare simd uniform(value, beta)
-	template <typename T> inline static constexpr T computeSwishDerivative(T value, const T beta) noexcept {
+	template <typename T> inline static constexpr T computeSwishDerivative(const T value, const T beta) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		// TODO:
@@ -113,20 +119,23 @@ namespace Ritsu {
 			   (sigmoid(value, beta) * (1 - (beta * computeSigmoid(value, beta))));
 	}
 
-	template <typename T> void softMax(Tensor &tensor) {
+	template <typename T> Tensor &softMax(Tensor &tensor) {
+		// TODO: check if subarray exists.
 		/*	Iterate through each all elements.    */
 		T Inversesum = 0;
 		const size_t nrElements = tensor.getNrElements();
 
-#pragma omp parallel
+#pragma omp parallel for simd reduction(+ : Inversesum)
 		for (size_t i = 0; i < nrElements; i++) {
 			Inversesum += static_cast<T>(std::exp(tensor.getValue<T>(i)));
 		}
-		Inversesum = 1.0f / Inversesum;
-#pragma omp parallel
+		Inversesum = static_cast<T>(1.0) / Inversesum;
+
+#pragma omp parallel for simd
 		for (size_t i = 0; i < nrElements; i++) {
 			tensor.getValue<T>(i) = tensor.getValue<T>(i) * Inversesum;
 		}
+		return tensor;
 	}
 
 } // namespace Ritsu

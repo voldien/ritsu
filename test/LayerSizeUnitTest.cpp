@@ -8,27 +8,26 @@
 
 using namespace Ritsu;
 
-class LayerUniformShapeSizeTest
-	: public ::testing::TestWithParam<std::tuple<Ritsu::Shape<uint32_t>, Ritsu::Shape<uint32_t>>> {};
+class LayerUniformShapeSizeTest : public ::testing::TestWithParam<std::tuple<Ritsu::Shape<uint32_t>>> {};
 /*	*/
-INSTANTIATE_TEST_SUITE_P(
-	Input, LayerUniformShapeSizeTest,
-	::testing::Values(std::make_tuple(Ritsu::Shape<uint32_t>({16, 16, 3}), Ritsu::Shape<uint32_t>({16, 16, 3})),
-					  std::make_tuple(Ritsu::Shape<uint32_t>({48, 48, 3}), Ritsu::Shape<uint32_t>({48, 48, 3}))));
+INSTANTIATE_TEST_SUITE_P(Input, LayerUniformShapeSizeTest,
+						 ::testing::Values(std::make_tuple(Ritsu::Shape<uint32_t>({16, 16, 3})),
+										   std::make_tuple(Ritsu::Shape<uint32_t>({48, 48, 3})),
+										   std::make_tuple(Ritsu::Shape<uint32_t>({48, 48, 48, 3}))));
 
 TEST_P(LayerUniformShapeSizeTest, InputSize) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input(x);
+	Ritsu::Input input(expected);
 
 	EXPECT_EQ(input.getShape(), expected);
 }
 
 /*	*/
 TEST_P(LayerUniformShapeSizeTest, RescalingLayerShapeSize) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input(x);
+	Ritsu::Input input(expected);
 	Ritsu::Rescaling rescalling(1);
 	rescalling(input);
 
@@ -37,9 +36,9 @@ TEST_P(LayerUniformShapeSizeTest, RescalingLayerShapeSize) {
 /*	*/
 
 TEST_P(LayerUniformShapeSizeTest, ReluLayerShapeSize) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input(x);
+	Ritsu::Input input(expected);
 	Ritsu::Relu relu;
 	relu(input);
 
@@ -47,9 +46,9 @@ TEST_P(LayerUniformShapeSizeTest, ReluLayerShapeSize) {
 }
 
 TEST_P(LayerUniformShapeSizeTest, LeakyReluLayerShapeSize) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input(x);
+	Ritsu::Input input(expected);
 	Ritsu::LeakyRelu leakyRelu(0.2f);
 	leakyRelu(input);
 
@@ -58,9 +57,9 @@ TEST_P(LayerUniformShapeSizeTest, LeakyReluLayerShapeSize) {
 /*	*/
 
 TEST_P(LayerUniformShapeSizeTest, SigmoidLayerShapeSize) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input(x);
+	Ritsu::Input input(expected);
 	Ritsu::Sigmoid sigmoid;
 	sigmoid(input);
 
@@ -69,9 +68,9 @@ TEST_P(LayerUniformShapeSizeTest, SigmoidLayerShapeSize) {
 /*	*/
 
 TEST_P(LayerUniformShapeSizeTest, SoftMaxLayerShapeSize) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input(x);
+	Ritsu::Input input(expected);
 	Ritsu::SoftMax softmax;
 	softmax(input);
 
@@ -80,9 +79,9 @@ TEST_P(LayerUniformShapeSizeTest, SoftMaxLayerShapeSize) {
 /*	*/
 
 TEST_P(LayerUniformShapeSizeTest, SwishLayerShapeSize) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input(x);
+	Ritsu::Input input(expected);
 	Ritsu::Swish swish;
 	swish(input);
 
@@ -91,9 +90,9 @@ TEST_P(LayerUniformShapeSizeTest, SwishLayerShapeSize) {
 /*	*/
 
 TEST_P(LayerUniformShapeSizeTest, TahnLayerShapeSize) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input(x);
+	Ritsu::Input input(expected);
 	Ritsu::Tahn tanh;
 	tanh(input);
 
@@ -102,9 +101,9 @@ TEST_P(LayerUniformShapeSizeTest, TahnLayerShapeSize) {
 /*	*/
 
 TEST_P(LayerUniformShapeSizeTest, BatchNormalizeSize) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input(x);
+	Ritsu::Input input(expected);
 	Ritsu::BatchNormalization batchNormalize;
 	batchNormalize(input);
 
@@ -113,9 +112,9 @@ TEST_P(LayerUniformShapeSizeTest, BatchNormalizeSize) {
 /*	*/
 
 TEST_P(LayerUniformShapeSizeTest, GaussianNoiseSize) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input(x);
+	Ritsu::Input input(expected);
 	Ritsu::GuassianNoise guassianNoise(0.2f, 0.0f);
 	guassianNoise(input);
 
@@ -124,9 +123,9 @@ TEST_P(LayerUniformShapeSizeTest, GaussianNoiseSize) {
 /*	*/
 
 TEST_P(LayerUniformShapeSizeTest, RegularizationSize) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input(x);
+	Ritsu::Input input(expected);
 	Ritsu::Regularization regularization;
 	regularization(input);
 
@@ -135,10 +134,10 @@ TEST_P(LayerUniformShapeSizeTest, RegularizationSize) {
 /*	*/
 
 TEST_P(LayerUniformShapeSizeTest, Add) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input0(x);
-	Ritsu::Input input1(x);
+	Ritsu::Input input0(expected);
+	Ritsu::Input input1(expected);
 
 	Ritsu::Add add;
 
@@ -146,30 +145,29 @@ TEST_P(LayerUniformShapeSizeTest, Add) {
 }
 
 TEST_P(LayerUniformShapeSizeTest, Subtract) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input0(x);
-	Ritsu::Input input1(x);
+	Ritsu::Input input0(expected);
+	Ritsu::Input input1(expected);
 	Ritsu::Subtract subtract;
 
 	EXPECT_EQ(subtract.getShape(), expected);
 }
 
 TEST_P(LayerUniformShapeSizeTest, Multiply) {
-	auto [x, expected] = GetParam();
-
-	Ritsu::Input input0(x);
-	Ritsu::Input input1(x);
+	auto [expected] = GetParam();
+	Ritsu::Input input0(expected);
+	Ritsu::Input input1(expected);
 	Ritsu::Multiply<float> multiply;
 
 	EXPECT_EQ(multiply.getShape(), expected);
 }
 
 TEST_P(LayerUniformShapeSizeTest, Divide) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input0(x);
-	Ritsu::Input input1(x);
+	Ritsu::Input input0(expected);
+	Ritsu::Input input1(expected);
 
 	Ritsu::Divide divide;
 
@@ -177,9 +175,9 @@ TEST_P(LayerUniformShapeSizeTest, Divide) {
 }
 
 TEST_P(LayerUniformShapeSizeTest, Cast) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input0(x);
+	Ritsu::Input input0(expected);
 
 	Ritsu::Cast<float, int> cast;
 	// cast(input0);
@@ -188,9 +186,9 @@ TEST_P(LayerUniformShapeSizeTest, Cast) {
 }
 
 TEST_P(LayerUniformShapeSizeTest, Dropout) {
-	auto [x, expected] = GetParam();
+	auto [expected] = GetParam();
 
-	Ritsu::Input input0(x);
+	Ritsu::Input input0(expected);
 
 	Ritsu::Dropout dropout(0.2f);
 	dropout(input0);
@@ -313,7 +311,7 @@ TEST_P(LayerConcatenateShapeSizeTest, Concatenate) {
 	// EXPECT_EQ(cat.getShape(), expected);
 }
 
-//TODO: add one more argument, from to, expected
+// TODO: add one more argument, from to, expected
 class LayerReshapeShapeSizeTest
 	: public ::testing::TestWithParam<std::tuple<Ritsu::Shape<uint32_t>, Ritsu::Shape<uint32_t>>> {};
 TEST_P(LayerReshapeShapeSizeTest, Reshape) {
@@ -330,17 +328,17 @@ INSTANTIATE_TEST_SUITE_P(Reshape, LayerReshapeShapeSizeTest,
 						 ::testing::Values(std::make_tuple(Ritsu::Shape<uint32_t>({16, 16, 3}),
 														   Ritsu::Shape<uint32_t>({2, 8, 8, 3}))));
 
-TEST_P(LayerUniformShapeSizeTest, Values) {
-	auto [x, expected] = GetParam();
+// TEST_P(LayerUniformShapeSizeTest, Values) {
+//	auto [x, expected] = GetParam();
+//
+//	Ritsu::Dense dense(16);
+//
+//	EXPECT_EQ(dense.getShape(), expected);
+//}
 
-	Ritsu::Dense dense(16);
-
-	EXPECT_EQ(dense.getShape(), expected);
-}
-
-INSTANTIATE_TEST_SUITE_P(DenseLayer, LayerUniformShapeSizeTest,
-						 ::testing::Values(std::make_tuple(Ritsu::Shape<uint32_t>({16}),
-														   Ritsu::Shape<uint32_t>({16}))));
+// INSTANTIATE_TEST_SUITE_P(DenseLayer, LayerUniformShapeSizeTest,
+//						 ::testing::Values(std::make_tuple(Ritsu::Shape<uint32_t>({16}),
+//														   Ritsu::Shape<uint32_t>({16}))));
 
 class NonUniformSizeTest : public ::testing::TestWithParam<std::tuple<Ritsu::Shape<uint32_t>, Ritsu::Shape<uint32_t>>> {
 

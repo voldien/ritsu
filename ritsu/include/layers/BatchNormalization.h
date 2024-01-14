@@ -58,10 +58,10 @@ namespace Ritsu {
 
 			for (size_t i = 0; i < ndims; i++) {
 
-				Tensor subset = input.getSubset<Tensor>(0, 12);
+				Tensor subset = input.getSubset(0, 12);
 				DType mean = Math::mean(subset.getRawData<DType>(), subset.getNrElements());
 				// TODO add // (subset - mean) /
-				(Math::variance<DType>(subset.getRawData<DType>(), subset.getNrElements(), mean) + 0.00001);
+				(Math::variance<DType>(subset.getRawData<DType>(), subset.getNrElements(), mean) + 0.00001f);
 			}
 
 			/*	*/

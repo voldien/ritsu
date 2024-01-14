@@ -52,16 +52,16 @@ namespace Ritsu {
 		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
 
 	  protected:
-		// TODO fix performance memory with reference..
-		//
-		Tensor createCastTensor(const Tensor &tensor) {
+		// TODO: Fix refrence
+		static Tensor createCastTensor(const Tensor &tensor) {
 			Tensor castTensor(tensor.getShape(), sizeof(T));
-			return createCastTensor(castTensor);
+
+			return createCastTensorRef(castTensor);
 		}
 
-		Tensor &createCastTensor(Tensor &tensor) {
+		static Tensor &createCastTensorRef(Tensor &tensor) {
 			/*	*/
-#pragma omp parallel shared(tensor)
+#pragma omp parallel for simd shared(tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
 				tensor.getValue<T>(i) = static_cast<T>(tensor.getValue<A>(i));
 			}
