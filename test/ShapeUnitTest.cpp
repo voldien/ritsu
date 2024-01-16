@@ -19,7 +19,7 @@ TYPED_TEST_P(ShapeType, SetGetValues) {
 	shape[2] = 22;
 	ASSERT_EQ(shape[0], 3);
 	ASSERT_EQ(shape[1], 24);
-	ASSERT_EQ(shape[2], 22);	
+	ASSERT_EQ(shape[2], 22);
 	ASSERT_EQ(shape.getNrDimensions(), 3);
 }
 
@@ -61,14 +61,25 @@ TYPED_TEST_P(ShapeType, ComputeIndex) {
 
 TYPED_TEST_P(ShapeType, Append) {
 
-	Shape<uint32_t> a({8, 8, 3});
-	Shape<uint32_t> b({8, 8, 3});
-	Shape<uint32_t> c;
+	{
+		Shape<uint32_t> a({3});
+		Shape<uint32_t> b({3});
+		Shape<uint32_t> c;
+		// TODO:
+		ASSERT_NO_THROW(c = a + b);
 
-	ASSERT_NO_THROW(c = a + b);
+		ASSERT_EQ(c, Shape<uint32_t>({6}));
+	}
 
-	// TODO:
-	ASSERT_EQ(c, Shape<uint32_t>({8, 8, 3}));
+	{
+		Shape<uint32_t> a({8, 8, 1});
+		Shape<uint32_t> b({8, 8, 1});
+		Shape<uint32_t> c;
+		// TODO:
+		ASSERT_NO_THROW(c = a + b);
+
+		ASSERT_EQ(c, Shape<uint32_t>({8, 8, 2}));
+	}
 }
 
 REGISTER_TYPED_TEST_SUITE_P(ShapeType, DefaultConstructor, SetGetValues, Flatten, Reshape, SubShape, Reduce,

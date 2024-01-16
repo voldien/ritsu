@@ -1,5 +1,4 @@
 #pragma once
-#include "Math.h"
 #include "Tensor.h"
 #include <cmath>
 
@@ -38,21 +37,21 @@ namespace Ritsu {
 	}
 
 #pragma omp declare simd uniform(value, alpha)
-	template <typename T> inline static constexpr T leakyRelu(const T value, const T alpha) noexcept {
+	template <typename T> inline static constexpr T leakyRelu(const T alpha, const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		if (value < 0) {
-			return value * alpha;
+			return alpha * value;
 		}
 		return std::max<T>(0, value);
 	}
 
 #pragma omp declare simd uniform(value, alpha)
-	template <typename T> inline static constexpr T leakyReluDerivative(const T value, const T alpha) noexcept {
+	template <typename T> inline static constexpr T leakyReluDerivative(const T alpha, const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		if (value >= 0) {
-			return 0;
+			return 1;
 		}
 		return alpha;
 	}
@@ -72,7 +71,7 @@ namespace Ritsu {
 	template <typename T> inline static constexpr T computeTanhDerivate(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
-		return static_cast<T>(std::exp(-value)) / std::pow(((std::exp(-value) + static_cast<T>(1))), static_cast<T>(2));
+		return 1.0 - (computeTanh<T>(value) * computeTanh<T>(value));
 	}
 
 #pragma omp declare simd uniform(coeff, value)
@@ -93,14 +92,20 @@ namespace Ritsu {
 	template <typename T> inline static constexpr T computeExpLinear(const T coeff, const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
-		return coeff * value;
+		if (value >= 0) {
+			return value;
+		}
+		return coeff * (std::exp(value) - 1);
 	}
 
-#pragma omp declare simd uniform(coeff)
-	template <typename T> inline static constexpr T computeExpLinearDerivative(const T coeff) noexcept {
+#pragma omp declare simd uniform(coeff, value)
+	template <typename T> inline static constexpr T computeExpLinearDerivative(const T coeff, const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
-		return coeff;
+		if (value >= 0) {
+			return 1;
+		}
+		return coeff * std::exp(value);
 	}
 
 #pragma omp declare simd uniform(value, beta)

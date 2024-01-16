@@ -45,7 +45,7 @@ namespace Ritsu {
 				}
 			}
 
-			m_result.getValue<float>(0) = (float)correct / (float)refA->getNrElements();
+			this->m_result.getValue<float>(0) = (float)correct / (float)refA->getNrElements();
 			va_end(args);
 		}
 

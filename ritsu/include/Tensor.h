@@ -184,8 +184,8 @@ namespace Ritsu {
 
 		auto &operator-() noexcept {
 			size_t nrElements = this->getNrElements();
-			// #pragma omp parallel shared(tensor)
-			#pragma omp parallel for simd
+// #pragma omp parallel shared(tensor)
+#pragma omp parallel for simd
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = -this->getValue<DType>(index);
 			}
@@ -317,18 +317,32 @@ namespace Ritsu {
 		}
 
 		Tensor &pow(const DType value) noexcept {
-			Math::pow<DType>(value, this->getRawData<DType>(), this->getNrElements());
+			Math::pow(value, this->getRawData<DType>(), this->getNrElements());
 			return *this;
 		}
 
-		Tensor &append(const Tensor &tensor) {
+		Tensor &append(const Tensor &tensor) { // TODO: add axis
 			/*	Resize.	*/
-			Shape<IndexType> newShape = tensor.getShape() + this->getShape();
-			const size_t address_offset = this->getNrElements();
+			const Shape<IndexType> newShape = tensor.getShape() + this->getShape();
+			const size_t original_address_offset = this->getDatSize();
 
-			this->resizeBuffer(newShape, DTypeSize);
+			/*	*/
+			const size_t element_size = this->element_size;
+			bool cast = false;
+			if (tensor.element_size != this->element_size) {
+				// TODO: cast
+				cast = true;
+			}
+
+			this->resizeBuffer(newShape, element_size);
 
 			/*	Add additional data.	*/
+			if (!cast) {
+				memcpy(&this->getRawData<uint8_t *>()[original_address_offset], tensor.getRawData<const uint8_t *>(),
+					   tensor.getDatSize());
+			} else {
+				// TODO: impl cast
+			}
 
 			return *this;
 		}
@@ -369,18 +383,18 @@ namespace Ritsu {
 		DType &operator[](const std::vector<IndexType> &location) { return this->getValue<DType>(location); }
 
 		void resizeBuffer(const Shape<IndexType> &shape, const size_t elementSize) {
-			const size_t total_elements = shape.getNrElements();
+			const size_t total_nr_elements = shape.getNrElements();
 
 			if (this->buffer != nullptr && !this->ownAllocation) {
 				/*	*/
 				throw std::runtime_error("Invalid State");
 			}
 
-			if (total_elements == 0) {
+			if (total_nr_elements == 0) {
 				throw std::runtime_error("Must be greater than 0");
 			}
 
-			const size_t nrBytesAllocate = Math::align<size_t>(total_elements * elementSize, 4);
+			const size_t nrBytesAllocate = Math::align<size_t>(total_nr_elements * elementSize, 4);
 
 			// TODO handle if not the same pointer is returned.
 			this->buffer = static_cast<uint8_t *>(realloc(this->buffer, nrBytesAllocate));
@@ -389,7 +403,7 @@ namespace Ritsu {
 			}
 
 			this->shape = shape;
-			this->NrElements = total_elements;
+			this->NrElements = total_nr_elements;
 			this->element_size = elementSize;
 		}
 

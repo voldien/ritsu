@@ -88,7 +88,8 @@ namespace Ritsu {
 		}
 
 		// TODO: accuracy.
-		template <typename T> constexpr static T pow(const T exponent, T *list, const size_t nrElements) noexcept {
+		
+		template <typename T> constexpr static void pow(const T exponent, T *list, const size_t nrElements) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			/*	*/

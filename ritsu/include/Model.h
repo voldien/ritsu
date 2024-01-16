@@ -3,9 +3,11 @@
 #include "Metric.h"
 #include "Tensor.h"
 #include "core/Shape.h"
+#include "core/Time.h"
 #include "layers/Layer.h"
 #include "optimizer/Optimizer.h"
 #include <cassert>
+#include <chrono>
 #include <cstddef>
 #include <exception>
 #include <istream>
@@ -77,9 +79,17 @@ namespace Ritsu {
 
 			std::map<std::string, Tensor> cachedResult;
 
+			Time time;
+
 			/*	*/
 			const size_t batchDataElementSize = batchDataShape.getNrElements();
 			const size_t batchExpectedElementSize = batchExpectedShape.getNrElements();
+
+			time.start();
+
+			Tensor timeSample({8}, sizeof(float));
+
+			uint32_t timeIndex = 0;
 
 			for (size_t nthEpoch = 0; nthEpoch < epochs; nthEpoch++) {
 				std::cout << "Epoch: " << nthEpoch << " / " << epochs << std::endl << std::flush;
@@ -92,7 +102,7 @@ namespace Ritsu {
 					/*	Extract subset of the data.	*/
 					const Tensor subsetBatchX = std::move(
 						inputData.getSubset(ibatch * batch_size * batchDataElementSize,
-													(ibatch + 1) * batch_size * batchDataElementSize, batchDataShape));
+											(ibatch + 1) * batch_size * batchDataElementSize, batchDataShape));
 
 					const Tensor subsetExpecetedBatch = std::move(expectedData.getSubset(
 						ibatch * batch_size * batchExpectedElementSize,
@@ -114,27 +124,47 @@ namespace Ritsu {
 
 					this->print_status(std::cout);
 
-					std::cout << "\r"
-							  << "Batch: " << ibatch << "/" << nrTrainBatches; //<< " - loss: " << averageCost
-					//						  << " -  accuracy: " << accuracy;
+					{
+						/*	*/
+						timeSample.getValue<float>(timeIndex) = time.deltaTime<float>();
+						timeIndex = (timeIndex + 1) % timeSample.getNrElements();
+						const float averageTime = Tensor::mean<float>(timeSample);
 
-					for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
-						std::cout << " - " << this->metrics[m_index]->getName() << ": "
-								  << Tensor::mean<DType>(this->metrics[m_index]->result());
+						const size_t nrBatchPerSecond = 1.0f / averageTime;
+						const float expectedEpochTime = (nrTrainBatches - ibatch) * averageTime;
+
+						using fsec = duration<float>;
+						auto p = round<nanoseconds>(fsec{expectedEpochTime});
+
+						std::chrono::duration_cast<std::chrono::minutes>(p);
+
+						std::cout << "\r"
+								  << "Batch: " << ibatch << "/"
+								  << nrTrainBatches // << " " << nrBatchPerSecond << "batch/Sec"
+								  << " ETA: "
+								  << std::chrono::duration_cast<std::chrono::minutes>(p)
+										 .count();
+
+						for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
+							std::cout << " - " << this->metrics[m_index]->getName() << ": "
+									  << Tensor::mean<DType>(this->metrics[m_index]->result());
+						}
 					}
 					std::cout << std::flush;
+
+					time.update();
 				}
 
 				/*	Validation Pass. Only compute, no backpropgation.	*/
 				for (size_t ibatch = 0; ibatch < nrValidationBatches; ibatch++) {
 
 					/*	Extract subset of the data.	*/
-					const Tensor subsetBatchX = std::move(inputData.getSubset (
+					const Tensor subsetBatchX = std::move(inputData.getSubset(
 						ibatch * batch_size * batchDataElementSize, (ibatch + 1) * batch_size * batchDataElementSize));
 
 					const Tensor subsetExpecetedBatch =
-						std::move(expectedData.getSubset (ibatch * batch_size * batchExpectedElementSize,
-																 (ibatch + 1) * batch_size * batchExpectedElementSize));
+						std::move(expectedData.getSubset(ibatch * batch_size * batchExpectedElementSize,
+														 (ibatch + 1) * batch_size * batchExpectedElementSize));
 
 					/*	Compute network forward.	*/
 					this->forwardPropgation(subsetBatchX, batchResult, batch_size);

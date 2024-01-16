@@ -86,16 +86,19 @@ TYPED_TEST_P(TensorType, InnerProduct) {
 
 TYPED_TEST_P(TensorType, Append) {
 
-	Tensor tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
-	Tensor tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+	Tensor tensorA(Shape<uint32_t>({3}), sizeof(TypeParam));
+	Tensor tensorB(Shape<uint32_t>({3}), sizeof(TypeParam));
 
 	tensorB.assignInitValue(1);
 	tensorA.assignInitValue(1);
 
-	ASSERT_NO_THROW(tensorA.append(tensorB));
+	ASSERT_NO_THROW(Tensor &ref = tensorA.append(tensorB));
 
-	// TODO:
-	ASSERT_EQ(tensorA.getShape(), Shape<uint32_t>({8, 8, 3}));
+	ASSERT_EQ(tensorA.getShape(), Shape<uint32_t>({6}));
+
+	for (size_t i = 0; i < tensorA.getNrElements(); i++) {
+		ASSERT_EQ(tensorA.getValue<TypeParam>(i), 1);
+	}
 }
 
 TYPED_TEST_P(TensorType, SubSet) {

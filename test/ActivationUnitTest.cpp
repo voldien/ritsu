@@ -22,8 +22,29 @@ TEST_P(ReluDerivativeActivationFunctionTest, Relu) {
 
 	EXPECT_FLOAT_EQ(reluDeriviate(x), expected_activation);
 }
-INSTANTIATE_TEST_SUITE_P(ActivationRelu, ReluDerivativeActivationFunctionTest,
+INSTANTIATE_TEST_SUITE_P(Relu, ReluDerivativeActivationFunctionTest,
 						 ::testing::Values(std::make_tuple(5, 1), std::make_tuple(3, 1), std::make_tuple(-1000, 0)));
+
+class LeakyReluActivationFunctionTest : public ::testing::TestWithParam<std::tuple<double, double, double>> {};
+TEST_P(LeakyReluActivationFunctionTest, LeakyRelu) {
+	auto [alpha, x, expected_activation] = GetParam();
+
+	EXPECT_FLOAT_EQ(leakyRelu(alpha, x), expected_activation);
+}
+INSTANTIATE_TEST_SUITE_P(LeakyRelu, LeakyReluActivationFunctionTest,
+						 ::testing::Values(std::make_tuple(0.2, 5, 5), std::make_tuple(0.2, 1, 1),
+										   std::make_tuple(0.2, -10, -2)));
+
+class LeakyReluDerivativeActivationFunctionTest : public ::testing::TestWithParam<std::tuple<double, double, double>> {
+};
+TEST_P(LeakyReluDerivativeActivationFunctionTest, LeakyRelu) {
+	auto [alpha, x, expected_activation] = GetParam();
+
+	EXPECT_FLOAT_EQ(leakyReluDerivative(alpha, x), expected_activation);
+}
+INSTANTIATE_TEST_SUITE_P(LeakyRelu, LeakyReluDerivativeActivationFunctionTest,
+						 ::testing::Values(std::make_tuple(0.2, 5, 1), std::make_tuple(0.2, 1, 1),
+										   std::make_tuple(0.2, -1000, 0.2)));
 
 /*	*/
 class SigmoidActivationFunctionTest : public ActivationFunctionTest {};
@@ -32,7 +53,7 @@ TEST_P(SigmoidActivationFunctionTest, Sigmoid) {
 
 	EXPECT_FLOAT_EQ(computeSigmoid(x), expected_activation);
 }
-INSTANTIATE_TEST_SUITE_P(ActivationSigmoid, SigmoidActivationFunctionTest,
+INSTANTIATE_TEST_SUITE_P(Sigmoid, SigmoidActivationFunctionTest,
 						 ::testing::Values(std::make_tuple(5, 0.99330714907572), std::make_tuple(1, 0.7310585786300),
 										   std::make_tuple(-1, 0.26894142136999512)));
 
@@ -71,6 +92,27 @@ INSTANTIATE_TEST_SUITE_P(ActivationLinear, LinearDerivativeActivationFunctionTes
 						 ::testing::Values(std::make_tuple(0.2, 5, 0.2), std::make_tuple(0.3, 1, 0.3),
 										   std::make_tuple(0.5, -1000, 0.5)));
 
+class ExpLinearActivationFunctionTest : public ::testing::TestWithParam<std::tuple<double, double, double>> {};
+TEST_P(ExpLinearActivationFunctionTest, ExpLinear) {
+	auto [coff, x, expected_activation] = GetParam();
+
+	EXPECT_FLOAT_EQ(computeExpLinear(coff, x), expected_activation);
+}
+INSTANTIATE_TEST_SUITE_P(ActivationExpLinear, ExpLinearActivationFunctionTest,
+						 ::testing::Values(std::make_tuple(0.2, 5.0, 5.0), std::make_tuple(0.2, 1.0, 1),
+										   std::make_tuple(0.2, -10, -0.19999092001)));
+/*	Derivative	*/
+class ExpLinearDerivativeActivationFunctionTest : public ::testing::TestWithParam<std::tuple<double, double, double>> {
+};
+TEST_P(ExpLinearDerivativeActivationFunctionTest, ExpLinear) {
+	auto [coff, x, expected_activation] = GetParam();
+
+	EXPECT_FLOAT_EQ(computeExpLinearDerivative(coff, x), expected_activation);
+}
+INSTANTIATE_TEST_SUITE_P(ActivationDerivativeExpLinear, ExpLinearDerivativeActivationFunctionTest,
+						 ::testing::Values(std::make_tuple(0.2, 5, 1), std::make_tuple(0.2, 1, 1),
+										   std::make_tuple(0.2, -5, 0.00134758939)));
+
 /*	*/
 class TanhActivationFunctionTest : public ActivationFunctionTest {};
 TEST_P(TanhActivationFunctionTest, Tahn) {
@@ -80,7 +122,8 @@ TEST_P(TanhActivationFunctionTest, Tahn) {
 }
 INSTANTIATE_TEST_SUITE_P(ActivationTahn, TanhActivationFunctionTest,
 						 ::testing::Values(std::make_tuple(5, 0.9999092042625951312),
-										   std::make_tuple(1, 0.76159415595576), std::make_tuple(-1000, -1)));
+										   std::make_tuple(1, 0.76159415595576),
+										   std::make_tuple(-2, -0.9640275800758)));
 
 class TanhDerivativeActivationFunctionTest : public ActivationFunctionTest {};
 TEST_P(TanhDerivativeActivationFunctionTest, Tahn) {
@@ -90,8 +133,6 @@ TEST_P(TanhDerivativeActivationFunctionTest, Tahn) {
 }
 INSTANTIATE_TEST_SUITE_P(ActivationTahn, TanhDerivativeActivationFunctionTest,
 						 ::testing::Values(std::make_tuple(5, 4), std::make_tuple(1, 3), std::make_tuple(-1000, 3)));
-
-
 
 class SwishActivationFunctionTest : public ActivationFunctionTest {};
 TEST_P(SwishActivationFunctionTest, Swish) {
@@ -103,35 +144,6 @@ TEST_P(SwishActivationFunctionTest, Swish) {
 }
 INSTANTIATE_TEST_SUITE_P(ActivationSwish, SwishActivationFunctionTest,
 						 ::testing::Values(std::make_tuple(5, 4), std::make_tuple(1, 3), std::make_tuple(-1000, 3)));
-
-class LeakyReluActivationFunctionTest : public ActivationFunctionTest {};
-TEST_P(LeakyReluActivationFunctionTest, LeakyRelu) {
-	auto [x, expected_activation] = GetParam();
-
-	EXPECT_FLOAT_EQ(leakyRelu(x, 0.2), expected_activation);
-}
-INSTANTIATE_TEST_SUITE_P(ActivationLeakyRelu, LeakyReluActivationFunctionTest,
-						 ::testing::Values(std::make_tuple(5, 4), std::make_tuple(1, 3), std::make_tuple(-1000, 3)));
-
-class LeakyReluDerivativeActivationFunctionTest : public ActivationFunctionTest {};
-TEST_P(LeakyReluDerivativeActivationFunctionTest, LeakyRelu) {
-	auto [x, expected_activation] = GetParam();
-
-	EXPECT_FLOAT_EQ(leakyRelu(x, 0.2), expected_activation);
-}
-INSTANTIATE_TEST_SUITE_P(ActivationLeakyRelu, LeakyReluDerivativeActivationFunctionTest,
-						 ::testing::Values(std::make_tuple(5, 4), std::make_tuple(1, 3), std::make_tuple(-1000, 3)));
-
-// TODO:
-class ExpLinearActivationFunctionTest : public ActivationFunctionTest {};
-TEST_P(ExpLinearActivationFunctionTest, ExpLinear) {
-	auto [x, expected_activation] = GetParam();
-
-	EXPECT_FLOAT_EQ(computeExpLinear(x, 0.2), expected_activation);
-}
-INSTANTIATE_TEST_SUITE_P(ActivationExpLinear, ExpLinearActivationFunctionTest,
-						 ::testing::Values(std::make_tuple(5, 4), std::make_tuple(1, 3), std::make_tuple(-1000, 3)));
-
 
 class SoftMaxActivationFunctionTest : public ::testing::TestWithParam<std::tuple<Tensor, Tensor>> {};
 

@@ -51,11 +51,18 @@ namespace Ritsu {
 			return *this;
 		}
 
+		// TODO: determine how
 		friend Shape operator+(const Shape &shapeA, const Shape &shapeB) {
 			// verify if operation is possible.
-			return {};
+			std::vector<IndexType> size = shapeA.dims;
+			for (size_t i = 0; i < size.size(); i++) {
+				size[i] += shapeB.getAxisDimensions(i);
+			}
+
+			return size;
 		}
 
+		// TODO: determine how
 		friend Shape operator-(const Shape &shapeA, const Shape &shapeB) {
 			// verify if operation is possible.
 			return {};
