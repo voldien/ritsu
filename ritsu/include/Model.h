@@ -141,9 +141,8 @@ namespace Ritsu {
 						std::cout << "\r"
 								  << "Batch: " << ibatch << "/"
 								  << nrTrainBatches // << " " << nrBatchPerSecond << "batch/Sec"
-								  << " ETA: "
-								  << std::chrono::duration_cast<std::chrono::minutes>(p)
-										 .count();
+								  << " ETA: " << std::chrono::duration_cast<std::chrono::minutes>(p).count()
+								  << " - lr: " << this->optimizer->getLearningRate();
 
 						for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
 							std::cout << " - " << this->metrics[m_index]->getName() << ": "
@@ -296,11 +295,13 @@ namespace Ritsu {
 					/*	Perform layer on data.	*/
 					layerResult = std::move((*current) << ((const Tensor &)layerResult));
 
-					/*	*/
-					auto shape = layerResult.getShape().getSubShape(1);
+					/*	*/ // TODO:fix
+					auto shape =
+						layerResult.getShape().getSubShape(layerResult.getShape().getNrDimensions() > 1 ? 1 : 0);
 					if (shape != current->getShape()) {
 						/*	*/
-						std::cerr << "Invalid Shape: " << shape << " " << current->getShape() << std::endl;
+						std::cerr << "Invalid Shape: " << shape << " " << current->getShape() << " "
+								  << current->getName() << std::endl;
 					}
 
 					// std::cout << "Result Tensor Shape"

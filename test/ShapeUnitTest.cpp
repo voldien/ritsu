@@ -1,3 +1,4 @@
+#include "core/Shape.h"
 #include <Ritsu.h>
 #include <cstddef>
 #include <cstdint>
@@ -21,6 +22,8 @@ TYPED_TEST_P(ShapeType, SetGetValues) {
 	ASSERT_EQ(shape[1], 24);
 	ASSERT_EQ(shape[2], 22);
 	ASSERT_EQ(shape.getNrDimensions(), 3);
+	/*	*/
+	ASSERT_EQ(shape[3], shape[0]);
 }
 
 TYPED_TEST_P(ShapeType, Flatten) {
@@ -56,7 +59,7 @@ TYPED_TEST_P(ShapeType, Reduce) {
 TYPED_TEST_P(ShapeType, ComputeIndex) {
 	Ritsu::Shape<TypeParam> shape({32, 32, 3});
 
-	auto &flatten = shape.reduce();
+	//ASSERT_EQ(Ritsu::Shape::computeIndex<TypeParam>(shape), 0);
 }
 
 TYPED_TEST_P(ShapeType, Append) {
@@ -82,8 +85,37 @@ TYPED_TEST_P(ShapeType, Append) {
 	}
 }
 
+TYPED_TEST_P(ShapeType, Equality) {
+
+	{
+		Shape<uint32_t> a({3});
+		Shape<uint32_t> b({3});
+
+		ASSERT_EQ(a, b);
+		ASSERT_EQ(a, a);
+		ASSERT_EQ(b, b);
+	}
+
+	{
+		Shape<uint32_t> a({28, 28, 3});
+		Shape<uint32_t> b({28, 28, 3});
+
+		ASSERT_EQ(a, b);
+		ASSERT_EQ(a, a);
+		ASSERT_EQ(b, b);
+	}
+
+	{
+		Shape<uint32_t> a({3});
+		Shape<uint32_t> b({6});
+
+		ASSERT_NE(a, b);
+		ASSERT_NE(b, a);
+	}
+}
+
 REGISTER_TYPED_TEST_SUITE_P(ShapeType, DefaultConstructor, SetGetValues, Flatten, Reshape, SubShape, Reduce,
-							ComputeIndex, Append);
+							ComputeIndex, Append, Equality);
 
 using ShapePrimitiveDataTypes = ::testing::Types<uint16_t, uint32_t, size_t>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Shape, ShapeType, ShapePrimitiveDataTypes);

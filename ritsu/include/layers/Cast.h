@@ -53,6 +53,7 @@ namespace Ritsu {
 
 	  protected:
 		// TODO: Fix refrence
+
 		static Tensor createCastTensor(const Tensor &tensor) {
 			Tensor castTensor(tensor.getShape(), sizeof(T));
 

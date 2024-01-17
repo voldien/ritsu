@@ -7,6 +7,7 @@ namespace Ritsu {
 	 * @brief
 	 *
 	 */
+	// TODO: add beta
 	class Swish : public Activaction {
 	  public:
 		Swish(const std::string &name = "swish") : Activaction(name) {}
@@ -55,26 +56,13 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 	  private:
-		inline static constexpr DType computeSwish(const DType value) {
-			//TODO:
-			const DType e_ = std::exp(-value);
-			const DType _e_ = std::exp(value);
-
-			return (e_ - _e_) / (e_ + _e_);
-		}
-
-		inline static constexpr DType computeSwishDerivative(DType value) {
-						//TODO:
-			return std::exp(-value) / std::pow(((std::exp(-value) + 1)), 2);
-		}
-
 		void computeActivation(Tensor &tensor) {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = Swish::computeSwish(tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = computeSwish(tensor.getValue<DType>(i), 0.1f);
 			}
 		}
 

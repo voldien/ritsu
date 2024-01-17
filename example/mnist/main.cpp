@@ -1,6 +1,7 @@
 #include "Metric.h"
 #include "Tensor.h"
 #include "layers/GaussianNoise.h"
+#include "layers/Layer.h"
 #include "layers/Regularization.h"
 #include "layers/Rescaling.h"
 #include "mnist_dataset.h"
@@ -22,6 +23,7 @@ int main(int argc, const char **argv) {
 		const unsigned int epochs = 128;
 		const size_t dataBufferSize = 5;
 		const float learningRate = 0.002f;
+		bool useBatchNorm = false;
 
 		/*	*/
 		Tensor inputResY, inputResTestY;
@@ -71,8 +73,29 @@ int main(int argc, const char **argv) {
 
 		/*	*/
 		{
-			Layer<float> &output = regulation(outputAct(
-				fw2(relu1(BN1(fw1(relu0(BN0(fw0(flattenInput(normalizedLayer(cast2Float(input0node))))))))))));
+			Layer<float> *x = &cast2Float(input0node);
+
+			x = &normalizedLayer(*x);
+			x = &flattenInput(*x);
+
+			x = &noise(*x);
+
+			x = &fw0(*x);
+			if (useBatchNorm) {
+				x = &BN0(*x);
+			}
+			x = &relu0(*x);
+
+			x = &fw1(*x);
+			if (useBatchNorm) {
+				x = &BN1(*x);
+			}
+			x = &relu1(*x);
+
+			x = &fw2(*x);
+			x = &outputAct(*x);
+
+			Layer<float> &output = regulation(*x);
 
 			Model<float> forwardModel({&input0node}, {&output});
 
@@ -82,7 +105,8 @@ int main(int argc, const char **argv) {
 			MetricMean lossmetric("loss");
 
 			Loss mse_loss(sparse_categorical_crossentropy);
-			forwardModel.compile(&optimizer, mse_loss, {dynamic_cast<Metric *>(&lossmetric), (Metric *)&accuracy});
+			forwardModel.compile(&optimizer, sparse_categorical_crossentropy,
+								 {dynamic_cast<Metric *>(&lossmetric), (Metric *)&accuracy});
 			std::cout << forwardModel.summary() << std::endl;
 
 			forwardModel.fit(epochs, inputDataX, inputResY, batchSize);

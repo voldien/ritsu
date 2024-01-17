@@ -92,6 +92,7 @@ namespace Ritsu {
 	  private:
 		static inline void computeElementSum(Tensor &inputA, const Tensor &inputB) { inputA = inputA + inputB; }
 
+		// TODO: relocate
 		static void computeL1(const Tensor &tensor, const DType L1, Tensor &output) noexcept {
 			/*	*/
 #pragma omp parallel shared(output, tensor)

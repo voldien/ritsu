@@ -12,6 +12,11 @@ TYPED_TEST_P(TensorType, DefaultConstructor) {
 	ASSERT_NO_THROW(Tensor tensor(Shape<uint32_t>({32, 32, 3}), sizeof(TypeParam)));
 }
 
+TYPED_TEST_P(TensorType, AssignMove) {
+	Tensor tensor({32, 32, 3}, sizeof(TypeParam));
+	ASSERT_NO_THROW(Tensor b = std::move(tensor));
+}
+
 TYPED_TEST_P(TensorType, ElementCount) {
 	Tensor tensor({32, 32, 3}, sizeof(TypeParam));
 	ASSERT_EQ(tensor.getNrElements(), 32 * 32 * 3);
@@ -89,16 +94,29 @@ TYPED_TEST_P(TensorType, Append) {
 	Tensor tensorA(Shape<uint32_t>({3}), sizeof(TypeParam));
 	Tensor tensorB(Shape<uint32_t>({3}), sizeof(TypeParam));
 
-	tensorB.assignInitValue(1);
-	tensorA.assignInitValue(1);
+	tensorB.assignInitValue(static_cast<TypeParam>(1));
+	tensorA.assignInitValue(static_cast<TypeParam>(1));
 
-	ASSERT_NO_THROW(Tensor &ref = tensorA.append(tensorB));
+	ASSERT_NO_THROW(tensorA.append(tensorB));
 
 	ASSERT_EQ(tensorA.getShape(), Shape<uint32_t>({6}));
 
 	for (size_t i = 0; i < tensorA.getNrElements(); i++) {
-		ASSERT_EQ(tensorA.getValue<TypeParam>(i), 1);
+		EXPECT_EQ(tensorA.getValue<TypeParam>(i), 1);
 	}
+}
+
+TYPED_TEST_P(TensorType, Cast) {
+
+	Tensor tensorA(Shape<uint32_t>({3}), sizeof(TypeParam));
+	const Tensor tensorB(Shape<uint32_t>({3}), sizeof(TypeParam));
+
+	Tensor ref;
+	ASSERT_NO_THROW(tensorA.cast<int16_t>());
+	ASSERT_NO_THROW(ref = std::move(tensorB.cast<int16_t>()));
+
+	ASSERT_EQ(tensorA.getDatSize(), tensorA.getNrElements() * sizeof(int16_t));
+	ASSERT_EQ(ref.getDatSize(), ref.getNrElements() * sizeof(int16_t));
 }
 
 TYPED_TEST_P(TensorType, SubSet) {
@@ -136,8 +154,8 @@ TYPED_TEST_P(TensorType, Equal) {
 	ASSERT_EQ(tensorA, tensorB);
 }
 
-REGISTER_TYPED_TEST_SUITE_P(TensorType, DefaultConstructor, ElementCount, FromArray, SetGetValues, Log10, Mean, Flatten,
-							InnerProduct, Append, SubSet, MatrixMultiplication, Equal);
+REGISTER_TYPED_TEST_SUITE_P(TensorType, DefaultConstructor, AssignMove, ElementCount, FromArray, SetGetValues, Log10,
+							Mean, Flatten, InnerProduct, Append, Cast, SubSet, MatrixMultiplication, Equal);
 
 using TensorPrimitiveDataTypes = ::testing::Types<uint16_t, uint32_t, size_t, float, double>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Parameter, TensorType, TensorPrimitiveDataTypes);

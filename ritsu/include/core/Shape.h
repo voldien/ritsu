@@ -185,7 +185,7 @@ namespace Ritsu {
 
 		void append(const std::vector<IndexType> &additionalDims) {}
 
-		static size_t computeIndex(const std::vector<IndexType> &dim) {
+		template <typename U> static size_t computeIndex(const std::vector<U> &dim) {
 			size_t totalSize = 1;
 
 			for (size_t i = dim.size() - 1; i >= dim.size(); i--) {

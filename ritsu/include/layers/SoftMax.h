@@ -1,4 +1,5 @@
 #pragma once
+#include "../Activations.h"
 #include "Activaction.h"
 #include <cmath>
 
@@ -19,7 +20,7 @@ namespace Ritsu {
 		}
 
 		Tensor operator>>(Tensor &tensor) override {
-			this->computeSoftMax(tensor);
+			softMax<DType>(tensor);
 			return tensor;
 		}
 
@@ -29,7 +30,7 @@ namespace Ritsu {
 		//}
 
 		Tensor &operator()(Tensor &tensor) override {
-			this->computeSoftMax(tensor);
+			softMax<DType>(tensor);
 			return tensor;
 		}
 
@@ -53,22 +54,5 @@ namespace Ritsu {
 
 		Tensor compute_derivative(const Tensor &tensorLoss) override {}
 		Tensor &compute_derivative(Tensor &tensorLoss) const override {}
-
-	  private:
-		void computeSoftMax(Tensor &tensor) {
-			/*	Iterate through each all elements.    */
-			DType Inversesum = 0;
-			const size_t nrElements = tensor.getNrElements();
-
-#pragma omp parallel
-			for (size_t i = 0; i < nrElements; i++) {
-				Inversesum += static_cast<DType>(std::exp(tensor.getValue<DType>(i)));
-			}
-			Inversesum = 1.0f / Inversesum;
-#pragma omp parallel
-			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = tensor.getValue<DType>(i) * Inversesum;
-			}
-		}
 	};
 } // namespace Ritsu

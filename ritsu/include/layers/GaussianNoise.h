@@ -69,11 +69,10 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> outputs;
 
 	  protected:
-		void applyNoise(Tensor &tensor) {
+		void applyNoise(Tensor &tensor) noexcept {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
-#pragma omp parallel shared(tensor)
-#pragma omp simd
+#pragma omp parallel for simd shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
 				tensor.getValue<DType>(i) += this->random->rand();
 			}

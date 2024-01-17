@@ -1,6 +1,7 @@
 #pragma once
 #include "core/Shape.h"
 #include <algorithm>
+#include <cassert>
 #include <cmath>
 #include <cstdint>
 #include <cstring>
@@ -76,7 +77,7 @@ namespace Ritsu {
 			this->element_size = other.element_size;
 		}
 
-		~Tensor() {
+		virtual ~Tensor() {
 			if (this->ownAllocation) {
 				free(this->buffer);
 			}
@@ -255,6 +256,17 @@ namespace Ritsu {
 			return *this;
 		}
 
+		template <typename U> Tensor operator*(U vec) const noexcept {
+			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
+						  "Type Must Support addition operation.");
+			Tensor tmp = *this;
+			size_t nrElements = this->getNrElements();
+			for (size_t index = 0; index < nrElements; index++) {
+				tmp.getValue<DType>(index) = this->getValue<DType>(index) * vec;
+			}
+			return tmp;
+		}
+
 		template <typename U> auto &operator/(const Tensor &tensor) {
 			size_t nrElements = this->getNrElements();
 
@@ -265,10 +277,10 @@ namespace Ritsu {
 			return *this;
 		}
 
-		void assignInitValue(const DType initValue) noexcept {
+		template <typename U> void assignInitValue(const U initValue) noexcept {
 			const IndexType nrElements = this->getNrElements();
 
-#pragma omp parallel for simd
+#pragma omp parallel for simd shared(nrElements, initValue)
 			for (size_t i = 0; i < nrElements; i++) {
 				this->getValue<DType>(i) = initValue;
 			}
@@ -286,25 +298,13 @@ namespace Ritsu {
 		Tensor getSubset(const std::vector<IndexType> &start, const std::vector<IndexType> &end) const {
 			Tensor
 				subset; // = T(static_cast<uint8_t *>(&this->buffer[start * DTypeSize]), end - start, this->dimensions);
-			subset.ownAllocation = false;
+			// subset.ownAllocation = false;
 			return subset;
 		}
 
-		Tensor &flatten() {
+		Tensor &flatten() noexcept {
 			/*	flatten dim.	*/
 			this->shape = {(IndexType)this->getNrElements()};
-			return *this;
-		}
-
-		template <typename T> Tensor &append(const T tensor) {
-			/*	Resize.	*/
-			Shape<IndexType> newShape({1});
-
-			/*	Add additional data.	*/
-			this->resizeBuffer(newShape, DTypeSize);
-
-			/*	Copy new Data.	*/
-
 			return *this;
 		}
 
@@ -313,6 +313,7 @@ namespace Ritsu {
 		DType dot(const Tensor &tensor) const noexcept { return Tensor::dot(*this, tensor); }
 
 		static DType dot(const Tensor &tensorA, const Tensor &tensorB) noexcept {
+			// TODO: determine type.
 			return Math::dot<DType>(tensorA.getRawData<DType>(), tensorB.getRawData<DType>(), tensorA.getNrElements());
 		}
 
@@ -329,7 +330,7 @@ namespace Ritsu {
 			/*	*/
 			const size_t element_size = this->element_size;
 			bool cast = false;
-			if (tensor.element_size != this->element_size) {
+			if (tensor.element_size != element_size) {
 				// TODO: cast
 				cast = true;
 			}
@@ -338,11 +339,24 @@ namespace Ritsu {
 
 			/*	Add additional data.	*/
 			if (!cast) {
-				memcpy(&this->getRawData<uint8_t *>()[original_address_offset], tensor.getRawData<const uint8_t *>(),
-					   tensor.getDatSize());
+				std::memcpy(&this->getRawData<uint8_t *>()[original_address_offset],
+							tensor.getRawData<const uint8_t *>(), tensor.getDatSize());
 			} else {
 				// TODO: impl cast
 			}
+
+			return *this;
+		}
+
+		template <typename T> Tensor &append(const T value) {
+			/*	Resize.	*/
+			this->shape = this->shape + Shape<IndexType>({1});
+
+			/*	Add additional data.	*/
+			this->resizeBuffer(this->shape, DTypeSize);
+
+			/*	Copy new Data.	*/
+			this->getValue<DType>(this->getNrElements() - 1) = value;
 
 			return *this;
 		}
@@ -357,6 +371,10 @@ namespace Ritsu {
 			}
 
 			this->element_size = cast_element_size;
+#pragma omp parallel for simd
+			for (size_t i = 0; i < this->getNrElements(); i++) {
+				this->getValue<U>(i) = static_cast<DType>(this->getValue<DType>(i));
+			}
 
 			// Convert value.
 			return *this;
@@ -370,9 +388,11 @@ namespace Ritsu {
 			/*	Resize.	*/
 			if (this->element_size != cast_element_size) {
 			}
-
-			// this->element_size = cast_element_size;
-
+			Tensor tensor = Tensor(this->getShape(), sizeof(U));
+#pragma omp parallel for simd
+			for (size_t i = 0; i < this->getNrElements(); i++) {
+				tensor.getValue<U>(i) = static_cast<DType>(this->getValue<DType>(i));
+			}
 			// Convert value.
 			return *this;
 		}
@@ -387,18 +407,25 @@ namespace Ritsu {
 
 			if (this->buffer != nullptr && !this->ownAllocation) {
 				/*	*/
-				throw std::runtime_error("Invalid State");
+				throw std::runtime_error("Can not allocate on not owned tensor.");
 			}
 
-			if (total_nr_elements == 0) {
+			if (total_nr_elements <= 0) {
 				throw std::runtime_error("Must be greater than 0");
 			}
 
-			const size_t nrBytesAllocate = Math::align<size_t>(total_nr_elements * elementSize, 4);
+			const size_t nrByteUnAligned = total_nr_elements * elementSize;
+			const size_t nrBytesAllocateAligned = Math::align<size_t>(nrByteUnAligned, 4);
 
 			// TODO handle if not the same pointer is returned.
-			this->buffer = static_cast<uint8_t *>(realloc(this->buffer, nrBytesAllocate));
+			const void *prevBuf = this->buffer;
+			this->buffer = static_cast<uint8_t *>(realloc(this->buffer, nrBytesAllocateAligned));
+
 			if (this->buffer == nullptr) {
+				throw std::runtime_error("Error");
+			}
+			if (this->buffer != prevBuf && prevBuf != nullptr) {
+				/*	*/
 				throw std::runtime_error("Error");
 			}
 
@@ -461,7 +488,7 @@ namespace Ritsu {
 			float *fbuffer;
 		};
 		// TODO  add shared data
-		bool ownAllocation = true;
+		bool ownAllocation;
 		uint32_t element_size = 0;
 
 	  public: // TOOD relocate
@@ -500,12 +527,12 @@ namespace Ritsu {
 		static Tensor zero(const Shape<IndexType> &shape, const size_t elementSize = DTypeSize) {
 			Tensor zeroTesnor(shape);
 
-			memset(zeroTesnor.getRawData<void *>(), 0, zeroTesnor.getNrElements() * DTypeSize);
+			memset(zeroTesnor.getRawData<void *>(), 0, zeroTesnor.getDatSize());
 
 			return zeroTesnor;
 		}
 
-		static Tensor OneShot(const Shape<IndexType> &shape, size_t value) {
+		static Tensor oneShot(const Shape<IndexType> &shape, size_t value) {
 			Tensor tensor = Tensor::zero(shape); // TODO: improved performance.
 			tensor.getValue<float>(value) = 1.0f;
 
@@ -545,5 +572,7 @@ namespace Ritsu {
 		template <typename T> static Tensor fromArray(const std::initializer_list<T> &list) {
 			return Tensor({1}, sizeof(T));
 		}
+
+		template <typename T> static Tensor split(Tensor &list) { return Tensor({1}, sizeof(T)); }
 	};
 } // namespace Ritsu

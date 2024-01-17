@@ -59,6 +59,7 @@ namespace Ritsu {
 
 	  protected:
 		void computeScale(Tensor &tensor) noexcept {
+			// TODO: parallel
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
 				tensor.getValue<DType>(i) = scale * tensor.getValue<DType>(i);
 			}

@@ -1,5 +1,6 @@
 #pragma once
 #include "Activaction.h"
+#include "Activations.h"
 #include <cmath>
 
 namespace Ritsu {
@@ -56,17 +57,13 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 	  private:
-		inline static constexpr DType computeLinear(const DType coeff, const DType value) { return coeff * value; }
-
-		inline static constexpr DType computeLinearDerivative(const DType coff) { return coff; }
-
 		void computeActivation(Tensor &tensor) {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 
 #pragma omp parallel for simd shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = Linear::computeLinear(this->linear, tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = computeLinear(this->linear, tensor.getValue<DType>(i));
 			}
 		}
 
@@ -76,7 +73,7 @@ namespace Ritsu {
 
 #pragma omp parallel for shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = Linear::computeLinearDerivative(this->linear);
+				tensor.getValue<DType>(i) = computeLinearDerivative(this->linear);
 			}
 		}
 

@@ -119,8 +119,9 @@ namespace Ritsu {
 			computeDerivative(tensor, output);
 			return output;
 		}
+
 		Tensor &compute_derivative(Tensor &tensor) const override {
-			// computeDerivative(tensor, tensor);
+			computeDerivative(tensor, tensor);
 			return tensor;
 		}
 
@@ -133,13 +134,14 @@ namespace Ritsu {
 		// operator
 		void compute(const Tensor &inputTesnor, Tensor &output) {}
 
-		void computeDerivative(const Tensor &error, Tensor &result) {
-			result = this->weight * -1.0f; // computeMatrix(this->weight, error);
+		void computeDerivative(const Tensor &error, Tensor &result) const {
+			result = computeMatrix(this->weight, error);
+			//	result = this->weight * -1.0f;//TODO: validate
 		}
 
 		// TODO relocate, and make sure it works.
 		// TODO relocate
-		Tensor computeMatrix(const Tensor &TensorA, const Tensor &TensorB) {
+		Tensor computeMatrix(const Tensor &TensorA, const Tensor &TensorB) const {
 
 			Tensor output(this->getShape());
 

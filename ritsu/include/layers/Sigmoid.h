@@ -1,5 +1,6 @@
 #pragma once
 #include "Activaction.h"
+#include "Activations.h"
 #include <cmath>
 
 namespace Ritsu {
@@ -72,10 +73,6 @@ namespace Ritsu {
 		}
 
 	  private:
-		inline static DType computeSigmoid(const DType value) noexcept { return 1.0f / (1.0 + std::exp(-value)); }
-		inline static DType computeSigmoidDerivate(const DType value) noexcept {
-			return std::exp(-value) / std::pow(((std::exp(-value) + 1)), 2);
-		}
 
 		void computeSigmoidDerivative(Tensor &tensor) const noexcept {
 #pragma omp parallel shared(tensor)

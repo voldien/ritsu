@@ -29,6 +29,9 @@ namespace Ritsu {
 				Tensor gradientUpdate = tmpGradient * this->getLearningRate();
 
 				/*	*/
+				std::cout << gradientUpdate.getShape() << " " << variable.getShape() << std::flush;
+				
+				// TODO: check and validate.
 				assert(gradientUpdate.getShape() == variable.getShape());
 				if (gradientUpdate.getShape() == variable.getShape()) {
 					// ;

@@ -53,9 +53,8 @@ namespace Ritsu {
 			std::cerr << "Bad Shape " << evoluated.getShape() << " not equal " << expected.getShape() << std::endl;
 		}
 
-		output_result = evoluated;
-		output_result = output_result - expected;
-		output_result = output_result * output_result;
+		output_result = std::move(evoluated - expected);
+		output_result = std::move(output_result * output_result);
 	}
 
 	static void loss_msa(const Tensor &evoluated, const Tensor &expected, Tensor &output_result) {
@@ -83,18 +82,11 @@ namespace Ritsu {
 		/*Tensor A = inputA * log(inputB);*/
 	}
 
-	class MSE : public Loss {
-	  public:
-	};
-
-	class SparseCategoricalCrossentropy : public Loss {
-	  public:
-	};
-
 	static void sparse_categorical_crossentropy(const Tensor &evoluated, const Tensor &expected, Tensor &output) {
 
 		Tensor expected_one_shot = Tensor::zero(evoluated.getShape());
-		expected_one_shot.getValue<float>((uint32_t)expected.getValue<float>(0)) = 1;
+
+		// expected_one_shot.getValue<float>((uint32_t)expected.getValue<float>(0)) = 1;
 
 		/*	*/
 		if (!Tensor::verifyShape(evoluated, expected_one_shot)) {
@@ -103,8 +95,6 @@ namespace Ritsu {
 		}
 
 		return loss_cross_catagorial_entropy(evoluated, expected_one_shot, output);
-
-		/*Tensor A = inputA * log(inputB);*/
 	}
 
 	static void loss_ssim(const Tensor &inputA, const Tensor &inputB, Tensor &output) {
@@ -117,6 +107,7 @@ namespace Ritsu {
 
 		float rmse = std::sqrt(Tensor::mean<float>(diff.pow(2.0f)));
 
+		// TODO:
 		// output = 20 * std::log10(255.0 / rmse);
 	}
 }; // namespace Ritsu

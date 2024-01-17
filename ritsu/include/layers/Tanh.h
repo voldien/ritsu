@@ -64,25 +64,13 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 	  protected:
-		inline static constexpr DType computeTanh(DType value) {
-
-			const DType e_ = std::exp(-value);
-			const DType _e_ = std::exp(value);
-
-			return (e_ - _e_) / (e_ + _e_);
-		}
-
-		inline static constexpr DType computeTanhDerivate(DType value) {
-			return std::exp(-value) / std::pow(((std::exp(-value) + 1)), 2);
-		}
-
 		static void computeDerivative(Tensor &output) {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = output.getNrElements();
 
 #pragma omp parallel shared(output)
 			for (size_t i = 0; i < nrElements; i++) {
-				output.getValue<DType>(i) = Tahn::computeTanh(output.getValue<DType>(i));
+				output.getValue<DType>(i) = computeTanh(output.getValue<DType>(i));
 			}
 		}
 
@@ -92,7 +80,7 @@ namespace Ritsu {
 
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = Tahn::computeTanh(tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = computeTanh(tensor.getValue<DType>(i));
 			}
 		}
 

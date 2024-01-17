@@ -3,6 +3,7 @@
 #include "../Tensor.h"
 #include "../core/Shape.h"
 #include <cstddef>
+#include <cstdint>
 #include <omp.h>
 #include <string>
 #include <typeinfo>
@@ -21,7 +22,7 @@ namespace Ritsu {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 
-		using IndexType = unsigned int;
+		using IndexType = std::uint32_t;
 		static constexpr size_t IndexTypeSize = sizeof(IndexType);
 		using DType = T;
 		const size_t DTypeSize = sizeof(DType);
@@ -30,6 +31,7 @@ namespace Ritsu {
 		Layer(const std::string &name) : Object(name) { this->shape = std::move(Shape<IndexType>()); }
 		virtual ~Layer() {}
 
+		// TODO: varadic
 		virtual Tensor operator<<(const Tensor &tensor) { return tensor; }
 
 		virtual Tensor &operator<<(Tensor &tensor) { return tensor; }
@@ -38,11 +40,13 @@ namespace Ritsu {
 
 		virtual Tensor &operator()(Tensor &tensor) { return tensor; }
 
+		// TODO: varadic + helper method to extract all of them easily.
 		template <class U> auto &operator()(const U &layer) {
 			this->getInputs()[0] = layer;
 			return *this;
 		}
 
+		// TODO: varadic
 		template <class U> auto &operator()(U &layer) {
 			this->setInputs({&layer});
 			layer.setOutputs({this});
@@ -71,7 +75,7 @@ namespace Ritsu {
 		virtual std::vector<Layer<T> *> getOutputs() const { return {}; }
 
 		// trainable.
-		
+
 		Layer<T> &operator()(Layer<T> &layer) {
 			this->connectLayers(layer);
 			return *this;

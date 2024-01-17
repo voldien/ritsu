@@ -75,6 +75,8 @@ namespace Ritsu {
 		void computeConv2D(const Tensor &input, Tensor &output) { /*	*/
 
 			const size_t nrFilters = this->getNrFilters();
+
+#pragma omp parallel for simd shared(_kernelWeight)
 			for (size_t i = 0; i < nrFilters; i++) {
 				// TODO add matrix multiplication.
 

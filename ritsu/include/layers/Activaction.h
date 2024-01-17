@@ -1,4 +1,5 @@
 #pragma once
+#include "Activations.h"
 #include "Layer.h"
 
 namespace Ritsu {
