@@ -31,6 +31,8 @@ namespace Ritsu {
 			this->setInputs({&layer});
 			layer.setOutputs({this});
 
+			this->build(layer.getShape());
+
 			return *this;
 		}
 
@@ -44,6 +46,8 @@ namespace Ritsu {
 			/*	Set input layer */
 			this->outputs = layers;
 		}
+
+		void build(const Shape<typename Layer<T>::IndexType> &shape) override { this->shape = shape; }
 
 		std::vector<Layer<T> *> getInputs() const override { return {input}; }
 		std::vector<Layer<T> *> getOutputs() const override { return outputs; }

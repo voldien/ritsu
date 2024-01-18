@@ -79,7 +79,7 @@ int main(int argc, const char **argv) {
 	LeakyRelu leaky_1(0.2f);
 	UpSampling2D<float> upscale_1(2);
 
-	Tahn outputAc;
+	Tanh outputAc;
 
 	/*	*/
 	{

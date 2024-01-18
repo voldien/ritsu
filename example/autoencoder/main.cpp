@@ -49,7 +49,7 @@ int main(int argc, const char **argv) {
 	Flatten flatten0("flatten0");
 	Sigmoid sigmoid;
 	Regularization regularization(0.1, 0.2);
-	Tahn output;
+	Tanh output;
 	Reshape reshape(Shape<unsigned int>({256, 256, 32}));
 
 	/*	*/

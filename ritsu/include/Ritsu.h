@@ -63,6 +63,7 @@
 #include "optimizer/Ada.h"
 #include "optimizer/Adam.h"
 #include "optimizer/SGD.h"
+#include "optimizer/ExponentialDecay.h"
 
 #include "Loss.h"
 
@@ -73,6 +74,11 @@ namespace Ritsu {
 	// using TensorF = Tensor<float>;
 	// using TensorD = Tensor<double>;
 	// using TensorI = Tensor<std::int32_t>;
+	// using TensorI = Tensor<std::uint32_t>;
+	// using TensorLI = Tensor<std::int64_t>;
+
+	// using TensorB = Tensor<std::bool_t>;
+
 	// using TensorI = Tensor<std::uint32_t>;
 	// using TensorLI = Tensor<std::int64_t>;
 

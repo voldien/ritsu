@@ -16,7 +16,8 @@ namespace Ritsu {
 	template <typename T> inline static T computeSigmoidDerivate(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
-		return std::exp(-value) / std::pow(((std::exp(-value) + 1)), 2);
+		const T sig = computeSigmoid(value);
+		return sig * (static_cast<T>(1) - sig);
 	}
 
 #pragma omp declare simd uniform(value)
@@ -142,5 +143,7 @@ namespace Ritsu {
 		}
 		return tensor;
 	}
+
+	template <typename T> Tensor &softMaxDerivative(Tensor &tensor) { return tensor; }
 
 } // namespace Ritsu

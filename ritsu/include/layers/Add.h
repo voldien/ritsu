@@ -1,5 +1,6 @@
 #pragma once
 #include "Layer.h"
+#include <cstdarg>
 
 namespace Ritsu {
 
@@ -29,11 +30,27 @@ namespace Ritsu {
 			return tensor;
 		}
 
-		template <class U> auto &operator()(std::vector<U> &layers) {
-			// this->setInputs({&layer});
-			// layer.setOutputs({this});
-			// return *this;
+		template <class U> Add &operator()(U &layer...) {
+			return *this;
+			va_list args;
+			va_start(args, layer);
+
+			Layer<DType> *refB = nullptr;
+			for (refB = &layer; refB != nullptr; refB = va_arg(args, Layer<DType> *)) {
+
+				this->inputs.push_back(refB);
+				// this->setInputs({&layer});
+				refB->setOutputs({this});
+			}
+
+			va_end(args);
+
+			this->build(layer.getShape());
+
+			return *this;
 		}
+
+		void build(const Shape<IndexType> &shape) override { this->shape = shape; }
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->inputs = layers; }
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override { this->outputs = layers; }

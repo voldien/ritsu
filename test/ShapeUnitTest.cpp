@@ -49,17 +49,29 @@ TYPED_TEST_P(ShapeType, SubShape) {
 }
 
 TYPED_TEST_P(ShapeType, Reduce) {
-	Ritsu::Shape<TypeParam> shape({32, 32, 3});
+	{
+		Ritsu::Shape<TypeParam> shape({1, 32, 32, 3});
+		auto &reduce = shape.reduce();
+		ASSERT_EQ(reduce, Shape<TypeParam>({32, 32, 3}));
+	}
 
-	auto &reduce = shape.reduce();
+	{
+		Ritsu::Shape<TypeParam> shape({1, 1, 32, 32, 3});
+		auto &reduce = shape.reduce();
+		ASSERT_EQ(reduce, Shape<TypeParam>({32, 32, 3}));
+	}
 
-	ASSERT_EQ(reduce, Shape<TypeParam>({8, 8, 3}));
+	{
+		Ritsu::Shape<TypeParam> shape({1, 1, 32, 32, 1});
+		auto &reduce = shape.reduce();
+		ASSERT_EQ(reduce, Shape<TypeParam>({32, 32, 1}));
+	}
 }
 
 TYPED_TEST_P(ShapeType, ComputeIndex) {
 	Ritsu::Shape<TypeParam> shape({32, 32, 3});
 
-	//ASSERT_EQ(Ritsu::Shape::computeIndex<TypeParam>(shape), 0);
+	// ASSERT_EQ(Ritsu::Shape::computeIndex<TypeParam>(shape), 0);
 }
 
 TYPED_TEST_P(ShapeType, Append) {

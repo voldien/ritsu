@@ -1,4 +1,5 @@
 #include "layers/Dropout.h"
+#include "layers/Input.h"
 #include <Ritsu.h>
 #include <array>
 #include <cstddef>
@@ -93,7 +94,7 @@ TEST_P(LayerUniformShapeSizeTest, TahnLayerShapeSize) {
 	auto [expected] = GetParam();
 
 	Ritsu::Input input(expected);
-	Ritsu::Tahn tanh;
+	Ritsu::Tanh tanh;
 	tanh(input);
 
 	EXPECT_EQ(tanh.getShape(), expected);
@@ -140,6 +141,7 @@ TEST_P(LayerUniformShapeSizeTest, Add) {
 	Ritsu::Input input1(expected);
 
 	Ritsu::Add add;
+	add(input0, input1);
 
 	EXPECT_EQ(add.getShape(), expected);
 }

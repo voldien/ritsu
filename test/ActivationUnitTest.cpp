@@ -67,8 +67,9 @@ TEST_P(SigmoidDerivativeActivationFunctionTest, Sigmoid) {
 
 // TODO:
 INSTANTIATE_TEST_SUITE_P(ActivationSigmoid, SigmoidDerivativeActivationFunctionTest,
-						 ::testing::Values(std::make_tuple(5, 0.993307149075715), std::make_tuple(1, 0.7310585786300),
-										   std::make_tuple(-1, 0.26894142136999512)));
+						 ::testing::Values(std::make_tuple(5, 0.006648056670790154),
+										   std::make_tuple(1, 0.1966119332414818525374),
+										   std::make_tuple(-1, 0.19661193324148185253742473358590)));
 
 /*	*/
 class LinearActivationFunctionTest : public ::testing::TestWithParam<std::tuple<double, double, double>> {};
@@ -132,7 +133,9 @@ TEST_P(TanhDerivativeActivationFunctionTest, Tahn) {
 	EXPECT_FLOAT_EQ(computeTanhDerivate(x), expected_activation);
 }
 INSTANTIATE_TEST_SUITE_P(ActivationTahn, TanhDerivativeActivationFunctionTest,
-						 ::testing::Values(std::make_tuple(5, 4), std::make_tuple(1, 3), std::make_tuple(-1000, 3)));
+						 ::testing::Values(std::make_tuple(5, 0.000181583230943),
+										   std::make_tuple(1, 0.419974341614026069394),
+										   std::make_tuple(-2, 0.07065082485316446)));
 
 class SwishActivationFunctionTest : public ActivationFunctionTest {};
 TEST_P(SwishActivationFunctionTest, Swish) {

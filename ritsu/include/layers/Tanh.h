@@ -9,9 +9,9 @@ namespace Ritsu {
 	 * @brief
 	 *
 	 */
-	class Tahn : public Activaction {
+	class Tanh : public Activaction {
 	  public:
-		Tahn(const std::string &name = "tahn") : Activaction(name) {}
+		Tanh(const std::string &name = "tahn") : Activaction(name) {}
 
 		Tensor operator<<(const Tensor &tensor) override {
 
@@ -40,8 +40,12 @@ namespace Ritsu {
 			this->setInputs({&layer});
 			layer.setOutputs({this});
 
+			this->build(layer.getShape());
+
 			return *this;
 		}
+
+		void build(const Shape<IndexType> &shape) override { this->shape = shape; }
 
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
 			/*	Set input layer */
@@ -52,11 +56,11 @@ namespace Ritsu {
 
 		Tensor compute_derivative(const Tensor &tensor) override {
 			Tensor output = tensor;
-			computeDerivative(output);
+			Tanh::computeDerivative(output);
 			return output;
 		}
 		Tensor &compute_derivative(Tensor &tensor) const override {
-			computeDerivative(tensor);
+			Tanh::computeDerivative(tensor);
 			return tensor;
 		}
 
