@@ -88,7 +88,7 @@ namespace Ritsu {
 		}
 
 		// TODO: accuracy.
-		
+
 		template <typename T> constexpr static void pow(const T exponent, T *list, const size_t nrElements) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
@@ -143,10 +143,14 @@ namespace Ritsu {
 		constexpr static T cov(const std::vector<T> &listA, const std::vector<T> &listB, const T meanA, const T meanB) {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
-			T sum = 0;
-			// Check same size.
 
-			Math::variance(listB, meanB) * Math::variance(listA, meanA);
+			T sum = 0;
+
+			const size_t nrElements = listB.size();
+#pragma omp parallel for simd reduction(+ : sum) shared(listA, meanA, listB, meanB)
+			for (size_t i = 0; i < nrElements; i++) {
+				sum += (listA[i] - meanA) * (listB[i] - meanB);
+			}
 
 			return (static_cast<T>(1) / static_cast<T>(listA.size())) * sum;
 		}
@@ -155,7 +159,8 @@ namespace Ritsu {
 		constexpr static T cor(const std::vector<T> &listA, const std::vector<T> &listB, const T meanA, const T meanB) {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 
-			return cov(listA, listB, meanA, meanB) / (std::sqrt(variance(listB, meanB) * variance(listA, meanA)));
+			return cov<T>(listA, listB, meanA, meanB) /
+				   static_cast<T>(std::sqrt(variance<T>(listB, meanB) * variance<T>(listA, meanA)));
 		}
 
 		/**
@@ -177,7 +182,7 @@ namespace Ritsu {
 		/**
 		 *
 		 */
-		template <typename T> static T wrapAngle(T angle) {
+		template <typename T> static T wrapAngle(T angle) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			while (angle > static_cast<T>(Math::PI_2)) {
 				angle -= static_cast<T>(Math::PI_2);
@@ -254,22 +259,31 @@ namespace Ritsu {
 		 *	Generate 1D guassian.
 		 */
 		template <typename T>
-		static inline void guassian(std::vector<T> &guassian, unsigned int height, T theta, T standard_deviation) {
+		static inline void guassian(std::vector<T> &guassian, const unsigned int height, const T theta,
+									const T standard_deviation) {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-			Math::guassian<T>(static_cast<T &>(*guassian.data()), height, theta, standard_deviation);
+			guassian.reserve(height);
+			Math::guassian<T>(guassian.data(), height, theta, standard_deviation);
 		}
 
 		template <typename T>
-		static void guassian(T &guassian, unsigned int height, const T theta, const T standard_deviation) noexcept {
+		static constexpr void guassian(T *guassian, const unsigned int height, const T theta,
+									   const T standard_deviation) {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-			const T a = (static_cast<T>(1.0) / (standard_deviation * static_cast<T>(std::sqrt(2.0 * Math::PI))));
 
-			/*	*/
-			T *pGuass = static_cast<T *>(&guassian);
-#pragma omp parallel for simd
+			const T exp_inverse =
+				(static_cast<T>(1.0) / (static_cast<T>(2.0) * standard_deviation * standard_deviation));
+			const T sqr_2_pi_inverse = 1.0 / (standard_deviation * static_cast<T>(std::sqrt(2 * Math::PI)));
+
+			const T offset = static_cast<T>(height) / -2;
+#pragma omp simd
 			for (unsigned int i = 0; i < height; i++) {
-				const T b = (-1.0f / 2.0f) * std::pow<T>(((i - standard_deviation) / theta), 2.0f);
-				pGuass[i] = a * std::pow<T>(Math::E, b);
+
+				const T exp_num_sqrt = (i - theta + offset);
+
+				const T exponent = exp_inverse * -(exp_num_sqrt * exp_num_sqrt);
+
+				guassian[i] = sqr_2_pi_inverse * std::exp(exponent);
 			}
 		}
 
@@ -278,32 +292,64 @@ namespace Ritsu {
 		 */
 		template <typename T>
 		static inline void guassian(std::vector<T> &guassian, const unsigned int width, const unsigned int height,
-									const T theta, const T standard_deviation) noexcept {
+									const T theta, const T standard_deviation) {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-			/*	TODO validate size.	*/
-
+			guassian.reserve(width * height);
 			Math::guassian<T>(static_cast<T &>(*guassian.data()), width, height, theta, standard_deviation);
 		}
 
 		template <typename T>
 		static inline void guassian(const T &guassian, const unsigned int width, const unsigned int height,
-									const T theta, const T standard_deviation) noexcept {
+									const T standard_deviation) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-			for (unsigned int i = 0; i < height; i++) {
-				// guassian(guassian[i * width],)
+
+			const T exp_inverse =
+				(static_cast<T>(1.0) / (static_cast<T>(2.0) * standard_deviation * standard_deviation));
+			const T sqr_2_pi_inverse = 1.0 / (standard_deviation * static_cast<T>(std::sqrt(2 * Math::PI)));
+
+			const T offset = static_cast<T>(height) / -2;
+
+			for (unsigned int y = 0; y < height; y++) {
+				for (unsigned int x = 0; x < width; x++) {
+
+					// TODO: add offset
+					// const T exp_num_sqrt = (i - theta + offset);
+
+					const T exponent = exp_inverse * -(x * x + y * y);
+
+					guassian[y * width + x] = sqr_2_pi_inverse * std::exp(exponent);
+				}
 			}
 		}
 
-		template <typename T, typename U> static constexpr inline T gammaCorrection(T value, U gamma) noexcept {
+		template <typename T> inline std::vector<T> PCA(std::vector<T> &data) {
+			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
+
+			Math::PCA<T>(data.data(), data.size());
+		}
+
+		template <typename T> std::vector<T> PCA(const T *list, const size_t nrElements) {
+			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
+
+			const T nInverse = (1.0 / static_cast<T>(nrElements));
+
+			const T m = Math::mean<T>(list, nrElements);
+			// Math::cov(list, const std::vector<T> &listB, const T meanA, const T meanB)
+			// cov
+			// Matrix3x3 C = nInverse;
+		}
+
+		template <typename T, typename U>
+		static constexpr inline T gamma(const T value, const U gamma) noexcept {
 
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			// TODO add support for using vector components.
-			T exponent = static_cast<T>(1.0) / gamma;
+			const T exponent = static_cast<T>(1) / gamma;
 
 			return static_cast<T>(std::pow(value, exponent));
 		}
 
-		template <typename T> static T gameSpaceToLinear(T gamma, T exponent) noexcept {
+		template <typename T> static T gameSpaceToLinear(const T gamma, const T exponent) noexcept {
 			return std::pow(gamma, exponent);
 		}
 
@@ -312,7 +358,7 @@ namespace Ritsu {
 			return {static_cast<T>(::drand48()), static_cast<T>(::drand48())};
 		}
 
-		template <typename T> static inline constexpr T align(T size, T alignment) noexcept {
+		template <typename T> static inline constexpr T align(const T size, const T alignment) noexcept {
 			static_assert(std::is_integral<T>::value, "Must be an integral type.");
 			return size + (alignment - (size % alignment));
 		}

@@ -43,6 +43,7 @@ INSTANTIATE_TEST_SUITE_P(Math, MinTest,
 										   std::make_tuple(5, 3, 3)));
 
 TEST(Math, PowerOf2_Found) {
+
 	for (unsigned int i = 0; i < 31; i++) {
 		ASSERT_TRUE(Math::IsPowerOfTwo<unsigned long int>(1 << i));
 	}
@@ -50,12 +51,12 @@ TEST(Math, PowerOf2_Found) {
 
 TEST(Math, PowerOf2_Next_Found) {
 
-	for (unsigned int i = 0; i < 31; i++) {
-		auto p2 = Math::NextPowerOfTwo<unsigned long int>(1 << i);
+	for (unsigned int i = 0; i < 30; i++) {
+		const auto p2 = Math::NextPowerOfTwo<unsigned long int>((1 << i) + 1);
 
 		ASSERT_TRUE(Math::IsPowerOfTwo(p2));
 
-		ASSERT_TRUE(p2 == static_cast<unsigned long int>(1 << (i + 1)));
+		ASSERT_EQ(p2, static_cast<unsigned long int>(1 << (i + 1)));
 	}
 }
 
@@ -97,13 +98,15 @@ TEST_P(GuassianDistributionTest, Values) {
 
 	ASSERT_EQ(expected.size(), guass.size());
 
-	float sum = Math::sum(guass);
-	EXPECT_NEAR(sum, 1.0f, 0.05f);
+	const float sum = Math::sum<float>(guass);
+	EXPECT_NEAR(sum, 1.0f, 0.015f);
+
+	// TODO: validate result.
 }
 
 INSTANTIATE_TEST_SUITE_P(Math, GuassianDistributionTest,
-						 ::testing::Values(std::make_tuple(0.5, 0.5, std::vector<float>{1, 2, 3, 4, 5, 5, 5}),
-										   std::make_tuple(0.5, 0.5, std::vector<float>{5, 5, 5, 5, 5, 5, 5})));
+						 ::testing::Values(std::make_tuple(0.0, 0.5, std::vector<float>{1, 2, 2, 5, 3, 4, 5, 5, 5}),
+										   std::make_tuple(0.0, 0.5, std::vector<float>{5, 5, 2, 5, 5, 5, 5, 5, 5})));
 
 TEST(Math, Distrubtion) {
 	/*	Guassian distribution.	*/
@@ -122,7 +125,6 @@ TEST(Math, Distrubtion) {
 	Math::guassian(guassian, num_guass, theta, 0.1f);
 }
 
-// TODO add alignment.
 class AlignmentTest : public ::testing::TestWithParam<std::tuple<size_t, size_t, size_t>> {};
 
 TEST_P(AlignmentTest, Values) {

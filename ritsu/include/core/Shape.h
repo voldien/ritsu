@@ -137,6 +137,14 @@ namespace Ritsu {
 		}
 		static Shape flatten(const Shape &shape) { return Shape({(IndexType)Shape::computeNrElements(shape.dims)}); }
 
+		Shape<IndexType> &transpose() noexcept {
+
+			// TODO: impl
+			for (size_t i = 0; i < this->dims.size(); i++) {
+			}
+			return *this;
+		}
+
 		IndexType getNrElements() const { return Shape::computeNrElements<IndexType>(this->dims); }
 
 		IndexType getAxisDimensions(const uint32_t index) const noexcept {

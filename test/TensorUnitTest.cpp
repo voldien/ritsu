@@ -14,6 +14,7 @@ TYPED_TEST_P(TensorType, DefaultConstructor) {
 
 TYPED_TEST_P(TensorType, AssignMove) {
 	Tensor tensor({32, 32, 3}, sizeof(TypeParam));
+	ASSERT_NO_THROW(Tensor moved = tensor);
 	ASSERT_NO_THROW(Tensor moved = std::move(tensor));
 }
 
@@ -27,10 +28,12 @@ TYPED_TEST_P(TensorType, Addition) {
 	Tensor tensorA(Shape<uint32_t>({10}), sizeof(TypeParam));
 	Tensor tensorB(Shape<uint32_t>({10}), sizeof(TypeParam));
 
-	tensorA.assignInitValue(1);
-	tensorB.assignInitValue(2);
+	tensorA.assignInitValue(-1);
+	tensorB.assignInitValue(1);
 
-	tensorA + tensorB;
+	Tensor result = tensorA + tensorB;
+
+	ASSERT_EQ(result, Tensor::zero(result.getShape()));
 }
 
 TYPED_TEST_P(TensorType, Subtract) {
@@ -38,18 +41,34 @@ TYPED_TEST_P(TensorType, Subtract) {
 	Tensor tensorB(Shape<uint32_t>({10}), sizeof(TypeParam));
 
 	tensorA.assignInitValue(1);
-	tensorB.assignInitValue(2);
+	tensorB.assignInitValue(1);
 
-	tensorA - tensorB;
+	Tensor result = tensorA - tensorB;
+	ASSERT_EQ(result, Tensor::zero(result.getShape()));
 }
 
 TYPED_TEST_P(TensorType, MultiplyFactor) {
-	Tensor tensorA(Shape<uint32_t>({10}), sizeof(TypeParam));
-	Tensor tensorB(Shape<uint32_t>({10}), sizeof(TypeParam));
 
+	Tensor expected(Shape<uint32_t>({10}), sizeof(TypeParam));
+	expected.assignInitValue(10);
+
+	Tensor tensorA(Shape<uint32_t>({10}), sizeof(TypeParam));
 	tensorA.assignInitValue(1);
 
-	tensorA * 10.0f;
+	const Tensor result = tensorA * 10.0f;
+	ASSERT_EQ(result, expected);
+}
+
+TYPED_TEST_P(TensorType, MatrixMultiplication) {
+
+	Tensor tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+	Tensor tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+
+	tensorB.assignInitValue(1);
+	tensorA.assignInitValue(1);
+
+	// TODO:
+	// ASSERT_EQ(subset.getShape(), Shape<uint32_t>({8, 8, 3}));
 }
 
 TYPED_TEST_P(TensorType, ElementCount) {
@@ -163,18 +182,6 @@ TYPED_TEST_P(TensorType, SubSet) {
 
 	// TODO:
 	ASSERT_EQ(subset.getShape(), Shape<uint32_t>({8, 8, 3}));
-}
-
-TYPED_TEST_P(TensorType, MatrixMultiplication) {
-
-	Tensor tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
-	Tensor tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
-
-	tensorB.assignInitValue(1);
-	tensorA.assignInitValue(1);
-
-	// TODO:
-	// ASSERT_EQ(subset.getShape(), Shape<uint32_t>({8, 8, 3}));
 }
 
 TYPED_TEST_P(TensorType, Equal) {

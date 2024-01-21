@@ -13,6 +13,7 @@
 #include <ostream>
 #include <stdexcept>
 #include <string>
+#include <typeinfo>
 #include <utility>
 #include <vector>
 
@@ -44,9 +45,11 @@ namespace Ritsu {
 		 * @param elementSize
 		 */
 		// TODO remove element size, replace with the generic type size.
+		// template <typename Param>
 		Tensor(const std::vector<IndexType> &dimensions, const size_t elementSize = DTypeSize) {
 			this->ownAllocation = true;
 			this->resizeBuffer(dimensions, elementSize);
+			//	this->typeinfo = &typeid(Param);
 		}
 
 		Tensor(const Shape<IndexType> &shape, const size_t elementSize = DTypeSize) {
@@ -65,8 +68,8 @@ namespace Ritsu {
 
 		Tensor(const Tensor &other) {
 			this->ownAllocation = true;
-			this->resizeBuffer(other.getShape(), Ritsu::Tensor::DTypeSize);
-			memcpy(this->buffer, other.buffer, other.getDatSize());
+			this->resizeBuffer(other.getShape(), other.element_size);
+			std::memcpy(this->buffer, other.buffer, other.getDatSize());
 		}
 
 		Tensor(Tensor &&other) {
@@ -78,7 +81,7 @@ namespace Ritsu {
 		}
 
 		virtual ~Tensor() {
-			if (this->ownAllocation) {
+			if (this->ownAllocation && this->buffer != nullptr) {
 				free(this->buffer);
 			}
 			this->buffer = nullptr;
@@ -88,6 +91,9 @@ namespace Ritsu {
 			/*	*/
 			this->ownAllocation = true;
 			this->resizeBuffer(other.getShape(), Ritsu::Tensor::DTypeSize);
+
+			// TODO: validate type.
+
 			/*	*/
 			memcpy(this->buffer, other.buffer, other.getDatSize());
 
@@ -128,6 +134,10 @@ namespace Ritsu {
 		}
 
 		bool operator!=(const Tensor &tensor) const { return !(*this == shape); }
+
+		// Dtype
+		const std::type_info &getDType() const noexcept { return typeid(DType); }
+		const std::type_info *typeinfo;
 
 		// operations of data.
 		template <typename U> inline U getValue(const std::vector<IndexType> &location) const {
@@ -253,6 +263,7 @@ namespace Ritsu {
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = this->getValue<DType>(index) * vec;
 			}
+
 			return *this;
 		}
 
@@ -264,6 +275,7 @@ namespace Ritsu {
 			for (size_t index = 0; index < nrElements; index++) {
 				tmp.getValue<DType>(index) = this->getValue<DType>(index) * vec;
 			}
+
 			return tmp;
 		}
 
@@ -364,6 +376,7 @@ namespace Ritsu {
 		template <typename U> Tensor &cast() {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
+
 			const size_t cast_element_size = sizeof(U);
 
 			/*	Resize.	*/
@@ -397,7 +410,10 @@ namespace Ritsu {
 			return *this;
 		}
 
-		Tensor &transpose() { return *this; }
+		Tensor &transpose() noexcept {
+			this->shape.transpose();
+			return *this;
+		}
 
 		DType operator[](const std::vector<IndexType> &location) const { return this->getValue<DType>(location); }
 		DType &operator[](const std::vector<IndexType> &location) { return this->getValue<DType>(location); }
@@ -470,8 +486,12 @@ namespace Ritsu {
 			/*	*/
 			return tensorA.getShape() == tensorB.getShape();
 		}
+
 		// TODO add template to allow multiple of primtive types.
-		void reshape(const Shape<IndexType> &newShape) { this->shape.reshape(newShape); }
+		Tensor &reshape(const Shape<IndexType> &newShape) {
+			this->shape.reshape(newShape);
+			return *this;
+		}
 
 	  private:
 		using TensorBuffer = union _buffer_t {
