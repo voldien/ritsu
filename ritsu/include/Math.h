@@ -89,7 +89,7 @@ namespace Ritsu {
 
 		// TODO: accuracy.
 
-		template <typename T> constexpr static void pow(const T exponent, T *list, const size_t nrElements) noexcept {
+		template <typename T> static void pow(const T exponent, T *list, const size_t nrElements) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			/*	*/
@@ -140,7 +140,7 @@ namespace Ritsu {
 		}
 
 		template <typename T>
-		constexpr static T cov(const std::vector<T> &listA, const std::vector<T> &listB, const T meanA, const T meanB) {
+		static T cov(const std::vector<T> &listA, const std::vector<T> &listB, const T meanA, const T meanB) {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 
@@ -174,9 +174,9 @@ namespace Ritsu {
 		/**
 		 *	Convert radian to degree.
 		 */
-		template <typename T> inline constexpr static T radToDeg(const T deg) noexcept {
+		template <typename T> inline constexpr static T radToDeg(const T rad) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-			return deg * static_cast<T>(Rad2Deg);
+			return rad * static_cast<T>(Rad2Deg);
 		}
 
 		/**
@@ -267,8 +267,7 @@ namespace Ritsu {
 		}
 
 		template <typename T>
-		static constexpr void guassian(T *guassian, const unsigned int height, const T theta,
-									   const T standard_deviation) {
+		static void guassian(T *guassian, const unsigned int height, const T theta, const T standard_deviation) {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 
 			const T exp_inverse =
@@ -339,8 +338,7 @@ namespace Ritsu {
 			// Matrix3x3 C = nInverse;
 		}
 
-		template <typename T, typename U>
-		static constexpr inline T gamma(const T value, const U gamma) noexcept {
+		template <typename T, typename U> static constexpr inline T gamma(const T value, const U gamma) noexcept {
 
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			// TODO add support for using vector components.

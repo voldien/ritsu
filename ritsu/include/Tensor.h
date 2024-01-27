@@ -24,7 +24,7 @@ namespace Ritsu {
 	 *
 	 */
 	// TODO: align
-	/*template <class T = float> */ class Tensor {
+	/*template <class T = float> template <size_t align = 4>*/ class Tensor {
 
 	  public:
 		using DType = float;
@@ -116,16 +116,21 @@ namespace Ritsu {
 				return true;
 			}
 
+			/*	Check internal buffer.	*/
 			if (static_cast<const void *>(&tensor.buffer) == static_cast<const void *>(this->buffer)) {
 				return true;
 			}
 
-			// TODO: add shape.
+			/*	Check same shape.	*/
 			if (this->getNrElements() != tensor.getNrElements() || this->getDatSize() != tensor.getDatSize()) {
 				return false;
 			}
 
-			// TODO: validate.
+			if (this->getShape() != tensor.getShape()) {
+				return false;
+			}
+
+			// Last check, see if the content matches.
 			if (memcmp(this->buffer, tensor.buffer, this->getDatSize()) != 0) {
 				return false;
 			}
@@ -241,6 +246,13 @@ namespace Ritsu {
 			return *this;
 		}
 
+		auto &operator%(const Tensor &tensor) noexcept {
+			*this = matrixMultiply(*this, tensor);
+			return *this;
+		}
+
+		friend auto operator%(const Tensor &tensorA, const Tensor &tensorB) { return matrixMultiply(tensorA, tensorB); }
+
 		friend auto operator*(const Tensor &tensorA, const Tensor &tensorB) {
 
 			// TODO: verify shape
@@ -259,7 +271,9 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Type Must Support addition operation.");
 
-			size_t nrElements = this->getNrElements();
+			const size_t nrElements = this->getNrElements();
+
+#pragma omp parallel for simd
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = this->getValue<DType>(index) * vec;
 			}
@@ -271,7 +285,10 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Type Must Support addition operation.");
 			Tensor tmp = *this;
-			size_t nrElements = this->getNrElements();
+
+			const size_t nrElements = this->getNrElements();
+
+#pragma omp parallel for simd
 			for (size_t index = 0; index < nrElements; index++) {
 				tmp.getValue<DType>(index) = this->getValue<DType>(index) * vec;
 			}
@@ -561,17 +578,28 @@ namespace Ritsu {
 
 		static Tensor matrixMultiply(const Tensor &tensorA, const Tensor &tensorB) {
 
+			/*	TODO:*/
 			Tensor output(Shape<IndexType>({tensorA.getShape()[0], tensorB.getShape()[1]}));
+			Tensor::matrixMultiply(tensorA, tensorB, output);
+			return output;
+		}
 
-#pragma omp parallel for simd
+		static Tensor matrixMultiply(const Tensor &tensorA, const Tensor &tensorB, Tensor &output) {
+
+			// TODO verify shape.
+
+#pragma omp parallel for
 			for (size_t y = 0; y < tensorA.getShape()[0]; y++) {
 				DType sum = 0;
 
+#pragma omp simd reduction(+ : sum)
 				for (size_t x = 0; x < tensorA.getShape()[1]; x++) {
 
-					size_t index = y * tensorA.getShape()[0] + x;
-					sum = tensorA.getValue<DType>(index) * tensorB.getValue<DType>(y);
+					const size_t index = y * tensorA.getShape()[0] + x;
+
+					sum += tensorA.getValue<DType>(index) * tensorB.getValue<DType>(y);
 				}
+
 				output.getValue<DType>(y) = sum;
 			}
 
@@ -589,10 +617,12 @@ namespace Ritsu {
 			return output;
 		}
 
-		template <typename T> static Tensor fromArray(const std::initializer_list<T> &list) {
-			return Tensor({1}, sizeof(T));
+		template <typename U> static Tensor fromArray(const std::initializer_list<U> &list) {
+			Tensor tensor({list.size()}, sizeof(U));
+
+			return tensor;
 		}
 
-		template <typename T> static Tensor split(Tensor &list) { return Tensor({1}, sizeof(T)); }
+		template <typename U> static Tensor split(Tensor &list) { return Tensor({1}, sizeof(U)); }
 	};
 } // namespace Ritsu

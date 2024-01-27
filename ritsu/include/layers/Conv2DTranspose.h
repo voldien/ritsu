@@ -1,4 +1,3 @@
-
 #pragma once
 #include "Layer.h"
 #include <cstdint>

@@ -187,6 +187,8 @@ namespace Ritsu {
 
 			Tensor result;
 
+			Time time;
+
 			this->forwardPropgation(XData, result, batch);
 
 			return result;
@@ -195,6 +197,8 @@ namespace Ritsu {
 		Tensor predict(const Tensor &inputTensor, const size_t batch = 1, const bool verbose = false) {
 
 			Tensor result;
+
+			Time time;
 
 			this->forwardPropgation(inputTensor, result, batch);
 
@@ -441,5 +445,6 @@ namespace Ritsu {
 		size_t trainableWeightSizeInBytes;
 		size_t noneTrainableWeightSizeInBytes;
 		std::string name;
+
 	}; // namespace Ritsu
 } // namespace Ritsu

@@ -14,12 +14,41 @@ TYPED_TEST_P(TensorType, DefaultConstructor) {
 
 TYPED_TEST_P(TensorType, AssignMove) {
 	Tensor tensor({32, 32, 3}, sizeof(TypeParam));
+	void *data = tensor.getRawData<void>();
 	ASSERT_NO_THROW(Tensor moved = tensor);
-	ASSERT_NO_THROW(Tensor moved = std::move(tensor));
+
+	Tensor moved;
+	ASSERT_NO_THROW(moved = std::move(tensor));
+	ASSERT_EQ(data, moved.getRawData<void>());
+	ASSERT_EQ(nullptr, tensor.getRawData<void>());
+}
+
+TYPED_TEST_P(TensorType, Equal) {
+
+	Tensor tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+	Tensor tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+
+	tensorB.assignInitValue(1);
+	tensorA.assignInitValue(1);
+
+	ASSERT_EQ(tensorA, tensorA);
+	ASSERT_EQ(tensorA, tensorB);
+}
+
+TYPED_TEST_P(TensorType, NotEqual) {
+
+	Tensor tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+	Tensor tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+	const Tensor tensorC(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+
+	tensorB.assignInitValue(1);
+	tensorA.assignInitValue(0);
+
+	ASSERT_NE(tensorA, tensorB);
 }
 
 TYPED_TEST_P(TensorType, DataSize) {
-	Tensor tensor({32, 32, 3}, sizeof(TypeParam));
+	const Tensor tensor({32, 32, 3}, sizeof(TypeParam));
 
 	ASSERT_EQ(tensor.getDatSize(), tensor.getNrElements() * sizeof(TypeParam));
 }
@@ -31,7 +60,7 @@ TYPED_TEST_P(TensorType, Addition) {
 	tensorA.assignInitValue(-1);
 	tensorB.assignInitValue(1);
 
-	Tensor result = tensorA + tensorB;
+	const Tensor result = tensorA + tensorB;
 
 	ASSERT_EQ(result, Tensor::zero(result.getShape()));
 }
@@ -43,7 +72,7 @@ TYPED_TEST_P(TensorType, Subtract) {
 	tensorA.assignInitValue(1);
 	tensorB.assignInitValue(1);
 
-	Tensor result = tensorA - tensorB;
+	const Tensor result = tensorA - tensorB;
 	ASSERT_EQ(result, Tensor::zero(result.getShape()));
 }
 
@@ -61,17 +90,22 @@ TYPED_TEST_P(TensorType, MultiplyFactor) {
 
 TYPED_TEST_P(TensorType, MatrixMultiplication) {
 
-	Tensor tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
-	Tensor tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+	Tensor tensorA(Shape<uint32_t>({8, 8}), sizeof(TypeParam));
+	Tensor tensorB(Shape<uint32_t>({8, 8}), sizeof(TypeParam));
 
 	tensorB.assignInitValue(1);
 	tensorA.assignInitValue(1);
 
+	Tensor result0 = tensorA % tensorB;
+	Tensor result1 = Tensor::matrixMultiply(tensorA, tensorB);
+	ASSERT_EQ(result0, result1);
+
 	// TODO:
-	// ASSERT_EQ(subset.getShape(), Shape<uint32_t>({8, 8, 3}));
+	ASSERT_EQ(result0.getShape(), Shape<uint32_t>({8, 8, 3}));
 }
 
 TYPED_TEST_P(TensorType, ElementCount) {
+
 	Tensor tensor({32, 32, 3}, sizeof(TypeParam));
 	ASSERT_EQ(tensor.getNrElements(), 32 * 32 * 3);
 
@@ -82,6 +116,7 @@ TYPED_TEST_P(TensorType, ElementCount) {
 // TODO:
 TYPED_TEST_P(TensorType, FromArray) {
 	// Tensor<TypeParam> shape;
+	Tensor::fromArray({1, 1, 1, 1, 1});
 	ASSERT_NO_THROW(Tensor tensor({32, 32, 3}, sizeof(TypeParam)));
 }
 
@@ -184,28 +219,6 @@ TYPED_TEST_P(TensorType, SubSet) {
 	ASSERT_EQ(subset.getShape(), Shape<uint32_t>({8, 8, 3}));
 }
 
-TYPED_TEST_P(TensorType, Equal) {
-
-	Tensor tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
-	Tensor tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
-
-	tensorB.assignInitValue(1);
-	tensorA.assignInitValue(1);
-
-	ASSERT_EQ(tensorA, tensorB);
-}
-
-TYPED_TEST_P(TensorType, NotEqual) {
-
-	Tensor tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
-	Tensor tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
-
-	tensorB.assignInitValue(1);
-	tensorA.assignInitValue(0);
-
-	ASSERT_NE(tensorA, tensorB);
-}
-
 REGISTER_TYPED_TEST_SUITE_P(TensorType, DefaultConstructor, AssignMove, DataSize, Addition, Subtract, MultiplyFactor,
 							ElementCount, FromArray, SetGetValues, Log10, Mean, Flatten, InnerProduct, Append, Cast,
 							SubSet, MatrixMultiplication, Equal, NotEqual);
@@ -214,6 +227,5 @@ using TensorPrimitiveDataTypes = ::testing::Types<uint16_t, uint32_t, size_t, fl
 INSTANTIATE_TYPED_TEST_SUITE_P(Parameter, TensorType, TensorPrimitiveDataTypes);
 
 // resize
-// Number of elements.
 // Sub shape
 // Axis dim

@@ -30,17 +30,12 @@ logo
 - **Dense**
 - **Batch Normalization**
 - **Dropout**
-
 - **GuassianNoise**
-
 - **MaxPooling2D**
 - **AveragePooling2D**
 - **MinPooling2D**
-
-
 - **Convolution2D**
 - **TransposeConvolution2D**
-
 - **Flatten**
 - **Reshape**
 

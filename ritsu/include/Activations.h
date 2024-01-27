@@ -8,11 +8,14 @@ namespace Ritsu {
 	  public:
 	};
 
+#pragma omp declare simd uniform(value)
 	template <typename T> inline static T computeSigmoid(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		return static_cast<T>(1) / (std::exp(-value) + static_cast<T>(1));
 	}
+
+#pragma omp declare simd uniform(value)
 	template <typename T> inline static T computeSigmoidDerivate(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");

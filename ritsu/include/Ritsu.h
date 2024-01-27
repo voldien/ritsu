@@ -21,6 +21,8 @@
  */
 #pragma once
 #include <cstddef>
+#include <stdexcept>
+#include <system_error>
 
 #include "Tensor.h"
 #include "layers/Add.h"
@@ -56,14 +58,15 @@
 #include "layers/UpSampling2D.h"
 
 #include "Activations.h"
+#include "Random.h"
 #include "core/Initializers.h"
 
 #include "Metric.h"
 #include "Model.h"
 #include "optimizer/Ada.h"
 #include "optimizer/Adam.h"
-#include "optimizer/SGD.h"
 #include "optimizer/ExponentialDecay.h"
+#include "optimizer/SGD.h"
 
 #include "Loss.h"
 
@@ -84,5 +87,17 @@ namespace Ritsu {
 
 	using ShapeI = Shape<uint32_t>;
 	using ShapeL = Shape<uint64_t>;
+
+	/*	*/
+	using InvalidIndexException = std::runtime_error;
+	using RuntimeException = std::runtime_error;
+	using DivideByZeroException = std::runtime_error;
+	using PermissionDeniedException = std::runtime_error;
+	using IOException = std::runtime_error;
+	using NotImplementedException = std::runtime_error;
+	using InvalidArgumentException = std::runtime_error;
+	using NotSupportedException = std::runtime_error;
+	using InvalidPointerException = InvalidIndexException;
+	using SystemException = std::system_error;
 
 } // namespace Ritsu

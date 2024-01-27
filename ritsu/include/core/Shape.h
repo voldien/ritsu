@@ -5,11 +5,8 @@
 #include <cstring>
 #include <initializer_list>
 #include <iostream>
-#include <istream>
 #include <omp.h>
-#include <random>
 #include <stdexcept>
-#include <string>
 #include <vector>
 
 namespace Ritsu {
@@ -36,12 +33,13 @@ namespace Ritsu {
 			this->dims = shape.dims;
 			return *this;
 		}
+
 		Shape &operator=(Shape &&shape) {
 			this->dims = std::move(shape.dims);
 			return *this;
 		}
 
-		auto &operator=(const std::vector<IndexType> &shape) {
+		auto &operator=(const std::initializer_list<IndexType> &shape) {
 			this->dims = shape;
 			return *this;
 		}
