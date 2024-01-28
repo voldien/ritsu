@@ -43,7 +43,7 @@ namespace Ritsu {
 		// operator
 		// TODO add array.
 		// TODO add callback.
-		void fit(const size_t epochs, const Tensor &inputData, const Tensor &expectedData, const size_t batch_size = 1,
+		void fit(const size_t epochs, const Tensor<float> &inputData, const Tensor<float> &expectedData, const size_t batch_size = 1,
 				 const float validation_split = 0.0f, const bool shuffle = false, const bool verbose = true) {
 
 			const size_t batch_shape_index = 0; // TODO fix
@@ -59,7 +59,7 @@ namespace Ritsu {
 			// TODO verify shape and etc.
 
 			// TODO add array support.
-			Tensor batchResult;
+			Tensor<float> batchResult;
 
 			// TODO add support
 
@@ -68,16 +68,16 @@ namespace Ritsu {
 			const size_t batchYIndex = expectedData.getShape()[0];
 
 			/*	*/
-			Tensor validationData;
-			Tensor validationExpected;
+			Tensor<float> validationData;
+			Tensor<float> validationExpected;
 
 			/*	Batch Shape Size.	*/
-			Shape<Tensor::IndexType> batchDataShape = inputData.getShape();
+			Shape<Tensor<float>::IndexType> batchDataShape = inputData.getShape();
 			batchDataShape[batch_shape_index] = batch_size;
-			Shape<Tensor::IndexType> batchExpectedShape = expectedData.getShape();
+			Shape<Tensor<float>::IndexType> batchExpectedShape = expectedData.getShape();
 			batchExpectedShape[batch_shape_index] = batch_size;
 
-			std::map<std::string, Tensor> cachedResult;
+			std::map<std::string, Tensor<float>> cachedResult;
 
 			Time time;
 
@@ -87,7 +87,7 @@ namespace Ritsu {
 
 			time.start();
 
-			Tensor timeSample({8}, sizeof(float));
+			Tensor<float> timeSample({8}, sizeof(float));
 
 			uint32_t timeIndex = 0;
 
@@ -100,11 +100,11 @@ namespace Ritsu {
 				for (size_t ibatch = 0; ibatch < nrTrainBatches; ibatch++) {
 
 					/*	Extract subset of the data.	*/
-					const Tensor subsetBatchX = std::move(
+					const Tensor<float> subsetBatchX = std::move(
 						inputData.getSubset(ibatch * batch_size * batchDataElementSize,
 											(ibatch + 1) * batch_size * batchDataElementSize, batchDataShape));
 
-					const Tensor subsetExpecetedBatch = std::move(expectedData.getSubset(
+					const Tensor<float> subsetExpecetedBatch = std::move(expectedData.getSubset(
 						ibatch * batch_size * batchExpectedElementSize,
 						(ibatch + 1) * batch_size * batchExpectedElementSize, batchExpectedShape));
 
@@ -112,7 +112,7 @@ namespace Ritsu {
 					this->forwardPropgation(subsetBatchX, batchResult, batch_size, &cachedResult);
 
 					/*	Compute the loss/cost.	*/
-					Tensor loss_error = std::move(this->lossFunction.computeLoss(batchResult, subsetExpecetedBatch));
+					Tensor<float> loss_error = std::move(this->lossFunction.computeLoss(batchResult, subsetExpecetedBatch));
 
 					/*	Apply metric update.	*/
 					for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
@@ -128,7 +128,7 @@ namespace Ritsu {
 						/*	*/
 						timeSample.getValue<float>(timeIndex) = time.deltaTime<float>();
 						timeIndex = (timeIndex + 1) % timeSample.getNrElements();
-						const float averageTime = Tensor::mean<float>(timeSample);
+						const float averageTime = Tensor<float>::mean<float>(timeSample);
 
 						const size_t nrBatchPerSecond = 1.0f / averageTime;
 						const float expectedEpochTime = (nrTrainBatches - ibatch) * averageTime;
@@ -146,7 +146,7 @@ namespace Ritsu {
 
 						for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
 							std::cout << " - " << this->metrics[m_index]->getName() << ": "
-									  << Tensor::mean<DType>(this->metrics[m_index]->result());
+									  << Tensor<float>::mean<DType>(this->metrics[m_index]->result());
 						}
 					}
 					std::cout << std::flush;
@@ -158,10 +158,10 @@ namespace Ritsu {
 				for (size_t ibatch = 0; ibatch < nrValidationBatches; ibatch++) {
 
 					/*	Extract subset of the data.	*/
-					const Tensor subsetBatchX = std::move(inputData.getSubset(
+					const Tensor<float> subsetBatchX = std::move(inputData.getSubset(
 						ibatch * batch_size * batchDataElementSize, (ibatch + 1) * batch_size * batchDataElementSize));
 
-					const Tensor subsetExpecetedBatch =
+					const Tensor<float> subsetExpecetedBatch =
 						std::move(expectedData.getSubset(ibatch * batch_size * batchExpectedElementSize,
 														 (ibatch + 1) * batch_size * batchExpectedElementSize));
 
@@ -183,9 +183,9 @@ namespace Ritsu {
 			}
 		}
 
-		Tensor evaluate(const Tensor &XData, const Tensor &YData, const size_t batch = 1, const bool verbose = false) {
+		Tensor<float> evaluate(const Tensor<float> &XData, const Tensor<float> &YData, const size_t batch = 1, const bool verbose = false) {
 
-			Tensor result;
+			Tensor<float> result;
 
 			Time time;
 
@@ -194,9 +194,9 @@ namespace Ritsu {
 			return result;
 		}
 
-		Tensor predict(const Tensor &inputTensor, const size_t batch = 1, const bool verbose = false) {
+		Tensor<float> predict(const Tensor<float> &inputTensor, const size_t batch = 1, const bool verbose = false) {
 
-			Tensor result;
+			Tensor<float> result;
 
 			Time time;
 
@@ -215,7 +215,7 @@ namespace Ritsu {
 
 			/*	*/
 			for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
-				this->history[this->metrics[m_index]->getName()] = Tensor({1});
+				this->history[this->metrics[m_index]->getName()] = Tensor<float>({1});
 			}
 		}
 
@@ -278,15 +278,15 @@ namespace Ritsu {
 			/*	*/
 		}
 
-		virtual Tensor computeLoss(const Tensor &inputData, Tensor &result) { return {}; }
+		virtual Tensor<float> computeLoss(const Tensor<float> &inputData, Tensor<float> &result) { return {}; }
 
 	  protected:
 		// TODO add support for multiple input data and result data..
-		void forwardPropgation(const Tensor &inputData, Tensor &result, size_t batchSize,
-							   std::map<std::string, Tensor> *cacheResult = nullptr) {
+		void forwardPropgation(const Tensor<float> &inputData, Tensor<float> &result, size_t batchSize,
+							   std::map<std::string, Tensor<float>> *cacheResult = nullptr) {
 
 			Layer<T> *current = this->inputs[0];
-			Tensor layerResult = std::move(inputData); // std::move((*current) << (inputData));
+			Tensor<float> layerResult = std::move(inputData); // std::move((*current) << (inputData));
 
 			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
 				Layer<T> *current = (*it);
@@ -297,7 +297,7 @@ namespace Ritsu {
 					// TODO fix.
 
 					/*	Perform layer on data.	*/
-					layerResult = std::move((*current) << ((const Tensor &)layerResult));
+					layerResult = std::move((*current) << ((const Tensor<float> &)layerResult));
 
 					/*	*/ // TODO:fix
 					auto shape =
@@ -308,7 +308,7 @@ namespace Ritsu {
 								  << current->getName() << std::endl;
 					}
 
-					// std::cout << "Result Tensor Shape"
+					// std::cout << "Result Tensor<float> Shape"
 					//		  << " " << res.getShape() << std::endl;
 				}
 
@@ -320,12 +320,12 @@ namespace Ritsu {
 			result = std::move(layerResult);
 		}
 
-		void backPropagation(const Tensor &result, std::map<std::string, Tensor> &cacheResult) {
+		void backPropagation(const Tensor<float> &result, std::map<std::string, Tensor<float>> &cacheResult) {
 
 			// Loss function compute differences.
 			Layer<T> *current = nullptr;
 
-			Tensor differental_gradient(result.getShape());
+			Tensor<float> differental_gradient(result.getShape());
 			differental_gradient = result;
 
 			/*	*/
@@ -333,16 +333,16 @@ namespace Ritsu {
 
 				Layer<T> *current = (*it);
 
-				differental_gradient = current->compute_derivative(static_cast<const Tensor &>(differental_gradient));
+				differental_gradient = current->compute_derivative(static_cast<const Tensor<float> &>(differental_gradient));
 
 				/*	Only apply if */
-				Tensor *train_variables = current->getTrainableWeights();
+				Tensor<float> *train_variables = current->getTrainableWeights();
 				if (train_variables) {
 					this->optimizer->update_step(differental_gradient, *train_variables);
 				}
 
 				/*	*/
-				Tensor &layerResult = cacheResult[current->getName()];
+				Tensor<float> &layerResult = cacheResult[current->getName()];
 
 				differental_gradient = differental_gradient; // - (layerResult - differental_gradient);
 			}
@@ -434,7 +434,7 @@ namespace Ritsu {
 		std::map<std::string, Layer<T> *> layers;
 
 		/*	*/
-		std::map<std::string, Tensor> history;
+		std::map<std::string, Tensor<float>> history;
 
 		/*	*/
 		std::vector<Metric *> metrics;

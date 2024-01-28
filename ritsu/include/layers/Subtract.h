@@ -16,11 +16,11 @@ namespace Ritsu {
 		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->inputs = layers; }
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override { this->outputs = layers; }
 
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 	  private:
-		static inline void computeElementSum(Tensor &inputA, const Tensor &inputB) { inputA = inputA - inputB; }
+		static inline void computeElementSum(Tensor<float> &inputA, const Tensor<float> &inputB) { inputA = inputA - inputB; }
 
 	  private:
 		std::vector<Layer<DType> *> inputs;

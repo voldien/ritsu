@@ -21,12 +21,12 @@ namespace Ritsu {
 			this->mode = outputMode;
 		}
 
-		Tensor &operator()(Tensor &tensor) override { return tensor.flatten(); }
+		Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor.flatten(); }
 
-		Tensor &operator<<(Tensor &tensor) override { return tensor.flatten(); }
+		Tensor<float> &operator<<(Tensor<float> &tensor) override { return tensor.flatten(); }
 
-		Tensor operator<<(const Tensor &tensor) override {
-			Tensor tmp = tensor;
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
+			Tensor<float> tmp = tensor;
 			return tmp.flatten();
 		}
 
@@ -54,11 +54,11 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 	  protected:
-		void computeEncoding(const Tensor &tensor, Tensor &output) {
+		void computeEncoding(const Tensor<float> &tensor, Tensor<float> &output) {
 			switch (this->mode) {
 			case OutputMode::OneHot:
 				createOneHotEncoding(tensor, output);
@@ -72,9 +72,9 @@ namespace Ritsu {
 			}
 		}
 
-		void createOneHotEncoding(const Tensor &tensor, Tensor &output) {}
+		void createOneHotEncoding(const Tensor<float> &tensor, Tensor<float> &output) {}
 
-		void createCountEncoding(const Tensor &tensor, Tensor &output) {}
+		void createCountEncoding(const Tensor<float> &tensor, Tensor<float> &output) {}
 
 	  private:
 		Layer<DType> *input;

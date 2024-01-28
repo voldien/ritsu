@@ -14,22 +14,22 @@ namespace Ritsu {
 		SoftMax(const std::string &name = "softmax") : Activaction(name) {}
 		~SoftMax() override {}
 
-		Tensor operator<<(const Tensor &tensor) override {
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 			// compute(tensor);
 			return tensor;
 		}
 
-		Tensor operator>>(Tensor &tensor) override {
+		Tensor<float> operator>>(Tensor<float> &tensor) override {
 			softMax<DType>(tensor);
 			return tensor;
 		}
 
-		// virtual Tensor operator()(Tensor &tensor) {
+		// virtual Tensor<float> operator()(Tensor<float> &tensor) {
 		//	compute(tensor);
 		//	return tensor;
 		//}
 
-		Tensor &operator()(Tensor &tensor) override {
+		Tensor<float> &operator()(Tensor<float> &tensor) override {
 			softMax<DType>(tensor);
 			return tensor;
 		}
@@ -46,7 +46,7 @@ namespace Ritsu {
 
 		void build(const Shape<IndexType> &shape) override { this->shape = shape; }
 
-		// virtual const Tensor &operator()(const Tensor &tensor) override {
+		// virtual const Tensor<float> &operator()(const Tensor<float> &tensor) override {
 		//	//compute(tensor);
 		//	return tensor;
 		//}
@@ -54,7 +54,7 @@ namespace Ritsu {
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
 
-		Tensor compute_derivative(const Tensor &tensor) override { return  tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return  tensor; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 	};
 } // namespace Ritsu

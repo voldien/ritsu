@@ -12,11 +12,11 @@ namespace Ritsu {
 	  public:
 		BatchNormalization(const std::string &name = "batch normalization") : Layer<float>(name) {}
 
-		Tensor operator<<(const Tensor &tensor) override { return tensor; }
+		Tensor<float> operator<<(const Tensor<float> &tensor) override { return tensor; }
 
-		Tensor &operator<<(Tensor &tensor) override { return tensor; }
+		Tensor<float> &operator<<(Tensor<float> &tensor) override { return tensor; }
 
-		Tensor &operator()(Tensor &tensor) override { return tensor; }
+		Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
 
 		template <class U> auto &operator()(U &layer) {
 
@@ -47,20 +47,20 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
-		Tensor *getTrainableWeights() noexcept override { return nullptr; }
-		Tensor *getVariables() noexcept override { return nullptr; }
+		Tensor<float> *getTrainableWeights() noexcept override { return nullptr; }
+		Tensor<float> *getVariables() noexcept override { return nullptr; }
 
 	  private:
-		void compute(const Tensor &input, Tensor &output) {
+		void compute(const Tensor<float> &input, Tensor<float> &output) {
 
 			const size_t ndims = 10;
 
 			for (size_t i = 0; i < ndims; i++) {
 
-				Tensor subset = input.getSubset(0, 12);
+				Tensor<float> subset = input.getSubset(0, 12);
 				DType mean = Math::mean(subset.getRawData<DType>(), subset.getNrElements());
 				// TODO add // (subset - mean) /
 				(Math::variance<DType>(subset.getRawData<DType>(), subset.getNrElements(), mean) + 0.00001f);
@@ -70,8 +70,8 @@ namespace Ritsu {
 		}
 
 	  private:
-		Tensor beta;
-		Tensor alpha;
+		Tensor<float> beta;
+		Tensor<float> alpha;
 
 		/*	*/
 		/*	*/

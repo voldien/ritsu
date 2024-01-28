@@ -16,7 +16,6 @@ namespace Ritsu {
 	 *
 	 * @tparam T
 	 */
-	// TODO add Object.
 	template <typename T> class Layer : public Object {
 	  public:
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
@@ -32,13 +31,13 @@ namespace Ritsu {
 		virtual ~Layer() {}
 
 		// TODO: varadic
-		virtual Tensor operator<<(const Tensor &tensor) { return tensor; }
+		virtual Tensor<float> operator<<(const Tensor<float> &tensor) { return tensor; }
 
-		virtual Tensor &operator<<(Tensor &tensor) { return tensor; }
+		virtual Tensor<float> &operator<<(Tensor<float> &tensor) { return tensor; }
 
-		virtual Tensor operator>>(Tensor &tensor) { return tensor; }
+		virtual Tensor<float> operator>>(Tensor<float> &tensor) { return tensor; }
 
-		virtual Tensor &operator()(Tensor &tensor) { return tensor; }
+		virtual Tensor<float> &operator()(Tensor<float> &tensor) { return tensor; }
 
 		// TODO: varadic + helper method to extract all of them easily.
 		template <class U> auto &operator()(const U &layer...) {
@@ -57,16 +56,16 @@ namespace Ritsu {
 
 		virtual void build(const Shape<IndexType> &shape) {}
 
-		// virtual Tensor &operator()(const Tensor &tensor) { return tensor; }
+		// virtual Tensor<float> &operator()(const Tensor<float> &tensor) { return tensor; }
 
 		// Dtype
 		const std::type_info &getDType() const noexcept { return typeid(DType); }
 
 		// Weights trainable
-		virtual Tensor *getTrainableWeights() noexcept { return nullptr; }
+		virtual Tensor<float> *getTrainableWeights() noexcept { return nullptr; }
 
 		// non-trainable.
-		virtual Tensor *getVariables() noexcept { return nullptr; }
+		virtual Tensor<float> *getVariables() noexcept { return nullptr; }
 
 		// input
 		virtual std::vector<Layer<T> *> getInputs() const { return {}; };
@@ -103,8 +102,8 @@ namespace Ritsu {
 		size_t getNrInputLayers() const noexcept { return this->getInputs().size(); }
 		size_t getNrOutputLayers() const noexcept { return this->getOutputs().size(); }
 
-		virtual Tensor compute_derivative(const Tensor &tensorLoss) = 0;
-		virtual Tensor &compute_derivative(Tensor &tensorLoss) const = 0;
+		virtual Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) = 0;
+		virtual Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const = 0;
 
 		void addInputLayers(const std::vector<Layer<DType> *> &layers) {
 			/*	*/

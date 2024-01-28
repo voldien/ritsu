@@ -9,7 +9,7 @@
 namespace RitsuDataSet {
 
 	extern void loadMNIST(const std::string &imagePath, const std::string &labelPath, const std::string &imageTestPath,
-						  const std::string &labelTestPath, Ritsu::Tensor &dataX, Ritsu::Tensor &dataY,
-						  Ritsu::Tensor &testX, Ritsu::Tensor &testY);
+						  const std::string &labelTestPath, Ritsu::Tensor<float> &dataX, Ritsu::Tensor<float> &dataY,
+						  Ritsu::Tensor<float> &testX, Ritsu::Tensor<float> &testY);
 
 } // namespace RitsuDataSet

@@ -7,12 +7,13 @@ using namespace Ritsu;
 class DenseTest : public ::testing::TestWithParam<std::tuple<uint32_t, uint32_t, Ritsu::Shape<uint32_t>>> {};
 
 TEST_P(DenseTest, Setup) {
-	auto [x, y, expected] = GetParam();
+	auto [xUnit, yUnit, expected] = GetParam();
 
-	Input a0({x, 1});
-	Dense a1(y);
+	Input a0({xUnit, 1});
+	Dense a1(yUnit);
 
 	Layer<float> &output = a0(a1);
+
 	EXPECT_EQ(output.getShape(), expected);
 }
 
@@ -22,10 +23,10 @@ TEST_P(DenseTest, ComputeShape) {
 	Input a0({x, 1});
 	Dense a1(y);
 
-	Tensor a({x, 1});
+	Tensor<float> a({x, 1});
 
 	Layer<float> &output = a0(a1);
-	Tensor result = a0(a);
+	Tensor<float> result = a0(a);
 
 	EXPECT_EQ(result.getShape(), expected);
 	EXPECT_EQ(a1.getTrainableWeights()->getShape(), Ritsu::Shape<uint32_t>({x, y}));
@@ -38,10 +39,10 @@ TEST_P(DenseTest, ComputeResult) {
 	Input a0({x, 1});
 	Dense a1(y);
 
-	Tensor a({x, 1});
+	Tensor<float> a({x, 1});
 
 	Layer<float> &output = a0(a1);
-	Tensor result = a0(a);
+	Tensor<float> result = a0(a);
 
 	EXPECT_EQ(result.getShape(), expected);
 }
@@ -52,10 +53,10 @@ TEST_P(DenseTest, ComputeDerivativeResult) {
 	Input a0({x, 1});
 	Dense a1(y);
 
-	Tensor a({x, 1});
+	Tensor<float> a({x, 1});
 
 	Layer<float> &output = a0(a1);
-	Tensor result = a0(a);
+	Tensor<float> result = a0(a);
 
 	EXPECT_EQ(result.getShape(), expected);
 }

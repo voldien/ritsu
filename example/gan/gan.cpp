@@ -27,8 +27,8 @@ int main(int argc, const char **argv) {
 	Shape<unsigned int> generatorInputSize; // = {64, 1};
 
 	/*	*/
-	Tensor inputResY, inputResTestY;
-	Tensor inputDataX, inputTestX;
+	Tensor<float> inputResY, inputResTestY;
+	Tensor<float> inputDataX, inputTestX;
 
 	/*	*/
 	RitsuDataSet::loadMNIST("train-images.idx3-ubyte", "train-labels.idx1-ubyte", "t10k-images.idx3-ubyte",
@@ -100,7 +100,7 @@ int main(int argc, const char **argv) {
 
 		discriminatorModel.fit(epochs, inputDataX, inputResY, batchSize);
 
-		Tensor predict = std::move(discriminatorModel.predict(inputTestX));
+		Tensor<float> predict = std::move(discriminatorModel.predict(inputTestX));
 		// TODO Compare.
 		// TODO Accuracy.
 		std::cout << "Predict " << predict << std::endl;

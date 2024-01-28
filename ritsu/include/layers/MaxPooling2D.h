@@ -16,13 +16,13 @@ namespace Ritsu {
 			this->size = size;
 		}
 
-		Tensor operator<<(const Tensor &tensor) override { return tensor; }
+		Tensor<float> operator<<(const Tensor<float> &tensor) override { return tensor; }
 
-		Tensor &operator<<(Tensor &tensor) override { return tensor; }
+		Tensor<float> &operator<<(Tensor<float> &tensor) override { return tensor; }
 
-		Tensor operator>>(Tensor &tensor) override { return tensor; }
+		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
 
-		Tensor &operator()(Tensor &tensor) override { return tensor; }
+		Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
 
 		template <class U> auto &operator()(U &layer) {
 
@@ -37,11 +37,11 @@ namespace Ritsu {
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
 
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 	  private:
-		void computeMaxPooling2D(const Tensor &tensor, const Tensor &output) {
+		void computeMaxPooling2D(const Tensor<float> &tensor, const Tensor<float> &output) {
 
 			const size_t width = 0;
 			const size_t height = 0;
@@ -54,6 +54,7 @@ namespace Ritsu {
 					DType maxValue = static_cast<DType>(-999999999);
 					for (size_t Sy = 0; Sy < this->size[0]; Sy++) {
 						for (size_t Sx = 0; Sx < this->size[1]; Sx++) {
+							/*	*/
 						}
 					}
 				}

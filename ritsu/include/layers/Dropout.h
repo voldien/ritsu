@@ -16,18 +16,18 @@ namespace Ritsu {
 			this->random = new RandomBernoulli<DType>(perc);
 		}
 
-		Tensor &operator<<(Tensor &tensor) override {
+		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			this->computeDropout(tensor);
 			return tensor;
 		}
 
-		Tensor operator<<(const Tensor &tensor) override {
-			Tensor tmpOutput = tensor;
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
+			Tensor<float> tmpOutput = tensor;
 			this->computeDropout(tmpOutput);
 			return tmpOutput;
 		}
 
-		Tensor &operator()(Tensor &tensor) override {
+		Tensor<float> &operator()(Tensor<float> &tensor) override {
 			this->computeDropout(tensor);
 			return tensor;
 		}
@@ -56,11 +56,11 @@ namespace Ritsu {
 
 		void build(const Shape<IndexType> &shape) override {}
 
-		Tensor compute_derivative(const Tensor &tensorLoss) override { return tensorLoss; }
-		Tensor &compute_derivative(Tensor &tensorLoss) const override { return tensorLoss; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) override { return tensorLoss; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const override { return tensorLoss; }
 
 	  private:
-		void computeDropout(Tensor &tensor) { /*	Iterate through each all elements.    */
+		void computeDropout(Tensor<float> &tensor) { /*	Iterate through each all elements.    */
 
 			/*	*/
 		}

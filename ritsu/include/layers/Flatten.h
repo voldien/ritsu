@@ -11,12 +11,12 @@ namespace Ritsu {
 	  public:
 		Flatten(const std::string &name = "flatten") : Layer<float>(name) {}
 
-		Tensor &operator()(Tensor &tensor) override { return tensor.flatten(); }
+		Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor.flatten(); }
 
-		Tensor &operator<<(Tensor &tensor) override { return tensor.flatten(); }
+		Tensor<float> &operator<<(Tensor<float> &tensor) override { return tensor.flatten(); }
 
-		Tensor operator<<(const Tensor &tensor) override {
-			Tensor tmp = tensor;
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
+			Tensor<float> tmp = tensor;
 			return tmp.flatten();
 		}
 
@@ -42,8 +42,8 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 	  private:
 		Layer<DType> *input;

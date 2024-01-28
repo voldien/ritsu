@@ -28,13 +28,13 @@ namespace Ritsu {
 
 			/*	*/
 			if (use_bias) {
-				this->bias = Tensor(Shape<IndexType>({units}));
+				this->bias = Tensor<float>(Shape<IndexType>({units}));
 			}
 		}
 
-		Tensor operator<<(const Tensor &tensor) override {
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 
-			Tensor output({this->units}, DTypeSize);
+			Tensor<float> output({this->units}, DTypeSize);
 
 			/*	Verify shape.	*/
 
@@ -43,19 +43,19 @@ namespace Ritsu {
 			return output;
 		}
 
-		Tensor &operator<<(Tensor &tensor) override {
+		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 
 			/*	Verify shape.	*/
 
-			Tensor inputCopy = tensor;
+			Tensor<float> inputCopy = tensor;
 			this->compute(inputCopy, tensor);
 
 			return tensor;
 		}
 
-		Tensor operator>>(Tensor &tensor) override { return tensor; }
+		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
 
-		Tensor &operator()(Tensor &tensor) override { return tensor; }
+		Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
 
 		template <class U> auto &operator()(U &layer) {
 
@@ -67,8 +67,8 @@ namespace Ritsu {
 			return *this;
 		}
 
-		Tensor *getTrainableWeights() noexcept override { return &this->weight; }
-		Tensor *getVariables() noexcept override { return &this->bias; }
+		Tensor<float> *getTrainableWeights() noexcept override { return &this->weight; }
+		Tensor<float> *getVariables() noexcept override { return &this->bias; }
 
 		void build(const Shape<IndexType> &shape) override {
 
@@ -76,7 +76,7 @@ namespace Ritsu {
 
 			/*	*/
 			Shape<IndexType> weightShape = Shape<IndexType>({static_cast<IndexType>(this->units), shape[0]});
-			this->weight = Tensor(weightShape, this->DTypeSize);
+			this->weight = Tensor<float>(weightShape, this->DTypeSize);
 
 			/*	*/
 			this->initweight();
@@ -114,13 +114,13 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {this->input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return this->outputs; }
 
-		Tensor compute_derivative(const Tensor &tensor) override {
-			Tensor output(this->weight.getShape());
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override {
+			Tensor<float> output(this->weight.getShape());
 			computeDerivative(tensor, output);
 			return output;
 		}
 
-		Tensor &compute_derivative(Tensor &tensor) const override {
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override {
 			computeDerivative(tensor, tensor);
 			return tensor;
 		}
@@ -132,18 +132,18 @@ namespace Ritsu {
 
 	  protected:
 		// operator
-		void compute(const Tensor &inputTesnor, Tensor &output) {}
+		void compute(const Tensor<float> &inputTesnor, Tensor<float> &output) {}
 
-		void computeDerivative(const Tensor &error, Tensor &result) const {
+		void computeDerivative(const Tensor<float> &error, Tensor<float> &result) const {
 			result = computeMatrix(this->weight, error);
 			//	result = this->weight * -1.0f;//TODO: validate
 		}
 
 		// TODO relocate, and make sure it works.
 		// TODO relocate
-		Tensor computeMatrix(const Tensor &TensorA, const Tensor &TensorB) const {
+		Tensor<float> computeMatrix(const Tensor<float> &TensorA, const Tensor<float> &TensorB) const {
 
-			Tensor output(this->getShape());
+			Tensor<float> output(this->getShape());
 
 			for (size_t y = 0; y < TensorA.getShape()[0]; y++) {
 				DType sum = 0;
@@ -179,9 +179,9 @@ namespace Ritsu {
 		}
 
 	  private:
-		Tensor bias;
+		Tensor<float> bias;
 		uint32_t units;
-		Tensor weight;
+		Tensor<float> weight;
 	};
 
 } // namespace Ritsu

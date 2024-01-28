@@ -14,23 +14,23 @@ namespace Ritsu {
 	  public:
 		LeakyRelu(const DType alpha, const std::string &name = "leaky-relu") : Layer<DType>(name), alpha(alpha) {}
 
-		Tensor operator<<(const Tensor &tensor) override {
-			Tensor output = tensor; // Copy
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
+			Tensor<float> output = tensor; // Copy
 			this->computeReluLeakyActivation(output);
 			return output;
 		}
 
-		Tensor &operator<<(Tensor &tensor) override {
+		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			this->computeReluLeakyActivation(tensor);
 			return tensor;
 		}
 
-		Tensor operator>>(Tensor &tensor) override {
+		Tensor<float> operator>>(Tensor<float> &tensor) override {
 			this->computeReluLeakyActivation(tensor);
 			return tensor;
 		}
 
-		Tensor &operator()(Tensor &tensor) override {
+		Tensor<float> &operator()(Tensor<float> &tensor) override {
 			this->computeReluLeakyActivation(tensor);
 			return tensor;
 		}
@@ -54,19 +54,19 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor compute_derivative(const Tensor &tensor) override {
-			Tensor output = tensor;
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override {
+			Tensor<float> output = tensor;
 			this->computeReluLeakyDerivative(output);
 			return output;
 		}
 
-		Tensor &compute_derivative(Tensor &tensor) const override {
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override {
 			this->computeReluLeakyDerivative(tensor);
 			return tensor;
 		}
 
 	  protected:
-		void computeReluLeakyActivation(Tensor &tensor) const {
+		void computeReluLeakyActivation(Tensor<float> &tensor) const {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 #pragma omp parallel for shared(tensor)
@@ -75,7 +75,7 @@ namespace Ritsu {
 			}
 		}
 
-		void computeReluLeakyDerivative(Tensor &tensor) const {
+		void computeReluLeakyDerivative(Tensor<float> &tensor) const {
 			const size_t nrElements = tensor.getNrElements();
 #pragma omp parallel for shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {

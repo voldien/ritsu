@@ -22,8 +22,8 @@ int main(int argc, const char **argv) {
 	Shape<unsigned int> resultShape({10});
 
 	/*	*/
-	Tensor inputResY, inputResTestY;
-	Tensor inputDataX, inputTestX;
+	Tensor<float> inputResY, inputResTestY;
+	Tensor<float> inputDataX, inputTestX;
 
 	/*	*/
 	RitsuDataSet::loadMNIST("train-images.idx3-ubyte", "train-labels.idx1-ubyte", "t10k-images.idx3-ubyte",
@@ -62,7 +62,7 @@ int main(int argc, const char **argv) {
 	//
 	Model<float> model({&input0node}, {&decoder});
 
-	Tensor predict = std::move(model.predict(inputTestX));
+	Tensor<float> predict = std::move(model.predict(inputTestX));
 	// Compare.
 	std::cout << "Predict " << predict << std::endl;
 }

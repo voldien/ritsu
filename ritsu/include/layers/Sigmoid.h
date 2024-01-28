@@ -13,25 +13,25 @@ namespace Ritsu {
 	  public:
 		Sigmoid(const std::string &name = "sigmoid") : Activaction(name) {}
 
-		Tensor operator<<(const Tensor &tensor) override {
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 
-			Tensor output = tensor;
+			Tensor<float> output = tensor;
 
 			this->computeActivation(output);
 			return output;
 		}
 
-		Tensor &operator<<(Tensor &tensor) override {
+		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			this->computeActivation(tensor);
 			return tensor;
 		}
 
-		Tensor operator>>(Tensor &tensor) override {
+		Tensor<float> operator>>(Tensor<float> &tensor) override {
 			this->computeActivation(tensor);
 			return tensor;
 		}
 
-		Tensor &operator()(Tensor &tensor) override {
+		Tensor<float> &operator()(Tensor<float> &tensor) override {
 			this->computeActivation(tensor);
 			return tensor;
 		}
@@ -61,19 +61,19 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor compute_derivative(const Tensor &tensor) override {
-			Tensor result(tensor.getShape());
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override {
+			Tensor<float> result(tensor.getShape());
 			this->computeSigmoidDerivative(result);
 			return result;
 		}
 
-		Tensor &compute_derivative(Tensor &tensor) const override {
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override {
 			this->computeSigmoidDerivative(tensor);
 			return tensor;
 		}
 
 	  private:
-		void computeSigmoidDerivative(Tensor &tensor) const noexcept {
+		void computeSigmoidDerivative(Tensor<float> &tensor) const noexcept {
 			const size_t nrElements = tensor.getNrElements();
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
@@ -81,7 +81,7 @@ namespace Ritsu {
 			}
 		}
 
-		void computeActivation(Tensor &tensor) noexcept {
+		void computeActivation(Tensor<float> &tensor) noexcept {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 

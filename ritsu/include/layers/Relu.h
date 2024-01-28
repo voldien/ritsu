@@ -14,23 +14,23 @@ namespace Ritsu {
 	  public:
 		Relu(const std::string &name = "relu") : Activaction(name) {}
 
-		Tensor operator<<(const Tensor &tensor) override {
-			Tensor output = tensor; // Copy
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
+			Tensor<float> output = tensor; // Copy
 			this->computeReluActivation(output);
 			return output;
 		}
 
-		Tensor &operator<<(Tensor &tensor) override {
+		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			this->computeReluActivation(tensor);
 			return tensor;
 		}
 
-		Tensor operator>>(Tensor &tensor) override {
+		Tensor<float> operator>>(Tensor<float> &tensor) override {
 			this->computeReluActivation(tensor);
 			return tensor;
 		}
 
-		Tensor &operator()(Tensor &tensor) override {
+		Tensor<float> &operator()(Tensor<float> &tensor) override {
 			this->computeReluActivation(tensor);
 			return tensor;
 		}
@@ -54,15 +54,15 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor compute_derivative(const Tensor &tensorLoss) override { return tensorLoss; }
-		Tensor &compute_derivative(Tensor &tensorLoss) const override {
+		Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) override { return tensorLoss; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const override {
 			computeDeriviate(tensorLoss);
 			return tensorLoss;
 		}
 
 	  protected:
 
-		void computeReluActivation(Tensor &tensor) {
+		void computeReluActivation(Tensor<float> &tensor) {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 #pragma omp parallel shared(tensor)
@@ -71,7 +71,7 @@ namespace Ritsu {
 			}
 		}
 
-		static void computeDeriviate(Tensor &tensor) {
+		static void computeDeriviate(Tensor<float> &tensor) {
 			const size_t nrElements = tensor.getNrElements();
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {

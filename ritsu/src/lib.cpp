@@ -19,9 +19,9 @@ namespace Ritsu {
 	// template class Dense<std::int32_t>;
 	// template class Dense<std::int8_t>;
 
-	// template class Tensor<std::float_t>;
-	// template class Tensor<std::int32_t>;
-	// template class Tensor<std::int8_t>;
+	template class Tensor<std::float_t>;
+	template class Tensor<std::int32_t>;
+	template class Tensor<std::int8_t>;
 
 	template class Optimizer<std::float_t>;
 	template class Optimizer<std::double_t>;

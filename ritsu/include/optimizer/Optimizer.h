@@ -23,42 +23,43 @@ namespace Ritsu {
 
 		/**
 		 * @brief Set the Learning Rate object
-		 * 
-		 * @param rate 
+		 *
+		 * @param rate
 		 */
-		void setLearningRate(T rate) { this->learningRate = rate; }
+		virtual void setLearningRate(T rate) noexcept { this->learningRate = rate; }
 
 		/**
 		 * @brief Get the Learning Rate object
-		 * 
-		 * @return T 
+		 *
+		 * @return T
 		 */
-		T getLearningRate() const { return this->learningRate; }
+		virtual T getLearningRate() const noexcept { return this->learningRate; }
 
 		/**
-		 * @brief 
-		 * 
-		 * @param loss 
-		 * @param variable 
-		 * @param output_gradient 
+		 * @brief
+		 *
+		 * @param loss
+		 * @param variable
+		 * @param output_gradient
 		 */
-		virtual void gradient(const Tensor &loss, const Tensor &variable, Tensor &output_gradient) {}
+		virtual void gradient(const Tensor<float> &loss, const Tensor<float> &variable,
+							  Tensor<float> &output_gradient) {}
 
 		/**
-		 * @brief 
-		 * 
-		 * @param gradient 
-		 * @param variable 
+		 * @brief
+		 *
+		 * @param gradient
+		 * @param variable
 		 */
-		virtual void update_step(const Tensor &gradient, Tensor &variable) {}
+		virtual void update_step(const Tensor<float> &gradient, Tensor<float> &variable) {}
 
 		/**
-		 * @brief 
-		 * 
-		 * @param gradient 
-		 * @param variable 
+		 * @brief
+		 *
+		 * @param gradient
+		 * @param variable
 		 */
-		virtual void apply(Tensor &gradient, Tensor &variable) {}
+		virtual void apply(Tensor<float> &gradient, Tensor<float> &variable) {}
 
 	  private:
 		T learningRate;

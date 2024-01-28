@@ -53,9 +53,8 @@ namespace Ritsu {
 		friend Shape operator+(const Shape &shapeA, const Shape &shapeB) {
 			// verify if operation is possible.
 			std::vector<IndexType> size = shapeA.dims;
-			for (size_t i = 0; i < size.size(); i++) {
-				size[i] += shapeB.getAxisDimensions(i);
-			}
+
+			size[size.size() - 1] += shapeB[shapeB.getNrDimensions() - 1];
 
 			return size;
 		}
@@ -116,13 +115,31 @@ namespace Ritsu {
 		// explicit conversion
 		explicit operator const std::vector<T> &() const { return this->dims; }
 
-		const Shape<IndexType> &reduce() const {
+		Shape<IndexType> &reduce() noexcept {
 			// Remove 1 axis.
+
 			for (size_t i = 0; i < this->getNrDimensions(); i++) {
-				// TODO
+
+				if (this->dims[i] == 1 || this->dims[i] == 0) {
+					this->dims.erase(std::next(this->dims.begin(), i));
+					i = -1; /*	reset.	*/
+				}
 			}
 
 			return *this;
+		}
+
+		Shape<IndexType> reduce() const noexcept {
+			// Remove 1 axis.
+			std::vector<IndexType> tmp = this->dims;
+			for (size_t i = 0; i < tmp.size(); i++) {
+				if (tmp[i] == 1 || tmp[i] == 0) {
+					tmp.erase(tmp.begin() + i);
+					i = -1; /*	reset.	*/
+				}
+			}
+
+			return tmp;
 		}
 
 		Shape<IndexType> flatten() const {

@@ -26,8 +26,8 @@ int main(int argc, const char **argv) {
 		bool useBatchNorm = false;
 
 		/*	*/
-		Tensor inputResY, inputResTestY;
-		Tensor inputDataX, inputTestX;
+		Tensor<float> inputResY, inputResTestY;
+		Tensor<float> inputDataX, inputTestX;
 
 		/*	*/
 		RitsuDataSet::loadMNIST("train-images.idx3-ubyte", "train-labels.idx1-ubyte", "t10k-images.idx3-ubyte",
@@ -111,7 +111,7 @@ int main(int argc, const char **argv) {
 
 			forwardModel.fit(epochs, inputDataX, inputResY, batchSize);
 
-			Tensor predict = std::move(forwardModel.predict(inputTestX));
+			Tensor<float> predict = std::move(forwardModel.predict(inputTestX));
 			// TODO Compare.
 
 			// TODO Accuracy.

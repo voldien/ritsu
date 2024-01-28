@@ -17,23 +17,23 @@ namespace Ritsu {
 		}
 		~GuassianNoise() override { delete this->random; }
 
-		Tensor &operator<<(Tensor &tensor) override {
+		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			this->applyNoise(tensor);
 			return tensor;
 		}
 
-		Tensor operator<<(const Tensor &tensor) override {
-			Tensor tmp = tensor;
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
+			Tensor<float> tmp = tensor;
 			this->applyNoise(tmp);
 			return tmp;
 		}
 
-		Tensor operator>>(Tensor &tensor) override {
+		Tensor<float> operator>>(Tensor<float> &tensor) override {
 			this->applyNoise(tensor);
 			return tensor;
 		}
 
-		Tensor &operator()(Tensor &tensor) override {
+		Tensor<float> &operator()(Tensor<float> &tensor) override {
 			this->applyNoise(tensor);
 			return tensor;
 		}
@@ -60,8 +60,8 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 		/*	No derivative.	*/
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 	  private:
 		/*	*/
@@ -69,7 +69,7 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> outputs;
 
 	  protected:
-		void applyNoise(Tensor &tensor) noexcept {
+		void applyNoise(Tensor<float> &tensor) noexcept {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 #pragma omp parallel for simd shared(tensor)

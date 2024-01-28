@@ -13,18 +13,18 @@ namespace Ritsu {
 		Reshape(const Shape<IndexType> &shape, const std::string &name = "reshape")
 			: Layer<float>(name), newShape(shape) {}
 
-		Tensor &operator()(Tensor &tensor) override {
+		Tensor<float> &operator()(Tensor<float> &tensor) override {
 			tensor.reshape(this->newShape);
 			return tensor;
 		}
 
-		Tensor &operator<<(Tensor &tensor) override {
+		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			tensor.reshape(this->newShape);
 			return tensor;
 		}
 
-		Tensor operator<<(const Tensor &tensor) override {
-			Tensor tmp = tensor;
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
+			Tensor<float> tmp = tensor;
 			tmp.reshape(this->newShape);
 			return tmp;
 		}
@@ -56,8 +56,8 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 	  private:
 		Layer<DType> *input;

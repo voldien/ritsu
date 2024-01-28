@@ -18,8 +18,8 @@ template <typename T> static inline constexpr T swap_endian(const T value) {
 }
 
 void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &labelPath,
-							 const std::string &imageTestPath, const std::string &labelTestPath, Ritsu::Tensor &dataX,
-							 Ritsu::Tensor &dataY, Ritsu::Tensor &testX, Ritsu::Tensor &testY) {
+							 const std::string &imageTestPath, const std::string &labelTestPath, Ritsu::Tensor<float> &dataX,
+							 Ritsu::Tensor<float> &dataY, Ritsu::Tensor<float> &testX, Ritsu::Tensor<float> &testY) {
 
 	/*	*/
 	std::ifstream imageTrainStream(imagePath, std::ios::in | std::ios::binary);
@@ -61,7 +61,7 @@ void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &la
 
 		const size_t ImageSize = static_cast<size_t>(width) * static_cast<size_t>(height);
 
-		dataX = Tensor({static_cast<unsigned int>(nr_images), static_cast<unsigned int>(width),
+		dataX = Tensor<float>({static_cast<unsigned int>(nr_images), static_cast<unsigned int>(width),
 						static_cast<unsigned int>(height), 1},
 					   sizeof(uint8_t));
 		uint8_t *raw = dataX.getRawData<uint8_t>();
@@ -102,7 +102,7 @@ void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &la
 			throw std::runtime_error("Invalid magic number for label training data.");
 		}
 
-		dataY = Tensor({nr_label, 1}, sizeof(uint32_t));
+		dataY = Tensor<float>({nr_label, 1}, sizeof(uint32_t));
 		uint32_t label;
 
 		for (size_t i = 0; i < nr_label; i++) {

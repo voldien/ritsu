@@ -14,17 +14,17 @@ namespace Ritsu {
 	  public:
 		Cast(const std::string &name = "cast") : Layer<T>(name){};
 
-		Tensor &operator()(Tensor &tensor) override {
+		Tensor<float> &operator()(Tensor<float> &tensor) override {
 			tensor = this->createCastTensor(tensor);
 			return tensor;
 		}
 
-		Tensor &operator<<(Tensor &tensor) override {
+		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			tensor = this->createCastTensor(tensor);
 			return tensor;
 		}
 
-		Tensor operator<<(const Tensor &tensor) override { return this->createCastTensor(tensor); }
+		Tensor<float> operator<<(const Tensor<float> &tensor) override { return this->createCastTensor(tensor); }
 
 		template <class U> auto &operator()(U &layer) {
 
@@ -52,19 +52,19 @@ namespace Ritsu {
 		std::vector<Layer<T> *> getInputs() const override { return {input}; }
 		std::vector<Layer<T> *> getOutputs() const override { return outputs; }
 
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 	  protected:
 		// TODO: Fix refrence
 
-		static Tensor createCastTensor(const Tensor &tensor) {
-			Tensor castTensor(tensor.getShape(), sizeof(T));
+		static Tensor<float> createCastTensor(const Tensor<float> &tensor) {
+			Tensor<float> castTensor(tensor.getShape(), sizeof(T));
 
 			return createCastTensorRef(castTensor);
 		}
 
-		static Tensor &createCastTensorRef(Tensor &tensor) {
+		static Tensor<float> &createCastTensorRef(Tensor<float> &tensor) {
 			/*	*/
 #pragma omp parallel for simd shared(tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {

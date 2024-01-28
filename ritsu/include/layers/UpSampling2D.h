@@ -20,9 +20,9 @@ namespace Ritsu {
 			this->scale = scale;
 		}
 
-		Tensor operator<<(const Tensor &tensor) override {
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 
-			// Tensor output({this->units, 1}, DTypeSize);
+			// Tensor<float> output({this->units, 1}, DTypeSize);
 			//
 			// this->compute(tensor, output);
 
@@ -30,12 +30,12 @@ namespace Ritsu {
 			return tensor;
 		}
 
-		Tensor operator>>(Tensor &tensor) override {
+		Tensor<float> operator>>(Tensor<float> &tensor) override {
 			this->computeUpSampling(tensor, tensor);
 			return tensor;
 		}
 
-		Tensor &operator()(Tensor &tensor) override {
+		Tensor<float> &operator()(Tensor<float> &tensor) override {
 			this->computeUpSampling(tensor, tensor);
 			return tensor;
 		}
@@ -67,18 +67,18 @@ namespace Ritsu {
 			assert(this->getShape().getNrDimensions() == 3);
 		}
 
-		Tensor compute_derivative(const Tensor &tensor) override {
-			Tensor output = tensor;
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override {
+			Tensor<float> output = tensor;
 
 			return output;
 		}
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 		std::vector<Layer<T> *> getInputs() const override { return {}; }
 		std::vector<Layer<T> *> getOutputs() const override { return {}; }
 
 	  private:
-		void computeUpSampling(const Tensor &a, const Tensor &b) { //, Tensor &output) {}
+		void computeUpSampling(const Tensor<float> &a, const Tensor<float> &b) { //, Tensor<float> &output) {}
 			switch (this->interpolation) {
 			case Interpolation::NEAREST:
 				break;

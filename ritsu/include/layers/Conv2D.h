@@ -30,20 +30,20 @@ namespace Ritsu {
 			this->kernel = kernel_size;
 		}
 
-		Tensor operator<<(const Tensor &tensor) override {
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 
-			Tensor output(getShape());
+			Tensor<float> output(getShape());
 			this->computeConv2D(tensor, output);
 
 			return tensor;
 		}
 
-		Tensor operator>>(Tensor &tensor) override {
+		Tensor<float> operator>>(Tensor<float> &tensor) override {
 			this->computeConv2D(tensor, tensor);
 			return tensor;
 		}
 
-		Tensor &operator()(Tensor &tensor) override {
+		Tensor<float> &operator()(Tensor<float> &tensor) override {
 			this->computeConv2D(tensor, tensor);
 			return tensor;
 		}
@@ -66,13 +66,13 @@ namespace Ritsu {
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
 
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 	  protected:
 		// operator
 
-		void computeConv2D(const Tensor &input, Tensor &output) { /*	*/
+		void computeConv2D(const Tensor<float> &input, Tensor<float> &output) { /*	*/
 
 			const size_t nrFilters = this->getNrFilters();
 
@@ -103,8 +103,8 @@ namespace Ritsu {
 	  private:
 		size_t filters;
 		std::vector<DType> bias;
-		Tensor _bias;
-		Tensor _kernelWeight;
+		Tensor<float> _bias;
+		Tensor<float> _kernelWeight;
 		Shape<IndexType> kernel;
 		std::array<uint32_t, 2> stride;
 		std::vector<DType> weight;

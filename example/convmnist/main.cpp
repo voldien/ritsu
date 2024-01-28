@@ -17,8 +17,8 @@ int main(int argc, const char **argv) {
 	const float learningRate = 0.002f;
 
 	/*	*/
-	Tensor inputResY, inputResTestY;
-	Tensor inputDataX, inputTestX;
+	Tensor<float> inputResY, inputResTestY;
+	Tensor<float> inputDataX, inputTestX;
 
 	/*	*/
 	RitsuDataSet::loadMNIST("train-images.idx3-ubyte", "train-labels.idx1-ubyte", "t10k-images.idx3-ubyte",
@@ -67,7 +67,7 @@ int main(int argc, const char **argv) {
 		//
 		Model<float> model({&input0node}, {&outputLayer});
 
-		Tensor predict = std::move(forwardModel.predict(inputTestX));
+		Tensor<float> predict = std::move(forwardModel.predict(inputTestX));
 		// Compare.
 		std::cout << "Predict " << predict << std::endl;
 	}

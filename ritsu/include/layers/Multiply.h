@@ -13,10 +13,10 @@ namespace Ritsu {
 	  public:
 		Multiply(const std::string &name = "multiply") : Layer<T>(name) {}
 
-		Tensor operator<<(const Tensor &tensor) override { return tensor; }
-		Tensor &operator<<(Tensor &tensor) override { return tensor; }
-		Tensor operator>>(Tensor &tensor) override { return tensor; }
-		Tensor &operator()(Tensor &tensor) override { return tensor; }
+		Tensor<float> operator<<(const Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &operator<<(Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
 
 		template <class U> auto &operator()(U &layer) {
 
@@ -31,8 +31,8 @@ namespace Ritsu {
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
 
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 	  private:
 	};

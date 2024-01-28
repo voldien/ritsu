@@ -13,24 +13,24 @@ namespace Ritsu {
 	  public:
 		ExpLinear(const DType linear, const std::string &name = "exp-linear") : Activaction(name), linear(linear) {}
 
-		Tensor operator<<(const Tensor &tensor) override {
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 
-			Tensor output = tensor;
+			Tensor<float> output = tensor;
 			this->computeActivation(output);
 			return output;
 		}
 
-		Tensor &operator<<(Tensor &tensor) override {
+		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			this->computeActivation(tensor);
 			return tensor;
 		}
 
-		Tensor operator>>(Tensor &tensor) override {
+		Tensor<float> operator>>(Tensor<float> &tensor) override {
 			this->computeActivation(tensor);
 			return tensor;
 		}
 
-		Tensor &operator()(Tensor &tensor) override {
+		Tensor<float> &operator()(Tensor<float> &tensor) override {
 			this->computeActivation(tensor);
 			return tensor;
 		}
@@ -50,14 +50,14 @@ namespace Ritsu {
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }
 
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 	  private:
-		void computeActivation(Tensor &tensor) {
+		void computeActivation(Tensor<float> &tensor) {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 

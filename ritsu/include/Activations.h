@@ -128,7 +128,7 @@ namespace Ritsu {
 			   (sigmoid(value, beta) * (1 - (beta * computeSigmoid(value, beta))));
 	}
 
-	template <typename T> Tensor &softMax(Tensor &tensor) {
+	template <typename T> Tensor<float> &softMax(Tensor<float> &tensor) {
 		// TODO: check if subarray exists.
 		/*	Iterate through each all elements.    */
 		T Inversesum = 0;
@@ -147,6 +147,6 @@ namespace Ritsu {
 		return tensor;
 	}
 
-	template <typename T> Tensor &softMaxDerivative(Tensor &tensor) { return tensor; }
+	template <typename T> Tensor<float> &softMaxDerivative(Tensor<float> &tensor) { return tensor; }
 
 } // namespace Ritsu

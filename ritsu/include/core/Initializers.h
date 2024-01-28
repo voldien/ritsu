@@ -18,18 +18,18 @@ namespace Ritsu {
 
 		Initializer() {}
 
-		virtual Tensor get(const Shape<unsigned int> &shape) = 0;
+		virtual Tensor<float> get(const Shape<unsigned int> &shape) = 0;
 
-		Tensor &operator()(const Shape<unsigned int> &shape) { return this->get(shape); }
+		Tensor<float> &operator()(const Shape<unsigned int> &shape) { return this->get(shape); }
 	};
 
 	template <typename T> class RandomNormalInitializer : public Initializer<T> {
 	  public:
 		RandomNormalInitializer(T mean = 0.0, T stddev = 1.0, int seed = 0) : random(RandomNormal<T>(mean, stddev)) {}
 
-		Tensor get(const Shape<unsigned int> &shape) override {
+		Tensor<float> get(const Shape<unsigned int> &shape) override {
 
-			Tensor tensor(shape, sizeof(T));
+			Tensor<float> tensor(shape, sizeof(T));
 
 #pragma omp parallel for simd shared(tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
@@ -47,9 +47,9 @@ namespace Ritsu {
 	  public:
 		ZeroInitializer() {}
 
-		Tensor get(const Shape<unsigned int> &shape) override {
+		Tensor<float> get(const Shape<unsigned int> &shape) override {
 
-			Tensor tensor(shape, sizeof(T));
+			Tensor<float> tensor(shape, sizeof(T));
 #pragma omp parallel for simd shared(tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
 				tensor.getValue<T>(i) = 0;

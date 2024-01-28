@@ -16,16 +16,16 @@ namespace Ritsu {
 		Regularization(const DType L1 = 0, const DType L2 = 0, const std::string &name = "Regularization")
 			: Layer<float>(name), l1(L1), l2(L2) {}
 
-		Tensor operator<<(const Tensor &tensor) override {
-			Tensor output = std::move(tensor);
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
+			Tensor<float> output = std::move(tensor);
 			return output;
 		}
 
-		Tensor &operator<<(Tensor &tensor) override { return tensor; }
+		Tensor<float> &operator<<(Tensor<float> &tensor) override { return tensor; }
 
-		Tensor operator>>(Tensor &tensor) override { return tensor; }
+		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
 
-		Tensor &operator()(Tensor &tensor) override { return tensor; }
+		Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
 
 		template <class U> auto &operator()(U &layer) {
 
@@ -62,8 +62,8 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor compute_derivative(const Tensor &tensorLoss) override {
-			Tensor output(tensorLoss.getShape());
+		Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) override {
+			Tensor<float> output(tensorLoss.getShape());
 
 			if (this->l1 > 0) {
 				Regularization::computeL1(tensorLoss, this->l1, output);
@@ -75,9 +75,9 @@ namespace Ritsu {
 			return output;
 		}
 
-		Tensor &compute_derivative(Tensor &tensorLoss) const override {
+		Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const override {
 
-			Tensor output(this->getShape());
+			Tensor<float> output(this->getShape());
 
 			if (this->l1 > 0) {
 				computeL1(tensorLoss, this->l1, output);
@@ -90,10 +90,10 @@ namespace Ritsu {
 		}
 
 	  private:
-		static inline void computeElementSum(Tensor &inputA, const Tensor &inputB) { inputA = inputA + inputB; }
+		static inline void computeElementSum(Tensor<float> &inputA, const Tensor<float> &inputB) { inputA = inputA + inputB; }
 
 		// TODO: relocate
-		static void computeL1(const Tensor &tensor, const DType L1, Tensor &output) noexcept {
+		static void computeL1(const Tensor<float> &tensor, const DType L1, Tensor<float> &output) noexcept {
 			/*	*/
 #pragma omp parallel shared(output, tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
@@ -101,7 +101,7 @@ namespace Ritsu {
 			}
 		}
 
-		static void computeL2(const Tensor &tensor, const DType L2, Tensor &output) noexcept {
+		static void computeL2(const Tensor<float> &tensor, const DType L2, Tensor<float> &output) noexcept {
 			/*	*/
 #pragma omp parallel shared(output, tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {

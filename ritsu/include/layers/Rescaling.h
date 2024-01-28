@@ -13,18 +13,18 @@ namespace Ritsu {
 			this->scale = scale;
 		}
 
-		Tensor &operator()(Tensor &tensor) override {
+		Tensor<float> &operator()(Tensor<float> &tensor) override {
 			this->computeScale(tensor);
 			return tensor;
 		}
 
-		Tensor &operator<<(Tensor &tensor) override {
+		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			this->computeScale(tensor);
 			return tensor;
 		}
 
-		Tensor operator<<(const Tensor &tensor) override {
-			Tensor tmp = tensor;
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
+			Tensor<float> tmp = tensor;
 			this->computeScale(tmp);
 			return tmp;
 		}
@@ -54,11 +54,11 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 		/*	*/
-		Tensor compute_derivative(const Tensor &tensor) override { return tensor; }
-		Tensor &compute_derivative(Tensor &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 	  protected:
-		void computeScale(Tensor &tensor) noexcept {
+		void computeScale(Tensor<float> &tensor) noexcept {
 			// TODO: parallel
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
 				tensor.getValue<DType>(i) = scale * tensor.getValue<DType>(i);

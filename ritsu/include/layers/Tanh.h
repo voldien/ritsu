@@ -13,24 +13,24 @@ namespace Ritsu {
 	  public:
 		Tanh(const std::string &name = "tahn") : Activaction(name) {}
 
-		Tensor operator<<(const Tensor &tensor) override {
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 
-			Tensor output = tensor;
+			Tensor<float> output = tensor;
 			this->computeActivation(output);
 			return output;
 		}
 
-		Tensor &operator<<(Tensor &tensor) override {
+		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			this->computeActivation(tensor);
 			return tensor;
 		}
 
-		Tensor operator>>(Tensor &tensor) override {
+		Tensor<float> operator>>(Tensor<float> &tensor) override {
 			this->computeActivation(tensor);
 			return tensor;
 		}
 
-		Tensor &operator()(Tensor &tensor) override {
+		Tensor<float> &operator()(Tensor<float> &tensor) override {
 			this->computeActivation(tensor);
 			return tensor;
 		}
@@ -54,12 +54,12 @@ namespace Ritsu {
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }
 
-		Tensor compute_derivative(const Tensor &tensor) override {
-			Tensor output = tensor;
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override {
+			Tensor<float> output = tensor;
 			Tanh::computeDerivative(output);
 			return output;
 		}
-		Tensor &compute_derivative(Tensor &tensor) const override {
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override {
 			Tanh::computeDerivative(tensor);
 			return tensor;
 		}
@@ -68,7 +68,7 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 	  protected:
-		static void computeDerivative(Tensor &output) {
+		static void computeDerivative(Tensor<float> &output) {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = output.getNrElements();
 
@@ -78,7 +78,7 @@ namespace Ritsu {
 			}
 		}
 
-		void computeActivation(Tensor &tensor) {
+		void computeActivation(Tensor<float> &tensor) {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 

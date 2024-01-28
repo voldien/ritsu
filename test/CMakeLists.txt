@@ -18,5 +18,5 @@ ADD_DEPENDENCIES(ritsu-unit-test ritsu)
 
 INSTALL(TARGETS ritsu-unit-test DESTINATION bin)
 ADD_TEST(NAME assert-functionality
-		COMMAND fragcore-assert
+		COMMAND ritsu-assert
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

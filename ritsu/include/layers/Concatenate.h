@@ -30,12 +30,12 @@ namespace Ritsu {
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
 
-		Tensor compute_derivative(const Tensor &tensorLoss) override {			return tensorLoss;}
-		Tensor &compute_derivative(Tensor &tensorLoss) const override {			return tensorLoss;}
+		Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) override {			return tensorLoss;}
+		Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const override {			return tensorLoss;}
 
 	  private:
-		static void concatenate(const Tensor &tensorA, const Tensor &tensorB, Tensor &output) {
-			Tensor copyA = tensorA;
+		static void concatenate(const Tensor<float> &tensorA, const Tensor<float> &tensorB, Tensor<float> &output) {
+			Tensor<float> copyA = tensorA;
 			copyA.append(tensorB);
 			output = copyA;
 		}
