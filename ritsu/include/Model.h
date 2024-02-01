@@ -1,3 +1,18 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2023 Valdemar Lindberg
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
 #pragma once
 #include "Loss.h"
 #include "Metric.h"
@@ -43,8 +58,9 @@ namespace Ritsu {
 		// operator
 		// TODO add array.
 		// TODO add callback.
-		void fit(const size_t epochs, const Tensor<float> &inputData, const Tensor<float> &expectedData, const size_t batch_size = 1,
-				 const float validation_split = 0.0f, const bool shuffle = false, const bool verbose = true) {
+		void fit(const size_t epochs, const Tensor<float> &inputData, const Tensor<float> &expectedData,
+				 const size_t batch_size = 1, const float validation_split = 0.0f, const bool shuffle = false,
+				 const bool verbose = true) {
 
 			const size_t batch_shape_index = 0; // TODO fix
 			/*	*/
@@ -112,7 +128,8 @@ namespace Ritsu {
 					this->forwardPropgation(subsetBatchX, batchResult, batch_size, &cachedResult);
 
 					/*	Compute the loss/cost.	*/
-					Tensor<float> loss_error = std::move(this->lossFunction.computeLoss(batchResult, subsetExpecetedBatch));
+					Tensor<float> loss_error =
+						std::move(this->lossFunction.computeLoss(batchResult, subsetExpecetedBatch));
 
 					/*	Apply metric update.	*/
 					for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
@@ -183,7 +200,8 @@ namespace Ritsu {
 			}
 		}
 
-		Tensor<float> evaluate(const Tensor<float> &XData, const Tensor<float> &YData, const size_t batch = 1, const bool verbose = false) {
+		Tensor<float> evaluate(const Tensor<float> &XData, const Tensor<float> &YData, const size_t batch = 1,
+							   const bool verbose = false) {
 
 			Tensor<float> result;
 
@@ -333,7 +351,8 @@ namespace Ritsu {
 
 				Layer<T> *current = (*it);
 
-				differental_gradient = current->compute_derivative(static_cast<const Tensor<float> &>(differental_gradient));
+				differental_gradient =
+					current->compute_derivative(static_cast<const Tensor<float> &>(differental_gradient));
 
 				/*	Only apply if */
 				Tensor<float> *train_variables = current->getTrainableWeights();

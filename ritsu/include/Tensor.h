@@ -1,3 +1,18 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2023 Valdemar Lindberg
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
 #pragma once
 #include "core/Shape.h"
 #include <algorithm>
@@ -358,6 +373,8 @@ namespace Ritsu {
 			return *this;
 		}
 
+		Tensor mean(const Tensor &tensorA) noexcept { return fromArray({mean<DType>(tensorA)}); }
+
 		Tensor &append(const Tensor &tensor) { // TODO: add axis
 
 			/*	Resize.	*/
@@ -580,6 +597,27 @@ namespace Ritsu {
 				return 0;
 			}
 			return static_cast<U>(Math::mean<DType>(tensorA.getRawData<DType>(), tensorA.getNrElements()));
+		}
+
+		template <typename U> static Tensor mean(const Tensor &tensorA, int axis) noexcept {
+
+			if (tensorA.getNrElements() == 0) {
+				return {};
+			}
+
+			Tensor result({tensorA.getShape().getAxisDimensions(axis)});
+
+			/*	*/
+			for (size_t i = 0; i < tensorA.getShape().getAxisDimensions(axis); i++) {
+
+				const DType *data = tensorA.getRawData<DType>();
+
+				size_t elements = tensorA.getShape().getSubShape(0).getNrElements();
+				result.getValue(i) =
+					static_cast<U>(Math::mean<DType>(data, tensorA.getShape().getAxisDimensions(1))); // TODO:
+			}
+
+			return result;
 		}
 
 		template <typename U> static U variance(const Tensor &tensorA, const U mean) noexcept {

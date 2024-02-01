@@ -63,8 +63,27 @@ logo
 - **Adam** - Adaptive Moment estimation
 
 
+
 ## Installation
 
+
+## Dependencies
+
+In order to compile the program on Linux based machine, the following Debian packages are required.
+
+```bash
+  sudo apt-get install cmake g++ libgtest-dev googletest libomp-dev
+```
+
+## Testing
+
+```bash
+ctest -vv
+```
+
+```bash
+ctest -O failure.txt --output-on-failure
+```
 
 
 ## License

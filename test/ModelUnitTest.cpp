@@ -54,6 +54,7 @@ TEST_P(ModelTest, Fit) {
 	Model<float> *forwardModel = nullptr;
 	ASSERT_NO_THROW(forwardModel = new Model<float>({&input0node}, {&output}));
 	EXPECT_EQ(output.getShape(), expected);
+	// forwardModel->fit(1, const Tensor<float> &inputData, const Tensor<float> &expectedData)
 	ASSERT_NO_THROW(delete forwardModel);
 }
 
@@ -71,6 +72,7 @@ TEST_P(ModelTest, Predict) {
 	ASSERT_NO_THROW(forwardModel = new Model<float>({&input0node}, {&output}));
 	EXPECT_EQ(output.getShape(), expected);
 	ASSERT_NO_THROW(delete forwardModel);
+	// Check size.
 }
 
 INSTANTIATE_TEST_SUITE_P(Model, ModelTest,

@@ -202,8 +202,8 @@ TYPED_TEST_P(TensorType, Reshape) {
 
 TYPED_TEST_P(TensorType, Append) {
 
-	Tensor<TypeParam> tensorA(Shape<uint32_t>({3}), sizeof(TypeParam));
-	Tensor<TypeParam> tensorB(Shape<uint32_t>({3}), sizeof(TypeParam));
+	Tensor<TypeParam> tensorA(Shape<uint32_t>({3, 1}), sizeof(TypeParam));
+	Tensor<TypeParam> tensorB(Shape<uint32_t>({3, 1}), sizeof(TypeParam));
 
 	tensorB.assignInitValue(static_cast<TypeParam>(1));
 	tensorA.assignInitValue(static_cast<TypeParam>(1));
@@ -234,13 +234,17 @@ TYPED_TEST_P(TensorType, Cast) {
 
 TYPED_TEST_P(TensorType, SubSet) {
 
-	Tensor<TypeParam> tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
-	Tensor<TypeParam> tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+		Tensor<TypeParam> tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
 
-	Tensor<TypeParam> subset = std::move(tensorA.getSubset(0, 1, Shape<uint32_t>({1})));
+		Tensor<TypeParam> subset = std::move(tensorA.getSubset(0, 1, Shape<uint32_t>({1})));
 
-	// TODO:
-	ASSERT_EQ(subset.getShape(), Shape<uint32_t>({8, 8, 3}));
+		// TODO:
+		ASSERT_EQ(subset.getShape(), Shape<uint32_t>({8, 8, 3}));
+
+		//ASSERT_THROW(subset.append({0, 1}), std::runtime_error);
+	}
 }
 
 REGISTER_TYPED_TEST_SUITE_P(TensorType, DefaultConstructor, DefaultType, AssignMove, DataSize, Addition, Subtract,

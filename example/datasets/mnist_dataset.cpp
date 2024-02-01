@@ -1,4 +1,6 @@
 #include "mnist_dataset.h"
+#include "core/Shape.h"
+#include <cassert>
 #include <cstdint>
 #include <exception>
 #include <stdexcept>
@@ -18,8 +20,9 @@ template <typename T> static inline constexpr T swap_endian(const T value) {
 }
 
 void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &labelPath,
-							 const std::string &imageTestPath, const std::string &labelTestPath, Ritsu::Tensor<float> &dataX,
-							 Ritsu::Tensor<float> &dataY, Ritsu::Tensor<float> &testX, Ritsu::Tensor<float> &testY) {
+							 const std::string &imageTestPath, const std::string &labelTestPath,
+							 Ritsu::Tensor<float> &dataX, Ritsu::Tensor<float> &dataY, Ritsu::Tensor<float> &testX,
+							 Ritsu::Tensor<float> &testY) {
 
 	/*	*/
 	std::ifstream imageTrainStream(imagePath, std::ios::in | std::ios::binary);
@@ -62,8 +65,13 @@ void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &la
 		const size_t ImageSize = static_cast<size_t>(width) * static_cast<size_t>(height);
 
 		dataX = Tensor<float>({static_cast<unsigned int>(nr_images), static_cast<unsigned int>(width),
-						static_cast<unsigned int>(height), 1},
-					   sizeof(uint8_t));
+							   static_cast<unsigned int>(height), 1},
+							  sizeof(uint8_t));
+
+		Shape<unsigned int> expected;
+		expected = {60000, 28, 28, 1};
+		assert(dataX.getShape() == expected);
+
 		uint8_t *raw = dataX.getRawData<uint8_t>();
 
 		uint8_t *imageData = (uint8_t *)malloc(ImageSize);

@@ -1,3 +1,18 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2023 Valdemar Lindberg
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
 #pragma once
 #include "../Math.h"
 #include <algorithm>
@@ -24,7 +39,7 @@ namespace Ritsu {
 	  public:
 		Shape() = default;
 		// TODO: initializer_list
-		// Shape(std::initializer_list<IndexType> list) { this->dims = std::move(list); }
+		// Shape(const std::initializer_list<IndexType>& list) { this->dims = std::move(list); }
 		Shape(const std::vector<IndexType> &shape) { this->dims = shape; }
 		Shape(const Shape &shape) { this->dims = shape.dims; }
 		Shape(Shape &&shape) { this->dims = std::move(shape.dims); }
@@ -46,6 +61,11 @@ namespace Ritsu {
 
 		auto &operator=(std::vector<IndexType> &&shape) {
 			this->dims = std::move(shape);
+			return *this;
+		}
+
+		auto &operator=(const std::vector<IndexType> &shape) {
+			this->dims = shape;
 			return *this;
 		}
 
@@ -93,6 +113,24 @@ namespace Ritsu {
 			return true;
 		}
 
+		bool operator==(const std::initializer_list<IndexType> &list) const {
+
+			/*	If not same number dims => not the same.	*/
+			if (list.size() != this->getNrDimensions()) {
+				return false;
+			}
+
+			/*	Check all elements equal.	*/
+			for (size_t i = 0; i < list.size(); i++) {
+				if (*(list.begin() + i) == this->dims[i]) {
+					continue;
+				}
+				return false;
+			}
+
+			return true;
+		}
+
 		bool operator!=(const Shape<IndexType> &shape) const { return !(*this == shape); }
 
 		Shape<IndexType> getSubShape(const size_t start, const size_t end) const {
@@ -106,8 +144,8 @@ namespace Ritsu {
 			return Shape<IndexType>(newVec);
 		}
 
-		Shape<IndexType> getSubShape(const size_t start) const {
-			return this->getSubShape(start, this->getNrDimensions() - 1);
+		Shape<IndexType> getSubShape(const size_t axis) const {
+			return this->getSubShape(axis, this->getNrDimensions() - 1);
 		}
 
 		// implicit
@@ -122,7 +160,7 @@ namespace Ritsu {
 
 				if (this->dims[i] == 1 || this->dims[i] == 0) {
 					this->dims.erase(std::next(this->dims.begin(), i));
-					i = -1; /*	reset.	*/
+					i = -1; /*	reset index counter.	*/
 				}
 			}
 
@@ -135,7 +173,7 @@ namespace Ritsu {
 			for (size_t i = 0; i < tmp.size(); i++) {
 				if (tmp[i] == 1 || tmp[i] == 0) {
 					tmp.erase(tmp.begin() + i);
-					i = -1; /*	reset.	*/
+					i = -1; /*	reset index counter.	*/
 				}
 			}
 
@@ -154,13 +192,23 @@ namespace Ritsu {
 
 		Shape<IndexType> &transpose() noexcept {
 
-			// TODO: impl
-			for (size_t i = 0; i < this->dims.size(); i++) {
+			if (this->getNrDimensions() == 1) {
+				*this = {this->getNrElements(), 1};
+			} else if (this->getNrDimensions() == 2) {
+				for (size_t x = 0; x < this->getAxisDimensions(0); x++) {
+					for (size_t y = 0; y < this->getAxisDimensions(1); y++) {
+						std::swap(dims[(x - 1) * this->getAxisDimensions(0) + y - 1],
+								  dims[(x - 1) * this->getAxisDimensions(0) + y - 1]);
+					}
+				}
+			} else {
 			}
+			// TODO: impl
+
 			return *this;
 		}
 
-		IndexType getNrElements() const { return Shape::computeNrElements<IndexType>(this->dims); }
+		IndexType getNrElements() const noexcept { return Shape::computeNrElements<IndexType>(this->dims); }
 
 		IndexType getAxisDimensions(const uint32_t index) const noexcept {
 			return this->dims[Math::mod<size_t>(index, this->dims.size())];
@@ -206,7 +254,24 @@ namespace Ritsu {
 			return *this;
 		}
 
-		void append(const std::vector<IndexType> &additionalDims) {}
+		Shape<IndexType> &append(const Shape<IndexType> &additionalDims, int axis = 0) {
+
+			// verify if operation is possible.
+
+			this->getAxisDimensions(this->getNrDimensions() - 1) +=
+				additionalDims[additionalDims.getNrDimensions() - 1];
+
+			return *this;
+		}
+
+		Shape<IndexType> append(const Shape<IndexType> &additionalDims, int axis = 0) const {
+			// verify if operation is possible.
+			std::vector<IndexType> size = this->dims;
+
+			size[size.size() - 1] += additionalDims[additionalDims.getNrDimensions() - 1];
+
+			return *this;
+		}
 
 		template <typename U> static size_t computeIndex(const std::vector<U> &dim) {
 			size_t totalSize = 1;

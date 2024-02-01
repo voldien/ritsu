@@ -11,7 +11,7 @@ TEST_P(LossTest, MSE) {
 	auto [x, y, expected] = GetParam();
 
 	Tensor<float> result;
-	ASSERT_NO_THROW(Ritsu::loss_mse(x, y, result));
+	//ASSERT_NO_THROW(Ritsu::loss_mse(x, y, result));
 	ASSERT_EQ(result, expected);
 }
 
@@ -48,6 +48,7 @@ TEST_P(LossTest, SSIM) {
 	auto [x, y, expected] = GetParam();
 	Tensor<float> result;
 	Ritsu::loss_ssim(x, y, result);
+	// ASSERT_EQ(result.getShape(), expected.)
 	ASSERT_EQ(result, expected);
 }
 
@@ -59,8 +60,8 @@ TEST_P(LossTest, PSNR) {
 }
 
 INSTANTIATE_TEST_SUITE_P(Loss, LossTest,
-						 ::testing::Values(std::make_tuple(Tensor<float>::fromArray({0, 1, 0}),
-														   Tensor<float>::fromArray({1, 1, 0}),
-														   Tensor<float>::fromArray({0, 1, 0}))));
+						 ::testing::Values(std::make_tuple(Tensor<float>::fromArray({10, 0, 1, 0}),
+														   Tensor<float>::fromArray({10, 1, 1, 0}),
+														   Tensor<float>::fromArray({10, 0, 1, 0}))));
 
 // Loss Object

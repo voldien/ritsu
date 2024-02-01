@@ -135,8 +135,8 @@ namespace Ritsu {
 		void compute(const Tensor<float> &inputTesnor, Tensor<float> &output) {}
 
 		void computeDerivative(const Tensor<float> &error, Tensor<float> &result) const {
-			result = computeMatrix(this->weight, error);
-			//	result = this->weight * -1.0f;//TODO: validate
+			// result = computeMatrix(this->weight, error);
+			result = this->weight * -1.0f; // TODO: validate
 		}
 
 		// TODO relocate, and make sure it works.

@@ -47,6 +47,20 @@ TEST_P(DenseTest, ComputeResult) {
 	EXPECT_EQ(result.getShape(), expected);
 }
 
+TEST_P(DenseTest, ComputeResultShapeNoThrow) {
+	auto [x, y, expected] = GetParam();
+
+	Input a0({x, 1});
+	Dense a1(y);
+
+	Tensor<float> a({x, 1});
+
+	Layer<float> &output = a0(a1);
+	Tensor<float> result = a0(a);
+
+	EXPECT_EQ(result.getShape(), expected);
+}
+
 TEST_P(DenseTest, ComputeDerivativeResult) {
 	auto [x, y, expected] = GetParam();
 
