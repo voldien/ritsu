@@ -31,6 +31,12 @@ TYPED_TEST_P(ShapeType, DimIndexOrder) {
 		ASSERT_EQ(shape[3], 3);
 
 		ASSERT_EQ(shape.getNrDimensions(), 4);
+
+		/*	Modular index.	*/
+		ASSERT_EQ(shape[-1], 3);
+		ASSERT_EQ(shape[-2], 32);
+		ASSERT_EQ(shape[-3], 32);
+		ASSERT_EQ(shape[-4], 64);
 	}
 }
 
@@ -119,17 +125,15 @@ TYPED_TEST_P(ShapeType, Reduce) {
 	}
 }
 
+// TODO:
 TYPED_TEST_P(ShapeType, ComputeIndex) {
 	{
 		Ritsu::Shape<TypeParam> shape({32, 32, 3});
 
-		//	ASSERT_EQ(shape->, 0);
-	}
+		ASSERT_EQ(Ritsu::Shape<TypeParam>::computeIndex({0}), 0);
+		ASSERT_EQ(Ritsu::Shape<TypeParam>::computeIndex({10}), 10);
 
-	{
-		Ritsu::Shape<TypeParam> shape({32, 32, 3});
-
-		// ASSERT_EQ(Ritsu::Shape::computeIndex(shape), 0);
+		ASSERT_EQ(Ritsu::Shape<TypeParam>::computeIndex({32, 32, 1}), 10);
 	}
 }
 
@@ -204,7 +208,7 @@ TYPED_TEST_P(ShapeType, Equality) {
 REGISTER_TYPED_TEST_SUITE_P(ShapeType, DefaultConstructor, DimIndexOrder, SetGetValues, Flatten, Reshape, SubShape,
 							Reduce, ComputeIndex, Append, Equality);
 
-using ShapePrimitiveDataTypes = ::testing::Types<uint16_t, uint32_t, size_t>;
+using ShapePrimitiveDataTypes = ::testing::Types<int16_t, uint16_t, int32_t, uint32_t, size_t>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Shape, ShapeType, ShapePrimitiveDataTypes);
 
 // Axis dim

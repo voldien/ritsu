@@ -128,7 +128,7 @@ namespace Ritsu {
 			   (sigmoid(value, beta) * (1 - (beta * computeSigmoid(value, beta))));
 	}
 
-	template <typename T> Tensor<float> &softMax(Tensor<float> &tensor) {
+	template <typename T> Tensor<T> &softMax(Tensor<T> &tensor, const int axis = -1) {
 		// TODO: check if subarray exists.
 		/*	Iterate through each all elements.    */
 		T Inversesum = 0;
@@ -136,13 +136,13 @@ namespace Ritsu {
 
 #pragma omp parallel for simd reduction(+ : Inversesum)
 		for (size_t i = 0; i < nrElements; i++) {
-			Inversesum += static_cast<T>(std::exp(tensor.getValue<T>(i)));
+			Inversesum += static_cast<T>(std::exp(tensor.template getValue<T>(i)));
 		}
-		Inversesum = static_cast<T>(1.0) / Inversesum;
+		Inversesum = static_cast<T>(1) / Inversesum;
 
-#pragma omp parallel for simd
+#pragma omp for simd
 		for (size_t i = 0; i < nrElements; i++) {
-			tensor.getValue<T>(i) = tensor.getValue<T>(i) * Inversesum;
+			tensor.template getValue<T>(i) = static_cast<T>(std::exp(tensor.template getValue<T>(i))) * Inversesum;
 		}
 		return tensor;
 	}

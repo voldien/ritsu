@@ -73,29 +73,29 @@ int main(int argc, const char **argv) {
 
 		/*	*/
 		{
-			Layer<float> *x = &cast2Float(input0node);
+			Layer<float> *lay = &cast2Float(input0node);
 
-			x = &normalizedLayer(*x);
-			x = &flattenInput(*x);
+			lay = &normalizedLayer(*lay);
+			lay = &flattenInput(*lay);
 
-			x = &noise(*x);
+			lay = &noise(*lay);
 
-			x = &fw0(*x);
+			lay = &fw0(*lay);
 			if (useBatchNorm) {
-				x = &BN0(*x);
+				lay = &BN0(*lay);
 			}
-			x = &relu0(*x);
+			lay = &relu0(*lay);
 
-			x = &fw1(*x);
+			lay = &fw1(*lay);
 			if (useBatchNorm) {
-				x = &BN1(*x);
+				lay = &BN1(*lay);
 			}
-			x = &relu1(*x);
+			lay = &relu1(*lay);
 
-			x = &fw2(*x);
-			x = &outputAct(*x);
+			lay = &fw2(*lay);
+			lay = &outputAct(*lay);
 
-			Layer<float> &output = regulation(*x);
+			Layer<float> &output = regulation(*lay);
 
 			Model<float> forwardModel({&input0node}, {&output});
 
@@ -112,7 +112,10 @@ int main(int argc, const char **argv) {
 			forwardModel.fit(epochs, inputDataX, inputResY, batchSize);
 
 			Tensor<float> predict = std::move(forwardModel.predict(inputTestX));
-			// TODO Compare.
+
+			/*	*/
+			Tensor<float> predict_result = Tensor<float>::equal(predict, inputResTestY);
+			std::cout << predict_result << std::endl;
 
 			// TODO Accuracy.
 			std::cout << "Predict " << predict << std::endl;

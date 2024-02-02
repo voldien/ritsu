@@ -141,7 +141,7 @@ class SwishActivationFunctionTest : public ActivationFunctionTest {};
 TEST_P(SwishActivationFunctionTest, Swish) {
 	auto [x, expected_activation] = GetParam();
 
-	auto clampedValue = computeSwish(x, 1.0);
+	const auto clampedValue = computeSwish(x, 1.0);
 	//
 	EXPECT_FLOAT_EQ(clampedValue, expected_activation);
 }
@@ -153,11 +153,17 @@ class SoftMaxActivationFunctionTest : public ::testing::TestWithParam<std::tuple
 TEST_P(SoftMaxActivationFunctionTest, Softmax) {
 	auto [input, expected] = GetParam();
 
-	Tensor<float> result = softMax<float>(input);
+	const Tensor<float> result = softMax<float>(input);
 
-	EXPECT_EQ(result, expected);
+	ASSERT_EQ(result.getShape(), expected.getShape());
+	for (size_t i = 0; i < result.getNrElements(); i++) {
+		ASSERT_NEAR(result.getValue(i), expected.getValue(i), 0.00001);
+	}
 }
-INSTANTIATE_TEST_SUITE_P(ActivationSoftmax, SoftMaxActivationFunctionTest,
-						 ::testing::Values(std::make_tuple(Tensor<float>::fromArray({5}), Tensor<float>::fromArray({5})),
-										   std::make_tuple(Tensor<float>::fromArray({5}), Tensor<float>::fromArray({5})),
-										   std::make_tuple(Tensor<float>::fromArray({5}), Tensor<float>::fromArray({5}))));
+
+INSTANTIATE_TEST_SUITE_P(
+	ActivationSoftmax, SoftMaxActivationFunctionTest,
+	::testing::Values(std::make_tuple(Tensor<float>::fromArray({5.0f, 5.0f, 5.0f, 5.0f, 5.0f}),
+									  Tensor<float>::fromArray({0.2f, 0.2f, 0.2f, 0.2f, 0.2f})),
+					  std::make_tuple(Tensor<float>::fromArray({10, 0, 0}), Tensor<float>::fromArray({1, 0, 0})),
+					  std::make_tuple(Tensor<float>::fromArray({5, 5, 5}), Tensor<float>::fromArray({0.2, 0.2, 0.2}))));

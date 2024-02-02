@@ -22,9 +22,9 @@ namespace Ritsu {
 					  "Must be a decimal type(float/double/half) or integer.");
 
 		using IndexType = std::uint32_t;
-		static constexpr size_t IndexTypeSize = sizeof(IndexType);
+		static constexpr unsigned int IndexTypeSize = sizeof(IndexType);
 		using DType = T;
-		const size_t DTypeSize = sizeof(DType);
+		const unsigned int DTypeSize = sizeof(DType);
 
 	  public:
 		Layer(const std::string &name) : Object(name) { this->shape = std::move(Shape<IndexType>()); }
@@ -74,7 +74,6 @@ namespace Ritsu {
 		virtual std::vector<Layer<T> *> getOutputs() const { return {}; }
 
 		// trainable.
-
 		Layer<T> &operator()(Layer<T> &layer) {
 			this->connectLayers(layer);
 			return *this;

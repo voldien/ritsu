@@ -34,7 +34,7 @@ namespace Ritsu {
 		static_assert(std::is_integral<T>::value, "Type must be a integral type.");
 
 		using IndexType = T;
-		static constexpr size_t IndexTypeSize = sizeof(IndexType);
+		static constexpr unsigned int IndexTypeSize = sizeof(IndexType);
 
 	  public:
 		Shape() = default;
@@ -193,7 +193,8 @@ namespace Ritsu {
 		Shape<IndexType> &transpose() noexcept {
 
 			if (this->getNrDimensions() == 1) {
-				*this = {this->getNrElements(), 1};
+				*this = {1, this->getNrElements()};
+
 			} else if (this->getNrDimensions() == 2) {
 				for (size_t x = 0; x < this->getAxisDimensions(0); x++) {
 					for (size_t y = 0; y < this->getAxisDimensions(1); y++) {
@@ -202,10 +203,17 @@ namespace Ritsu {
 					}
 				}
 			} else {
+				/*	*/
 			}
 			// TODO: impl
 
 			return *this;
+		}
+
+		Shape<IndexType> transpose() const noexcept {
+			Shape<IndexType> tmp = *this;
+
+			return tmp;
 		}
 
 		IndexType getNrElements() const noexcept { return Shape::computeNrElements<IndexType>(this->dims); }
@@ -276,11 +284,21 @@ namespace Ritsu {
 		template <typename U> static size_t computeIndex(const std::vector<U> &dim) {
 			size_t totalSize = 1;
 
-			for (size_t i = dim.size() - 1; i >= dim.size(); i--) {
+			for (long i = dim.size() - 1; i >= 1; i--) {
 				totalSize *= dim[i];
 			}
 			totalSize += dim[0];
-			return totalSize;
+			return totalSize - 1;
+		}
+
+		template <typename U> static size_t computeIndex(const std::initializer_list<U> &dim) {
+			size_t totalSize = 1;
+
+			for (long i = dim.size() - 1; i >= 1; i--) {
+				totalSize *= *(dim.begin() + i);
+			}
+			totalSize += *(dim.begin());
+			return totalSize - 1;
 		}
 
 	  public:

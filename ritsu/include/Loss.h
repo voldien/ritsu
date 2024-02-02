@@ -1,4 +1,5 @@
 #pragma once
+#include "Object.h"
 #include "Tensor.h"
 #include <functional>
 #include <iostream>
@@ -11,7 +12,7 @@ namespace Ritsu {
 	 */
 	// TODO add template.
 	// template <typename T>
-	class Loss {
+	class Loss : Object {
 	  public:
 		// static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 		//			  "Must be a decimal type(float/double/half) or integer.");
@@ -25,9 +26,9 @@ namespace Ritsu {
 		using LossFunction = void (*)(const Tensor<float> &evoluated, const Tensor<float> &expected,
 									  Tensor<float> &output_result);
 
-		Loss() = default;
+		Loss() : Object("loss") {}
 		//	template <typename T>
-		Loss(LossFunction lambda, const std::string &name = "loss") : name(name) { this->loss_function = lambda; }
+		Loss(LossFunction lambda, const std::string &name = "loss") : Object(name) { this->loss_function = lambda; }
 
 		virtual Tensor<float> computeLoss(const Tensor<float> &inputX0, const Tensor<float> &inputX1) {
 
@@ -46,7 +47,6 @@ namespace Ritsu {
 
 	  private:
 		LossFunction loss_function;
-		std::string name;
 	};
 
 	static void loss_mse(const Tensor<float> &evoluated, const Tensor<float> &expected, Tensor<float> &output_result) {
@@ -57,7 +57,7 @@ namespace Ritsu {
 
 		output_result = std::move(evoluated - expected);
 		output_result = std::move(output_result * output_result);
-		
+
 		output_result = Tensor<float>::mean<float>(output_result, evoluated.getShape().getAxisDimensions(-1));
 	}
 

@@ -52,11 +52,11 @@ TEST(Math, PowerOf2_Found) {
 TEST(Math, PowerOf2_Next_Found) {
 
 	for (unsigned int i = 0; i < 30; i++) {
-		const auto p2 = Math::NextPowerOfTwo<unsigned long int>((1 << i) + 1);
+		const auto po2 = Math::NextPowerOfTwo<unsigned long int>((1 << i) + 1);
 
-		ASSERT_TRUE(Math::IsPowerOfTwo(p2));
+		ASSERT_TRUE(Math::IsPowerOfTwo(po2));
 
-		ASSERT_EQ(p2, static_cast<unsigned long int>(1 << (i + 1)));
+		ASSERT_EQ(po2, static_cast<unsigned long int>(1 << (i + 1)));
 	}
 }
 

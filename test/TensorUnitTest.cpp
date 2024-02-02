@@ -95,33 +95,65 @@ TYPED_TEST_P(TensorType, MultiplyFactor) {
 
 TYPED_TEST_P(TensorType, MatrixMultiplication) {
 
-	Tensor<TypeParam> tensorA(Shape<uint32_t>({8, 8}), sizeof(TypeParam));
-	Tensor<TypeParam> tensorB(Shape<uint32_t>({8, 8}), sizeof(TypeParam));
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({4, 4}), sizeof(TypeParam));
+		Tensor<TypeParam> tensorB(Shape<uint32_t>({4, 4}), sizeof(TypeParam));
 
-	tensorB.assignInitValue(1);
-	tensorA.assignInitValue(1);
+		tensorB.assignInitValue(1);
+		tensorA.assignInitValue(1);
 
-	Tensor<TypeParam> result0 = tensorA % tensorB;
-	Tensor<TypeParam> result1 = Tensor<TypeParam>::matrixMultiply(tensorA, tensorB);
-	ASSERT_EQ(result0, result1);
+		const Tensor<TypeParam> result0 = tensorA % tensorB;
+		const Tensor<TypeParam> result1 = Tensor<TypeParam>::matrixMultiply(tensorA, tensorB);
+		ASSERT_EQ(result0, result1);
 
-	// TODO:
-	ASSERT_EQ(result0.getShape(), Shape<uint32_t>({8, 8, 3}));
+		// verify the shape.
+		ASSERT_EQ(result0.getShape(), Shape<uint32_t>({4, 4}));
+	}
+
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({4, 4}), sizeof(TypeParam));
+		Tensor<TypeParam> tensorB(Shape<uint32_t>({1, 4}), sizeof(TypeParam));
+
+		tensorB.assignInitValue(1);
+		tensorA.assignInitValue(1);
+
+		const Tensor<TypeParam> result0 = tensorA % tensorB;
+		const Tensor<TypeParam> result1 = Tensor<TypeParam>::matrixMultiply(tensorA, tensorB);
+		ASSERT_EQ(result0, result1);
+
+		// TODO: verify the shape.
+		ASSERT_EQ(result0.getShape(), Shape<uint32_t>({1, 4}));
+	}
 }
 
 TYPED_TEST_P(TensorType, ElementCount) {
 
-	Tensor<TypeParam> tensor({32, 32, 3}, sizeof(TypeParam));
+	const Tensor<TypeParam> tensor({32, 32, 3}, sizeof(TypeParam));
 	ASSERT_EQ(tensor.getNrElements(), 32 * 32 * 3);
 
-	Tensor<TypeParam> tensorB({32, 32, 6}, sizeof(TypeParam));
+	const Tensor<TypeParam> tensorB({32, 32, 6}, sizeof(TypeParam));
 	ASSERT_EQ(tensorB.getNrElements(), 32 * 32 * 6);
 }
 
-// TODO:
 TYPED_TEST_P(TensorType, FromArray) {
-	ASSERT_NO_THROW(Tensor<TypeParam>::fromArray({1, 1, 1, 1, 1}));
-	ASSERT_NO_THROW(Tensor<TypeParam> tensor({32, 32, 3}, sizeof(TypeParam)));
+
+	{
+		/*	*/
+		ASSERT_NO_THROW(Tensor<TypeParam>::fromArray({1, 1, 1, 1, 1}));
+	}
+
+	{
+		const size_t value = rand() % 100;
+		const Tensor<TypeParam> fromArray =
+			std::move(Tensor<TypeParam>::fromArray({value, value, value, value, value}));
+		/*	*/
+		ASSERT_EQ(fromArray.getNrElements(), 5);
+		ASSERT_EQ(fromArray.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({5}));
+
+		for (size_t i = 0; i < fromArray.getNrElements(); i++) {
+			ASSERT_EQ(fromArray.getValue(i), value);
+		}
+	}
 }
 
 TYPED_TEST_P(TensorType, SetGetValues) {
@@ -179,7 +211,7 @@ TYPED_TEST_P(TensorType, InnerProduct) {
 	tensorA.assignInitValue(1);
 	tensorB.assignInitValue(1);
 
-	ASSERT_NEAR(Tensor<TypeParam>::dot(tensorA, tensorB), (8 * 8 * 3) * 1, 0.0001f);
+	ASSERT_EQ(Tensor<TypeParam>::dot(tensorA, tensorB), (8 * 8 * 3) * 1);
 }
 
 TYPED_TEST_P(TensorType, Reduce) {
@@ -213,7 +245,7 @@ TYPED_TEST_P(TensorType, Append) {
 	ASSERT_EQ(tensorA.getShape(), Shape<uint32_t>({6}));
 
 	for (size_t i = 0; i < tensorA.getNrElements(); i++) {
-		EXPECT_EQ(tensorA.template getValue<TypeParam>(i), 1);
+		EXPECT_EQ(tensorA.template getValue<TypeParam>(i), static_cast<TypeParam>(1));
 	}
 }
 
@@ -243,7 +275,7 @@ TYPED_TEST_P(TensorType, SubSet) {
 		// TODO:
 		ASSERT_EQ(subset.getShape(), Shape<uint32_t>({8, 8, 3}));
 
-		//ASSERT_THROW(subset.append({0, 1}), std::runtime_error);
+		// ASSERT_THROW(subset.append({0, 1}), std::runtime_error);
 	}
 }
 
@@ -251,9 +283,8 @@ REGISTER_TYPED_TEST_SUITE_P(TensorType, DefaultConstructor, DefaultType, AssignM
 							MultiplyFactor, ElementCount, FromArray, SetGetValues, Log10, Mean, Flatten, InnerProduct,
 							Append, Reduce, Reshape, Cast, SubSet, MatrixMultiplication, Equal, NotEqual);
 
-using TensorPrimitiveDataTypes = ::testing::Types<int16_t, uint16_t, uint32_t, size_t, float, double>;
+using TensorPrimitiveDataTypes = ::testing::Types<int16_t, uint16_t, int32_t, uint32_t, long, size_t, float, double>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Parameter, TensorType, TensorPrimitiveDataTypes);
 
 // resize
-// Sub shape
 // Axis dim
