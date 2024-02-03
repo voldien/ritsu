@@ -132,29 +132,13 @@ namespace Ritsu {
 
 	  protected:
 		// operator
-		void compute(const Tensor<float> &inputTesnor, Tensor<float> &output) {}
+		inline void compute(const Tensor<float> &inputTesnor, Tensor<float> &output) const {
+			output = this->weight % inputTesnor;
+		}
 
 		void computeDerivative(const Tensor<float> &error, Tensor<float> &result) const {
 			// result = computeMatrix(this->weight, error);
 			result = this->weight * -1.0f; // TODO: validate
-		}
-
-		// TODO relocate, and make sure it works.
-		// TODO relocate
-		Tensor<float> computeMatrix(const Tensor<float> &TensorA, const Tensor<float> &TensorB) const {
-
-			Tensor<float> output(this->getShape());
-
-			for (size_t y = 0; y < TensorA.getShape()[0]; y++) {
-				DType sum = 0;
-				for (size_t x = 0; x < TensorA.getShape()[1]; x++) {
-
-					size_t index = y * TensorA.getShape()[0] + x;
-					sum = TensorA.getValue<DType>(index) * TensorB.getValue<DType>(y);
-				}
-				output.getValue<DType>(y) = sum;
-			}
-			return output;
 		}
 
 		void initweight() noexcept {

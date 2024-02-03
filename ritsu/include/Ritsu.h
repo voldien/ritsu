@@ -18,7 +18,9 @@
 #include <stdexcept>
 #include <system_error>
 
+#include "core/Shape.h"
 #include "Tensor.h"
+
 #include "layers/Add.h"
 #include "layers/AveragePooling2D.h"
 #include "layers/BatchNormalization.h"

@@ -248,12 +248,15 @@ namespace Ritsu {
 
 			/*	List all layers.	*/
 			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
-				Layer<T> *current = (*it);
+
+				const Layer<T> *current = (*it);
 
 				// TODO get type
 				_summary << current->getName() << '\t' << " " << current->getShape() << '\t';
 
+				/*	*/
 				for (size_t i = 0; i < current->getInputs().size(); i++) {
+
 					if (i == 0) {
 						_summary << "<-- [ ";
 					}
@@ -318,16 +321,14 @@ namespace Ritsu {
 					layerResult = std::move((*current) << ((const Tensor<float> &)layerResult));
 
 					/*	*/ // TODO:fix
-					auto shape =
-						layerResult.getShape().getSubShape(layerResult.getShape().getNrDimensions() > 1 ? 1 : 0);
-					if (shape != current->getShape()) {
-						/*	*/
-						std::cerr << "Invalid Shape: " << shape << " " << current->getShape() << " "
-								  << current->getName() << std::endl;
-					}
+				}
 
-					// std::cout << "Result Tensor<float> Shape"
-					//		  << " " << res.getShape() << std::endl;
+				const auto shape =
+					layerResult.getShape().getSubShape(layerResult.getShape().getNrDimensions() > 1 ? 1 : 0);
+				if (shape != current->getShape()) {
+					/*	*/
+					std::cerr << "Invalid Shape: " << shape << " " << current->getShape() << " " << current->getName()
+							  << std::endl;
 				}
 
 				/*	Assign result if memory provided.	*/
@@ -335,6 +336,8 @@ namespace Ritsu {
 					(*cacheResult)[(*current).getName()] = layerResult;
 				}
 			}
+
+			/*	*/
 			result = std::move(layerResult);
 		}
 
@@ -374,6 +377,7 @@ namespace Ritsu {
 
 			/*	Extract all layer and rename to make them all unique.	*/
 			for (auto it = this->forwardSequence.rbegin(); it != this->forwardSequence.rend(); it++) {
+
 				const std::string &name = (*it)->getName();
 				std::string newName = (*it)->getName();
 

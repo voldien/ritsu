@@ -84,23 +84,38 @@ TYPED_TEST_P(TensorType, Subtract) {
 TYPED_TEST_P(TensorType, MultiplyFactor) {
 
 	Tensor<TypeParam> expected(Shape<uint32_t>({10}), sizeof(TypeParam));
-	expected.assignInitValue(10);
+	const TypeParam value = rand() % 100;
+	expected.assignInitValue(value);
 
 	Tensor<TypeParam> tensorA(Shape<uint32_t>({10}), sizeof(TypeParam));
 	tensorA.assignInitValue(1);
 
-	const Tensor<TypeParam> result = tensorA * 10.0f;
+	const Tensor<TypeParam> result = tensorA * value;
 	ASSERT_EQ(result, expected);
 }
 
 TYPED_TEST_P(TensorType, MatrixMultiplication) {
 
 	{
-		Tensor<TypeParam> tensorA(Shape<uint32_t>({4, 4}), sizeof(TypeParam));
-		Tensor<TypeParam> tensorB(Shape<uint32_t>({4, 4}), sizeof(TypeParam));
+		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::zero(Shape<uint32_t>({4, 4}));
+		const Tensor<TypeParam> tensorB = Tensor<TypeParam>::zero(Shape<uint32_t>({4, 4}));
 
-		tensorB.assignInitValue(1);
-		tensorA.assignInitValue(1);
+		const Tensor<TypeParam> result0 = std::move(tensorA % tensorB);
+		const Tensor<TypeParam> result1 = std::move(Tensor<TypeParam>::matrixMultiply(tensorA, tensorB));
+		ASSERT_EQ(result0, result1);
+
+		// verify the shape.
+		ASSERT_EQ(result0.getShape(), Shape<uint32_t>({4, 4}));
+		ASSERT_EQ(result0.getShape(), result1.getShape());
+
+		for (size_t i = 0; i < tensorA.getNrElements(); i++) {
+			ASSERT_EQ(tensorA.template getValue<TypeParam>(i), static_cast<TypeParam>(0));
+		}
+	}
+
+	{
+		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::identityMatrix(Shape<uint32_t>({4, 4}));
+		const Tensor<TypeParam> tensorB = Tensor<TypeParam>::identityMatrix(Shape<uint32_t>({4, 4}));
 
 		const Tensor<TypeParam> result0 = tensorA % tensorB;
 		const Tensor<TypeParam> result1 = Tensor<TypeParam>::matrixMultiply(tensorA, tensorB);
@@ -108,21 +123,20 @@ TYPED_TEST_P(TensorType, MatrixMultiplication) {
 
 		// verify the shape.
 		ASSERT_EQ(result0.getShape(), Shape<uint32_t>({4, 4}));
+		ASSERT_EQ(result0.getShape(), result1.getShape());
 	}
 
 	{
-		Tensor<TypeParam> tensorA(Shape<uint32_t>({4, 4}), sizeof(TypeParam));
-		Tensor<TypeParam> tensorB(Shape<uint32_t>({1, 4}), sizeof(TypeParam));
-
-		tensorB.assignInitValue(1);
-		tensorA.assignInitValue(1);
+		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::identityMatrix(Shape<uint32_t>({2, 4}));
+		const Tensor<TypeParam> tensorB = Tensor<TypeParam>::identityMatrix(Shape<uint32_t>({4, 2}));
 
 		const Tensor<TypeParam> result0 = tensorA % tensorB;
 		const Tensor<TypeParam> result1 = Tensor<TypeParam>::matrixMultiply(tensorA, tensorB);
 		ASSERT_EQ(result0, result1);
 
 		// TODO: verify the shape.
-		ASSERT_EQ(result0.getShape(), Shape<uint32_t>({1, 4}));
+		ASSERT_EQ(result0.getShape(), Shape<uint32_t>({2, 4}));
+		ASSERT_EQ(result0.getShape(), result1.getShape());
 	}
 }
 
@@ -224,28 +238,46 @@ TYPED_TEST_P(TensorType, Reduce) {
 }
 
 TYPED_TEST_P(TensorType, Reshape) {
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({8, 8, 1, 1}), sizeof(TypeParam));
+		Tensor<TypeParam> tensorB(Shape<uint32_t>({8, 8, 1, 1}), sizeof(TypeParam));
 
-	Tensor<TypeParam> tensorA(Shape<uint32_t>({8, 8, 1, 1}), sizeof(TypeParam));
-	Tensor<TypeParam> tensorB(Shape<uint32_t>({8, 8, 1, 1}), sizeof(TypeParam));
-
-	ASSERT_NO_THROW(tensorA.reshape(Shape<uint32_t>({8, 8, 1, 1})));
-	ASSERT_NO_THROW(tensorB.reshape(Shape<uint32_t>({8, 8, 1, 1})));
+		ASSERT_NO_THROW(tensorA.reshape(Shape<uint32_t>({8, 8, 1, 1})));
+		ASSERT_NO_THROW(tensorB.reshape(Shape<uint32_t>({8, 8, 1, 1})));
+	}
 }
 
 TYPED_TEST_P(TensorType, Append) {
 
-	Tensor<TypeParam> tensorA(Shape<uint32_t>({3, 1}), sizeof(TypeParam));
-	Tensor<TypeParam> tensorB(Shape<uint32_t>({3, 1}), sizeof(TypeParam));
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({3, 1}), sizeof(TypeParam));
+		Tensor<TypeParam> tensorB(Shape<uint32_t>({3, 1}), sizeof(TypeParam));
 
-	tensorB.assignInitValue(static_cast<TypeParam>(1));
-	tensorA.assignInitValue(static_cast<TypeParam>(1));
+		const TypeParam value = (unsigned int)rand() % 100;
 
-	ASSERT_NO_THROW(tensorA.append(tensorB));
+		ASSERT_NO_THROW(tensorA.assignInitValue(static_cast<TypeParam>(value)));
+		ASSERT_NO_THROW(tensorB.assignInitValue(static_cast<TypeParam>(value)));
 
-	ASSERT_EQ(tensorA.getShape(), Shape<uint32_t>({6}));
+		ASSERT_NO_THROW(tensorA.append(tensorB));
 
-	for (size_t i = 0; i < tensorA.getNrElements(); i++) {
-		EXPECT_EQ(tensorA.template getValue<TypeParam>(i), static_cast<TypeParam>(1));
+		ASSERT_EQ(tensorA.getShape(), Shape<uint32_t>({3, 2}));
+		ASSERT_EQ(tensorA.getNrElements(), tensorA.getShape().getNrElements());
+
+		for (size_t i = 0; i < tensorA.getNrElements(); i++) {
+			ASSERT_EQ(tensorA.template getValue<TypeParam>(i), static_cast<TypeParam>(value));
+		}
+	}
+
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({3, 1}), sizeof(TypeParam));
+
+		// ASSERT_NO_THROW(tensorA.append(1));
+	}
+
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({3, 1}), sizeof(TypeParam));
+
+		// ASSERT_NO_THROW(tensorA.append({1, 1, 1}));
 	}
 }
 

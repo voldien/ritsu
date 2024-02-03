@@ -27,8 +27,8 @@ namespace Ritsu {
 		const unsigned int DTypeSize = sizeof(DType);
 
 	  public:
-		Layer(const std::string &name) : Object(name) { this->shape = std::move(Shape<IndexType>()); }
-		virtual ~Layer() {}
+		Layer(const std::string &name) noexcept : Object(name) { this->shape = std::move(Shape<IndexType>()); }
+		virtual ~Layer() noexcept {}
 
 		// TODO: varadic
 		virtual Tensor<float> operator<<(const Tensor<float> &tensor) { return tensor; }

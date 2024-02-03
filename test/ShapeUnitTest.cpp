@@ -144,6 +144,7 @@ TYPED_TEST_P(ShapeType, Append) {
 		Shape<uint32_t> a({3});
 		Shape<uint32_t> b({3});
 		Shape<uint32_t> c;
+
 		// TODO:
 		ASSERT_NO_THROW(c = a + b);
 
@@ -158,7 +159,7 @@ TYPED_TEST_P(ShapeType, Append) {
 		// TODO:
 		ASSERT_NO_THROW(c = a + b);
 
-		ASSERT_EQ(c, Shape<uint32_t>({6, 1}));
+		ASSERT_EQ(c, Shape<uint32_t>({3, 2}));
 	}
 
 	/*	*/
@@ -170,6 +171,43 @@ TYPED_TEST_P(ShapeType, Append) {
 		ASSERT_NO_THROW(c = a + b);
 
 		ASSERT_EQ(c, Shape<uint32_t>({8, 8, 2}));
+	}
+}
+
+TYPED_TEST_P(ShapeType, Erase) {
+
+	/*	*/
+	{
+		Shape<uint32_t> a({6});
+		Shape<uint32_t> b({3});
+		Shape<uint32_t> c;
+
+		// TODO:
+		ASSERT_NO_THROW(c = a - b);
+
+		ASSERT_EQ(c, Shape<uint32_t>({3}));
+	}
+
+	/*	*/
+	{
+		Shape<uint32_t> a({3, 2});
+		Shape<uint32_t> b({3, 1});
+		Shape<uint32_t> c;
+		// TODO:
+		ASSERT_NO_THROW(c = a - b);
+
+		ASSERT_EQ(c, Shape<uint32_t>({3, 1}));
+	}
+
+	/*	*/
+	{
+		Shape<uint32_t> a({8, 8, 3});
+		Shape<uint32_t> b({8, 8, 2});
+		Shape<uint32_t> c;
+		// TODO:
+		ASSERT_NO_THROW(c = a - b);
+
+		ASSERT_EQ(c, Shape<uint32_t>({8, 8, 1}));
 	}
 }
 
@@ -206,7 +244,7 @@ TYPED_TEST_P(ShapeType, Equality) {
 }
 
 REGISTER_TYPED_TEST_SUITE_P(ShapeType, DefaultConstructor, DimIndexOrder, SetGetValues, Flatten, Reshape, SubShape,
-							Reduce, ComputeIndex, Append, Equality);
+							Reduce, ComputeIndex, Append, Erase, Equality);
 
 using ShapePrimitiveDataTypes = ::testing::Types<int16_t, uint16_t, int32_t, uint32_t, size_t>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Shape, ShapeType, ShapePrimitiveDataTypes);
