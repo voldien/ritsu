@@ -97,15 +97,50 @@ TYPED_TEST_P(TensorType, MultiplyFactor) {
 TYPED_TEST_P(TensorType, MatrixMultiplication) {
 
 	{
-		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::zero(Shape<uint32_t>({4, 4}));
-		const Tensor<TypeParam> tensorB = Tensor<TypeParam>::zero(Shape<uint32_t>({4, 4}));
+		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::identityMatrix(Shape<uint32_t>({2, 2}));
+		const Tensor<TypeParam> tensorB = Tensor<TypeParam>::identityMatrix(Shape<uint32_t>({2, 2}));
 
 		const Tensor<TypeParam> result0 = std::move(tensorA % tensorB);
 		const Tensor<TypeParam> result1 = std::move(Tensor<TypeParam>::matrixMultiply(tensorA, tensorB));
 		ASSERT_EQ(result0, result1);
 
 		// verify the shape.
-		ASSERT_EQ(result0.getShape(), Shape<uint32_t>({4, 4}));
+		ASSERT_EQ(result0.getShape(), Shape<uint32_t>({2, 2}));
+		ASSERT_EQ(result0.getShape(), result1.getShape());
+
+		for (unsigned int i = 0; i < result0.getShape().getAxisDimensions(0); i++) {
+			ASSERT_EQ(result0.getValue({i, i}), 1);
+		}
+	}
+
+	{
+		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::identityMatrix(Shape<uint32_t>({2, 2}));
+		const Tensor<TypeParam> tensorB = Tensor<TypeParam>::identityMatrix(Shape<uint32_t>({2, 2}));
+
+		const Tensor<TypeParam> result0 = tensorA % tensorB;
+		const Tensor<TypeParam> result1 = Tensor<TypeParam>::matrixMultiply(tensorA, tensorB);
+		ASSERT_EQ(result0, result1);
+
+		// verify the shape.
+		ASSERT_EQ(result0.getShape(), Shape<uint32_t>({2, 2}));
+		ASSERT_EQ(result0.getShape(), result1.getShape());
+
+		for (unsigned int i = 0; i < result0.getShape().getAxisDimensions(0); i++) {
+			ASSERT_EQ(result0.getValue({i, i}), 1);
+		}
+	}
+
+	/*	*/
+	{
+		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::zero(Shape<uint32_t>({2, 2}));
+		const Tensor<TypeParam> tensorB = Tensor<TypeParam>::zero(Shape<uint32_t>({2, 1}));
+
+		const Tensor<TypeParam> result0 = tensorA % tensorB;
+		const Tensor<TypeParam> result1 = Tensor<TypeParam>::matrixMultiply(tensorA, tensorB);
+		ASSERT_EQ(result0, result1);
+
+		// TODO: verify the shape.
+		ASSERT_EQ(result0.getShape(), Shape<uint32_t>({2, 1}));
 		ASSERT_EQ(result0.getShape(), result1.getShape());
 
 		for (size_t i = 0; i < tensorA.getNrElements(); i++) {
@@ -113,30 +148,22 @@ TYPED_TEST_P(TensorType, MatrixMultiplication) {
 		}
 	}
 
+	/*	*/
 	{
-		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::identityMatrix(Shape<uint32_t>({4, 4}));
-		const Tensor<TypeParam> tensorB = Tensor<TypeParam>::identityMatrix(Shape<uint32_t>({4, 4}));
-
-		const Tensor<TypeParam> result0 = tensorA % tensorB;
-		const Tensor<TypeParam> result1 = Tensor<TypeParam>::matrixMultiply(tensorA, tensorB);
-		ASSERT_EQ(result0, result1);
-
-		// verify the shape.
-		ASSERT_EQ(result0.getShape(), Shape<uint32_t>({4, 4}));
-		ASSERT_EQ(result0.getShape(), result1.getShape());
-	}
-
-	{
-		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::identityMatrix(Shape<uint32_t>({2, 4}));
-		const Tensor<TypeParam> tensorB = Tensor<TypeParam>::identityMatrix(Shape<uint32_t>({4, 2}));
+		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::zero(Shape<uint32_t>({2, 4}));
+		const Tensor<TypeParam> tensorB = Tensor<TypeParam>::zero(Shape<uint32_t>({4, 2}));
 
 		const Tensor<TypeParam> result0 = tensorA % tensorB;
 		const Tensor<TypeParam> result1 = Tensor<TypeParam>::matrixMultiply(tensorA, tensorB);
 		ASSERT_EQ(result0, result1);
 
 		// TODO: verify the shape.
-		ASSERT_EQ(result0.getShape(), Shape<uint32_t>({2, 4}));
+		ASSERT_EQ(result0.getShape(), Shape<uint32_t>({2, 2}));
 		ASSERT_EQ(result0.getShape(), result1.getShape());
+
+		for (size_t i = 0; i < tensorA.getNrElements(); i++) {
+			ASSERT_EQ(tensorA.template getValue<TypeParam>(i), static_cast<TypeParam>(0));
+		}
 	}
 }
 

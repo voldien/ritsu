@@ -125,15 +125,14 @@ TYPED_TEST_P(ShapeType, Reduce) {
 	}
 }
 
-// TODO:
 TYPED_TEST_P(ShapeType, ComputeIndex) {
 	{
 		Ritsu::Shape<TypeParam> shape({32, 32, 3});
 
-		ASSERT_EQ(Ritsu::Shape<TypeParam>::computeIndex({0}), 0);
-		ASSERT_EQ(Ritsu::Shape<TypeParam>::computeIndex({10}), 10);
+		ASSERT_EQ(Ritsu::Shape<TypeParam>::computeIndex({0}, shape), 0);
+		ASSERT_EQ(Ritsu::Shape<TypeParam>::computeIndex({10}, shape), 10);
 
-		ASSERT_EQ(Ritsu::Shape<TypeParam>::computeIndex({32, 32, 1}), 10);
+		ASSERT_EQ(Ritsu::Shape<TypeParam>::computeIndex({16, 16, 0}, shape), 32 * 16 + 16);
 	}
 }
 

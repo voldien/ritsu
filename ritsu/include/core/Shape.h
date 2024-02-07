@@ -321,24 +321,38 @@ namespace Ritsu {
 			return true;
 		}
 
-		template <typename U> static size_t computeIndex(const std::vector<U> &dim) {
-			size_t totalSize = 1;
+		template <typename U>
+		static size_t computeIndex(const std::vector<U> &dim, const Shape<IndexType> &shape) noexcept {
+			size_t totalSize = 0;
 
-			for (long i = dim.size() - 1; i >= 1; i--) {
-				totalSize *= dim[i];
+			for (long i = 0; i < shape.getNrDimensions(); i++) {
+				long depth = 1;
+				if (i > 0) {
+					depth = Math::product(&shape.dims.data()[i], i);
+				}
+
+				if (i < dim.size()) {
+					totalSize += depth * *(dim.begin() + i);
+				}
 			}
-			totalSize += dim[0];
-			return totalSize - 1;
+			return totalSize;
 		}
 
-		template <typename U> static size_t computeIndex(const std::initializer_list<U> &dim) {
-			size_t totalSize = 1;
+		template <typename U>
+		static size_t computeIndex(const std::initializer_list<U> &dim, const Shape<IndexType> &shape) noexcept {
+			size_t totalSize = 0;
 
-			for (long i = dim.size() - 1; i >= 1; i--) {
-				totalSize *= *(dim.begin() + i);
+			for (long i = 0; i < shape.getNrDimensions(); i++) {
+				long depth = 1;
+				if (i > 0) {
+					depth = Math::product(&shape.dims.data()[i], i);
+				}
+
+				if (i < dim.size()) {
+					totalSize += depth * *(dim.begin() + i);
+				}
 			}
-			totalSize += *(dim.begin());
-			return totalSize - 1;
+			return totalSize;
 		}
 
 	  public:

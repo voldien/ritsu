@@ -212,6 +212,7 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			static_assert(!std::is_pointer<U>::value, "Can not be pointer");
+			assert(index < this->getNrElements());
 			U *addr = reinterpret_cast<U *>(&this->memoryBuffer.buffer.buffer[index * this->memoryBuffer.element_size]);
 			return *addr;
 		}
@@ -220,6 +221,7 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			static_assert(!std::is_pointer<U>::value, "Can not be pointer");
+			assert(index < this->getNrElements());
 			const U *addr =
 				reinterpret_cast<const U *>(&this->memoryBuffer.buffer.buffer[index * this->memoryBuffer.element_size]);
 			return *addr;
@@ -581,7 +583,7 @@ namespace Ritsu {
 		const Shape<IndexType> &getShape() const noexcept { return this->shape; }
 
 		inline size_t computeShape2Index(const std::vector<IndexType> &dim) const noexcept {
-			return Shape<IndexType>::computeIndex(dim);
+			return Shape<IndexType>::computeIndex(dim, this->shape);
 		}
 
 		template <typename U> inline constexpr const U *getRawData() const noexcept {
@@ -690,12 +692,11 @@ namespace Ritsu {
 		}
 
 		static Tensor zero(const Shape<IndexType> &shape) {
-			Tensor zeroTesnor(shape);
-
+			Tensor zeroTensor(shape);
 			/*	Zero out memory.	*/
-			std::memset(zeroTesnor.getRawData<void>(), 0, zeroTesnor.getInternalDatSize());
+			std::memset(zeroTensor.getRawData<void>(), 0, zeroTensor.getInternalDatSize());
 
-			return zeroTesnor;
+			return zeroTensor;
 		}
 
 		static Tensor oneShot(const Shape<IndexType> &shape, size_t value) {
@@ -706,7 +707,19 @@ namespace Ritsu {
 		}
 
 		static Tensor identityMatrix(const Shape<IndexType> &shape) {
+			// TODO:verify shape.
+			if (shape.getNrDimensions() < 2) {
+				throw std::runtime_error("Invalid Shape");
+			}
+			if (shape[0] != shape[1]) {
+				throw std::runtime_error("Invalid Shape");
+			}
+
 			Tensor tensor = std::move(Tensor::zero(shape)); // TODO: improved performance.
+
+			for (IndexType i = 0; i < shape.getAxisDimensions(0); i++) {
+				tensor.getValue({i, i}) = 1;
+			}
 
 			return tensor;
 		}
@@ -746,18 +759,17 @@ namespace Ritsu {
 			const size_t B_row = tensorBRight.getShape()[0];
 
 			const size_t output_row = output.getShape()[0];
-			const size_t output_col = output.getShape().getNrDimensions() > 1 ?: 1;
+			const size_t output_col = output.getShape().getNrDimensions() > 1 ? output.getShape()[1] : 1;
 
-			//#pragma omp parallel for
+			#pragma omp parallel for
 			for (size_t y = 0; y < A_row; y++) {
 
-				//#pragma omp simd reduction(+ : sum)
 				for (size_t x = 0; x < B_col; x++) {
 
 					const size_t indexOutput = y * output_col + x;
 
 					DType sum = 0;
-					//#pragma omp simd reduction(+ : sum)
+					#pragma omp simd reduction(+ : sum)
 					for (size_t i = 0; i < B_row; i++) {
 
 						const size_t indexA = y * A_row + i;
