@@ -14,12 +14,10 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
-#include <cstddef>
-#include <stdexcept>
-#include <system_error>
+#include "RitsuDef.h"
 
-#include "core/Shape.h"
 #include "Tensor.h"
+#include "core/Shape.h"
 
 #include "layers/Add.h"
 #include "layers/AveragePooling2D.h"

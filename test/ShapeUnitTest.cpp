@@ -240,6 +240,15 @@ TYPED_TEST_P(ShapeType, Equality) {
 		ASSERT_NE(a, b);
 		ASSERT_NE(b, a);
 	}
+
+	/*	*/
+	{
+		Shape<uint32_t> a({3, 1});
+		Shape<uint32_t> b({3});
+
+		ASSERT_EQ(a, b);
+		ASSERT_EQ(b, a);
+	}
 }
 
 REGISTER_TYPED_TEST_SUITE_P(ShapeType, DefaultConstructor, DimIndexOrder, SetGetValues, Flatten, Reshape, SubShape,

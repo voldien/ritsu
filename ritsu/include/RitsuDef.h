@@ -1,3 +1,4 @@
+
 /*
  * The MIT License (MIT)
  *
@@ -14,22 +15,21 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
-#include "Optimizer.h"
-#include <functional>
+#include <cstddef>
+#include <stdexcept>
+#include <system_error>
 
 namespace Ritsu {
-
-	template <typename T> class Adam : public Optimizer<T> {
-	  public:
-		Adam(const T learningRate, const T beta_1, const T beta_2, const std::string &name = "adam")
-			: Optimizer<T>(learningRate, name) {
-			this->beta_1 = beta_1;
-			this->beta_2 = beta_2;
-		}
-
-	  private:
-		T beta_1;
-		T beta_2;
-	};
+	/*	*/
+	using InvalidIndexException = std::runtime_error;
+	using RuntimeException = std::runtime_error;
+	using DivideByZeroException = std::runtime_error;
+	using PermissionDeniedException = std::runtime_error;
+	using IOException = std::runtime_error;
+	using NotImplementedException = std::runtime_error;
+	using InvalidArgumentException = std::runtime_error;
+	using NotSupportedException = std::runtime_error;
+	using InvalidPointerException = InvalidIndexException;
+	using SystemException = std::system_error;
 
 } // namespace Ritsu

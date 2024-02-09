@@ -26,8 +26,11 @@ int main(int argc, const char **argv) {
 		bool useBatchNorm = false;
 
 		/*	*/
-		Tensor<float> inputResY, inputResTestY;
-		Tensor<float> inputDataX, inputTestX;
+		Tensor<uint8_t> inputResY;
+		Tensor<uint8_t> inputResTestY;
+
+		Tensor<float> inputDataX;
+		Tensor<float> inputTestX;
 
 		/*	*/
 		RitsuDataSet::loadMNIST("train-images.idx3-ubyte", "train-labels.idx1-ubyte", "t10k-images.idx3-ubyte",
@@ -35,6 +38,13 @@ int main(int argc, const char **argv) {
 		/*	*/
 		std::cout << "Loaded MNIST Data Set: " << inputDataX.getShape() << " Labels: " << inputResY.getShape()
 				  << std::endl;
+
+		inputResY = Tensor<uint8_t>::oneShot(inputResY);
+		inputResTestY = Tensor<uint8_t>::oneShot(inputResTestY);
+
+		/*	*/
+		Tensor<float> inputResYF = inputResY.cast<float>();
+		Tensor<float> inputResTestYF = inputResTestY.cast<float>();
 
 		/*	Extract data shape.	*/
 		Shape<unsigned int> dataShape = inputDataX.getShape().getSubShape(1, 3);
@@ -109,12 +119,12 @@ int main(int argc, const char **argv) {
 								 {dynamic_cast<Metric *>(&lossmetric), (Metric *)&accuracy});
 			std::cout << forwardModel.summary() << std::endl;
 
-			forwardModel.fit(epochs, inputDataX, inputResY, batchSize);
+			forwardModel.fit(epochs, inputDataX, inputResYF, batchSize);
 
 			Tensor<float> predict = std::move(forwardModel.predict(inputTestX));
 
 			/*	*/
-			Tensor<float> predict_result = Tensor<float>::equal(predict, inputResTestY);
+			Tensor<float> predict_result = Tensor<float>::equal(predict, inputResTestYF);
 			std::cout << predict_result << std::endl;
 
 			// TODO Accuracy.

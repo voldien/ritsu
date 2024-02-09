@@ -1,3 +1,18 @@
+/*
+ * The MIT License (MIT)
+ *
+ * Copyright (c) 2023 Valdemar Lindberg
+ *
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ *
+ * The above copyright notice and this permission notice shall be included in
+ * all copies or substantial portions of the Software.
+ */
 #pragma once
 #include "Object.h"
 #include "Tensor.h"
@@ -12,7 +27,7 @@ namespace Ritsu {
 	 */
 	// TODO add template.
 	// template <typename T>
-	class Loss : Object {
+	class Loss : public Object {
 	  public:
 		// static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 		//			  "Must be a decimal type(float/double/half) or integer.");
@@ -28,15 +43,21 @@ namespace Ritsu {
 
 		Loss() : Object("loss") {}
 		//	template <typename T>
-		Loss(LossFunction lambda, const std::string &name = "loss") : Object(name) { this->loss_function = lambda; }
+		Loss(LossFunction lambda, const std::string &name = "loss") noexcept : Object(name) {
+			this->loss_function = lambda;
+		}
 
 		virtual Tensor<float> computeLoss(const Tensor<float> &inputX0, const Tensor<float> &inputX1) {
 
 			Tensor<float> batchLossResult(inputX0.getShape(), Tensor<float>::DTypeSize);
 
-			this->loss_function(inputX0, inputX1, batchLossResult);
+			/*	*/
+			if (!Tensor<float>::verifyShape(inputX0, inputX1)) {
+				std::cerr << "Loss - Bad Shape " << inputX0.getShape() << " not equal " << inputX1.getShape()
+						  << std::endl;
+			}
 
-			/*	Compute mean per each element in batch.	*/
+			this->loss_function(inputX0, inputX1, batchLossResult);
 
 			return batchLossResult;
 		}
@@ -50,22 +71,21 @@ namespace Ritsu {
 	};
 
 	static void loss_mse(const Tensor<float> &evoluated, const Tensor<float> &expected, Tensor<float> &output_result) {
-		/*	*/
-		if (!Tensor<float>::verifyShape(evoluated, expected)) {
-			std::cerr << "Bad Shape " << evoluated.getShape() << " not equal " << expected.getShape() << std::endl;
-		}
 
 		output_result = std::move(evoluated - expected);
-		output_result = std::move(output_result * output_result);
+		output_result = output_result * output_result;
 
 		output_result = Tensor<float>::mean<float>(output_result, evoluated.getShape().getAxisDimensions(-1));
 	}
 
 	static void loss_msa(const Tensor<float> &evoluated, const Tensor<float> &expected, Tensor<float> &output_result) {
+
 		output_result = evoluated;
 		output_result = output_result - expected;
-		// TODO add absolute.
-		output_result = Tensor<float>::abs(output_result * output_result);
+
+		output_result = Tensor<float>::abs(output_result);
+
+		output_result = Tensor<float>::mean<float>(output_result, evoluated.getShape().getAxisDimensions(-1));
 	}
 
 	static void loss_binary_cross_entropy(const Tensor<float> &evoluated, const Tensor<float> &expected,

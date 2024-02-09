@@ -176,6 +176,7 @@ namespace Ritsu {
 			*this = Shape({static_cast<IndexType>(Shape::computeNrElements<IndexType>(this->dims))});
 			return *this;
 		}
+		
 		static Shape flatten(const Shape &shape) noexcept {
 			return Shape({(IndexType)Shape::computeNrElements(shape.dims)});
 		}
@@ -302,8 +303,25 @@ namespace Ritsu {
 			return size;
 		}
 
+		/**
+		 * @brief Get the Index Memory Offset object
+		 * Memory is row. thus the result is itself.
+		 */
+		static inline IndexType getIndexMemoryOffset(const Shape<IndexType> &shape, IndexType index,
+													 unsigned int orderAxis = 0) noexcept {
+			if (orderAxis == 0) {
+				return index;
+			}
+
+			/*	*/
+			if (orderAxis == 1) { // Coloum..
+				return shape[1] * index;
+			}
+			return index;
+		}
+
 		// TODO: rename
-		static bool canMerge(const Shape<IndexType> &shapeA, const Shape<IndexType> &shapeB, int axis) {
+		static bool canMerge(const Shape<IndexType> &shapeA, const Shape<IndexType> &shapeB, int axis) noexcept {
 			// verify if operation is possible.
 			if (shapeA.getNrDimensions() != shapeB.getNrDimensions()) {
 				return false;
@@ -318,6 +336,7 @@ namespace Ritsu {
 					return false;
 				}
 			}
+
 			return true;
 		}
 

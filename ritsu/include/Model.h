@@ -16,6 +16,7 @@
 #pragma once
 #include "Loss.h"
 #include "Metric.h"
+#include "Object.h"
 #include "Tensor.h"
 #include "core/Shape.h"
 #include "core/Time.h"
@@ -41,7 +42,7 @@ namespace Ritsu {
 	 *
 	 * @tparam T
 	 */
-	template <typename T = float> class Model {
+	template <typename T = float> class Model : public Object {
 	  public:
 		using DType = T;
 		const size_t DTypeSize = sizeof(DType);
@@ -49,7 +50,7 @@ namespace Ritsu {
 	  public:
 		Model(const std::vector<Layer<T> *> inputs, const std::vector<Layer<T> *> outputs,
 			  const std::string &name = "model")
-			: inputs(inputs), outputs((outputs)) {
+			: Object(name), inputs(inputs), outputs((outputs)) {
 			// TODO build up memory.
 			/*	TODO other optimization.	*/
 			this->build(this->inputs, this->outputs);
@@ -63,6 +64,7 @@ namespace Ritsu {
 				 const bool verbose = true) {
 
 			const size_t batch_shape_index = 0; // TODO fix
+
 			/*	*/
 			if (!this->is_build()) {
 				/*	Invalid state.	*/
@@ -95,22 +97,18 @@ namespace Ritsu {
 
 			std::map<std::string, Tensor<float>> cachedResult;
 
-			Time time;
-
 			/*	*/
 			const size_t batchDataElementSize = batchDataShape.getNrElements();
 			const size_t batchExpectedElementSize = batchExpectedShape.getNrElements();
 
+			Time time;
 			time.start();
 
-			Tensor<float> timeSample({8}, sizeof(float));
-
+			Tensor<float> timeSample({8});
 			uint32_t timeIndex = 0;
 
 			for (size_t nthEpoch = 0; nthEpoch < epochs; nthEpoch++) {
 				std::cout << "Epoch: " << nthEpoch << " / " << epochs << std::endl << std::flush;
-
-				// TODO save forward result to the back propegattion.
 
 				/*	Train pass.	*/
 				for (size_t ibatch = 0; ibatch < nrTrainBatches; ibatch++) {
@@ -120,6 +118,7 @@ namespace Ritsu {
 						inputData.getSubset(ibatch * batch_size * batchDataElementSize,
 											(ibatch + 1) * batch_size * batchDataElementSize, batchDataShape));
 
+					/*	*/
 					const Tensor<float> subsetExpecetedBatch = std::move(expectedData.getSubset(
 						ibatch * batch_size * batchExpectedElementSize,
 						(ibatch + 1) * batch_size * batchExpectedElementSize, batchExpectedShape));

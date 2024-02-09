@@ -20,10 +20,13 @@ int main(int argc, const char **argv) {
 
 	Shape<unsigned int> dataShape({32, 32, 1});
 	Shape<unsigned int> resultShape({10});
-
+	
 	/*	*/
-	Tensor<float> inputResY, inputResTestY;
-	Tensor<float> inputDataX, inputTestX;
+	Tensor<uint8_t> inputResY;
+	Tensor<uint8_t> inputResTestY;
+
+	Tensor<float> inputDataX;
+	Tensor<float> inputTestX;
 
 	/*	*/
 	RitsuDataSet::loadMNIST("train-images.idx3-ubyte", "train-labels.idx1-ubyte", "t10k-images.idx3-ubyte",

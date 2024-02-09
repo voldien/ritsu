@@ -14,6 +14,7 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
+#include <cassert>
 #include <cfloat>
 #include <cmath>
 #include <vector>
@@ -26,10 +27,29 @@ namespace Ritsu {
 	 */
 	class Math {
 	  public:
+	  
+		/**
+		 *
+		 */
 		template <class T> inline constexpr static T clamp(const T value, const T min, const T max) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return Math::max<T>(min, Math::min<T>(max, value));
+		}
+
+		/**
+		 *
+		 */
+		template <class T> inline constexpr static T abs(const T value) noexcept {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+						  "Must be a decimal type(float/double/half) or integer.");
+			if constexpr (std::is_integral<T>::value) {
+				return std::abs(value);
+			} else if constexpr (std::is_floating_point<T>::value) {
+				return std::fabs(value);
+			} else {
+				assert(0);
+			}
 		}
 
 		/**
@@ -95,6 +115,7 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
+
 #pragma omp parallel for simd reduction(+ : sum) shared(listA, listB, nrElements)
 			for (size_t i = 0; i < nrElements; i++) {
 				sum += listA[i] * listB[i];
@@ -103,7 +124,6 @@ namespace Ritsu {
 		}
 
 		// TODO: accuracy.
-
 		template <typename T> static void pow(const T exponent, T *list, const size_t nrElements) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
@@ -348,6 +368,7 @@ namespace Ritsu {
 			const T nInverse = (1.0 / static_cast<T>(nrElements));
 
 			const T m = Math::mean<T>(list, nrElements);
+
 			// Math::cov(list, const std::vector<T> &listB, const T meanA, const T meanB)
 			// cov
 			// Matrix3x3 C = nInverse;
