@@ -77,6 +77,7 @@ namespace Ritsu {
 			this->setInputs({&layer});
 			layer.setOutputs({this});
 
+			/*	*/
 			this->build(layer.getShape());
 
 			return *this;
@@ -90,8 +91,9 @@ namespace Ritsu {
 			/*	Validate */
 
 			/*	*/
-			Shape<IndexType> weightShape = Shape<IndexType>({static_cast<IndexType>(this->units), shape[0]});
-			this->weight = Tensor<float>(weightShape, this->DTypeSize);
+			const Shape<IndexType> weightShape =
+				Shape<IndexType>({static_cast<IndexType>(this->units), static_cast<IndexType>(shape[0])});
+			this->weight = Tensor<float>(weightShape);
 
 			/*	*/
 			this->initweight();
@@ -99,8 +101,8 @@ namespace Ritsu {
 
 			/*	*/
 			assert(this->weight.getShape().getNrDimensions() == 2);
-			assert(this->weight.getShape()[1] == shape[0]);
-			assert(this->weight.getShape()[0] == this->units);
+			assert(this->weight.getShape()[-1] == shape[0]);
+			assert(this->weight.getShape()[-2] == this->units);
 		}
 
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
@@ -131,12 +133,12 @@ namespace Ritsu {
 
 		Tensor<float> compute_derivative(const Tensor<float> &tensor) override {
 			Tensor<float> output(this->weight.getShape());
-			computeDerivative(tensor, output);
+			this->computeDerivative(tensor, output);
 			return output;
 		}
 
 		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override {
-			computeDerivative(tensor, tensor);
+			this->computeDerivative(tensor, tensor);
 			return tensor;
 		}
 
@@ -148,7 +150,7 @@ namespace Ritsu {
 	  protected:
 		// operator
 		inline void compute(const Tensor<float> &inputTesnor, Tensor<float> &output) const {
-			output = this->weight % inputTesnor;
+			output = (this->weight % inputTesnor) + this->bias;
 		}
 
 		void computeDerivative(const Tensor<float> &error, Tensor<float> &result) const {

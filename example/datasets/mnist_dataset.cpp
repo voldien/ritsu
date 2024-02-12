@@ -44,7 +44,7 @@ static void load_image_dataset(std::ifstream &stream, Ritsu::Tensor<float> &data
 
 	// Verify
 	if (image_magic != magic_number) {
-		throw std::runtime_error("Invalid magic number for image training data.");
+		throw RuntimeException("Invalid magic number for image training data.");
 	}
 
 	const size_t ImageSize = static_cast<size_t>(width) * static_cast<size_t>(height);
@@ -90,7 +90,7 @@ static void load_label_dataset(std::ifstream &stream, Ritsu::Tensor<uint8_t> &da
 
 	// Verify
 	if (label_magic != magic_number) {
-		throw std::runtime_error("Invalid magic number for label training data.");
+		throw RuntimeException("Invalid magic number for label training data.");
 	}
 
 	dataY = Tensor<uint8_t>({nr_label, 1}, sizeof(uint32_t));

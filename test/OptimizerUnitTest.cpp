@@ -1,4 +1,4 @@
-#include "core/Shape.h"
+#include "RitsuUnitTest.h"
 #include <Ritsu.h>
 #include <cstdint>
 #include <gtest/gtest.h>
@@ -8,16 +8,35 @@ using namespace Ritsu;
 
 class OptimizerTest : public ::testing::TestWithParam<std::tuple<float, uint32_t, Ritsu::Shape<uint32_t>>> {};
 
-TEST_P(OptimizerTest, Setup) {
-	auto [x, y, expected] = GetParam();
+TEST_P(OptimizerTest, SetupSGD) {
+	auto [learning_rate, y, expected] = GetParam();
 
-	SGD sgd(0.02f);
+	SGD sgd(learning_rate);
+	ASSERT_EQ(sgd.getLearningRate(), learning_rate);
+	ASSERT_STREQ(sgd.getName().c_str(), "sgd");
+}
+
+TEST_P(OptimizerTest, SetupAdam) {
+	auto [learning_rate, y, expected] = GetParam();
+
+	Adam<float> adam(learning_rate, 0.02, 0.01f);
+	ASSERT_EQ(adam.getLearningRate(), learning_rate);
+	ASSERT_STREQ(adam.getName().c_str(), "adam");
+}
+
+TEST_P(OptimizerTest, SetupAda) {
+	auto [learning_rate, y, expected] = GetParam();
+
+	Ada<float> ada(learning_rate, 0.02);
+	ASSERT_EQ(ada.getLearningRate(), learning_rate);
+	ASSERT_STREQ(ada.getName().c_str(), "ada");
 }
 
 TEST_P(OptimizerTest, UpgradeVariable) {
-	auto [x, y, expected] = GetParam();
+	auto [learning_rate, y, expected] = GetParam();
 
-	SGD sgd(0.02f);
+	SGD sgd(learning_rate);
+	ASSERT_EQ(sgd.getLearningRate(), learning_rate);
 
 	Tensor<float> gradient;
 	Tensor<float> variable;

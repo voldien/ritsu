@@ -1,7 +1,7 @@
-#include "core/Shape.h"
 #include <Tensor.h>
 #include <cstdint>
 #include <gtest/gtest.h>
+
 using namespace Ritsu;
 
 template <class T> class TensorType : public ::testing::Test {};
@@ -245,7 +245,7 @@ TYPED_TEST_P(TensorType, Mean) {
 		const Tensor<TypeParam> result = Tensor<TypeParam>::template mean<TypeParam>(tensor, -1);
 		ASSERT_EQ(result.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({10}));
 	}
-	
+
 	/*	*/
 	{
 		// Tensor<TypeParam> tensor({2, 2, 3}, sizeof(TypeParam));
@@ -366,7 +366,7 @@ TYPED_TEST_P(TensorType, SubSet) {
 		// TODO:
 		ASSERT_EQ(subset.getShape(), Shape<uint32_t>({8, 8, 3}));
 
-		// ASSERT_THROW(subset.append({0, 1}), std::runtime_error);
+		// ASSERT_THROW(subset.append({0, 1}), RuntimeException);
 	}
 }
 

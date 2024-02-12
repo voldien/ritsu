@@ -15,6 +15,7 @@
  */
 #pragma once
 #include "../Math.h"
+#include "RitsuDef.h"
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
@@ -85,6 +86,7 @@ namespace Ritsu {
 				return true;
 			}
 
+			// if(Math::abs(shape.getNrDimensions() - this->getNrDimensions()) )
 			/*	If not same number dims => not the same.	*/
 			if (shape.getNrDimensions() != this->getNrDimensions()) {
 				return false;
@@ -176,7 +178,7 @@ namespace Ritsu {
 			*this = Shape({static_cast<IndexType>(Shape::computeNrElements<IndexType>(this->dims))});
 			return *this;
 		}
-		
+
 		static Shape flatten(const Shape &shape) noexcept {
 			return Shape({(IndexType)Shape::computeNrElements(shape.dims)});
 		}
@@ -244,7 +246,7 @@ namespace Ritsu {
 
 				// TODO determine if the data has to reshaped too.
 				if (*this != newDims) {
-					throw std::runtime_error("Failed to reshape");
+					throw RuntimeException("Failed to reshape");
 				}
 			} else {
 				// Failure
@@ -256,7 +258,7 @@ namespace Ritsu {
 		Shape<IndexType> &append(const Shape<IndexType> &additionalDims, const int axis = -1) {
 
 			if (!canMerge(*this, additionalDims, axis)) {
-				throw std::runtime_error("Invalid");
+				throw RuntimeException("Invalid");
 			}
 
 			this->getAxisDimensions(axis) += additionalDims[axis];
@@ -267,7 +269,7 @@ namespace Ritsu {
 		Shape<IndexType> append(const Shape<IndexType> &additionalDims, const int axis = -1) const {
 
 			if (!canMerge(*this, additionalDims, axis)) {
-				throw std::runtime_error("Invalid");
+				throw RuntimeException("Invalid");
 			}
 
 			const unsigned int axisMod = Math::mod<int32_t>(axis, this->getNrDimensions());
@@ -281,7 +283,7 @@ namespace Ritsu {
 		Shape<IndexType> &erase(const Shape<IndexType> &additionalDims, int axis = -1) {
 
 			if (!canMerge(*this, additionalDims, axis)) {
-				throw std::runtime_error("Invalid");
+				throw RuntimeException("Invalid");
 			}
 
 			this->getAxisDimensions(axis) -= additionalDims[axis];
@@ -292,7 +294,7 @@ namespace Ritsu {
 		Shape<IndexType> erase(const Shape<IndexType> &additionalDims, int axis = -1) const {
 
 			if (!canMerge(*this, additionalDims, axis)) {
-				throw std::runtime_error("Invalid");
+				throw RuntimeException("Invalid");
 			}
 
 			const unsigned int axisMod = Math::mod<int32_t>(axis, this->getNrDimensions());
@@ -314,10 +316,10 @@ namespace Ritsu {
 			}
 
 			/*	*/
-			if (orderAxis == 1) { // Coloum..
-				return shape[1] * index;
-			}
-			return index;
+			const IndexType axisDim = shape.getAxisDimensions(orderAxis);
+			const IndexType depthSlice = computeDepth(shape, orderAxis);
+			/*	*/
+			return (index % axisDim) * depthSlice + (index / axisDim);
 		}
 
 		// TODO: rename
@@ -372,6 +374,16 @@ namespace Ritsu {
 				}
 			}
 			return totalSize;
+		}
+
+		/**
+		 * @brief
+		 */
+		static inline IndexType computeDepth(const Shape<IndexType> &shape, int depth) noexcept {
+			if (depth > 0) {
+				return Math::product<IndexType>(shape.dims.data(), depth);
+			}
+			return 1;
 		}
 
 	  public:

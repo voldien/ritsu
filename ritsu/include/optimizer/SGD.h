@@ -27,7 +27,7 @@ namespace Ritsu {
 	 */
 	template <typename T> class SGD : public Optimizer<T> {
 	  public:
-		SGD(const T learningRate, const T momentum = 0.0f, const std::string &name = "SGD")
+		SGD(const T learningRate, const T momentum = 0.0f, const std::string &name = "sgd")
 			: Optimizer<T>(learningRate, name) {
 			this->momentum = momentum;
 		}

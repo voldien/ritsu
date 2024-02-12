@@ -25,21 +25,23 @@ namespace Ritsu {
 	 *
 	 * @tparam T
 	 */
-	template <typename T> class Optimizer : Object {
+	template <typename T> class Optimizer : public Object {
 	  public:
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		using DType = T;
 
 	  public:
-		Optimizer(T learningRate, const std::string &name) : Object(name) { this->setLearningRate(learningRate); }
+		Optimizer(const T learningRate, const std::string &name) noexcept : Object(name) {
+			this->setLearningRate(learningRate);
+		}
 
 		/**
 		 * @brief Set the Learning Rate object
 		 *
 		 * @param rate
 		 */
-		virtual void setLearningRate(T rate) noexcept { this->learningRate = rate; }
+		virtual void setLearningRate(const T rate) noexcept { this->learningRate = rate; }
 
 		/**
 		 * @brief Get the Learning Rate object

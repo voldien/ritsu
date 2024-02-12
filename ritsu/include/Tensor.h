@@ -14,6 +14,7 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
+#include "RitsuDef.h"
 #include "core/Shape.h"
 #include <algorithm>
 #include <atomic>
@@ -437,14 +438,19 @@ namespace Ritsu {
 
 		DType min() const noexcept {
 			DType min = std::numeric_limits<DType>::max();
-			for (IndexType i = 0; i < this->getNrElements(); i++) {
+			const IndexType elements = this->getNrElements();
+
+#pragma omp parallel for default(shared) reduction(min : min)
+			for (IndexType i = 0; i < elements; i++) {
 				min = Math::min<DType>(getValue(i), min);
 			}
 			return min;
 		}
 		DType max() const noexcept {
 			DType max = std::numeric_limits<DType>::min();
-			for (IndexType i = 0; i < this->getNrElements(); i++) {
+			const IndexType elements = this->getNrElements();
+#pragma omp parallel for default(shared) reduction(min : max)
+			for (IndexType i = 0; i < elements; i++) {
 				max = Math::max<DType>(this->getValue(i), max);
 			}
 			return max;
@@ -583,11 +589,11 @@ namespace Ritsu {
 
 			if (this->memoryBuffer.buffer.buffer != nullptr && !this->ownAllocation()) {
 				/*	*/
-				throw std::runtime_error("Can not allocate on not owned tensor.");
+				throw RuntimeException("Can not allocate on not owned tensor.");
 			}
 
 			if (total_nr_elements <= 0) {
-				throw std::runtime_error("Must be greater than 0");
+				throw RuntimeException("Must be greater than 0");
 			}
 
 			/*	Compute size in bytes, aligned.	*/
@@ -612,7 +618,7 @@ namespace Ritsu {
 			this->memoryBuffer.allocationSize = nrBytesAllocateAligned;
 
 			if (this->memoryBuffer.buffer.buffer == nullptr) {
-				throw std::runtime_error("Error");
+				throw RuntimeException("Error");
 			}
 
 			this->shape = shape;
@@ -779,10 +785,10 @@ namespace Ritsu {
 		static Tensor identityMatrix(const Shape<IndexType> &shape) {
 			// TODO:verify shape.
 			if (shape.getNrDimensions() < 2) {
-				throw std::runtime_error("Invalid Shape");
+				throw RuntimeException("Invalid Shape");
 			}
 			if (shape[0] != shape[1]) {
-				throw std::runtime_error("Invalid Shape");
+				throw RuntimeException("Invalid Shape");
 			}
 
 			Tensor tensor = std::move(Tensor::zero(shape)); // TODO: improved performance.
@@ -814,12 +820,12 @@ namespace Ritsu {
 		static Tensor matrixMultiply(const Tensor &tensorALeft, const Tensor &tensorBRight, Tensor &output) {
 
 			if (!isMatrixSupported(tensorALeft.getShape(), tensorBRight.getShape())) {
-				throw std::runtime_error("Invalid Shape");
+				throw RuntimeException("Invalid Shape");
 			}
 
 			// TODO verify shape.
 			if (tensorALeft.getShape().getNrDimensions() > 2) {
-				throw std::runtime_error("Not supported");
+				throw NotImplementedException("Not supported");
 			}
 
 			const size_t A_row = tensorALeft.getShape()[0];
@@ -831,7 +837,7 @@ namespace Ritsu {
 			const size_t output_row = output.getShape()[0];
 			const size_t output_col = output.getShape().getNrDimensions() > 1 ? output.getShape()[1] : 1;
 
-#pragma omp parallel for
+//#pragma omp parallel for collapse(2) shared(tensorALeft, tensorBRight, output)
 			for (size_t y = 0; y < A_row; y++) {
 
 				for (size_t x = 0; x < B_col; x++) {
@@ -839,7 +845,7 @@ namespace Ritsu {
 					const size_t indexOutput = y * output_col + x;
 
 					DType sum = 0;
-#pragma omp simd reduction(+ : sum)
+//#pragma omp simd reduction(+ : sum)
 					for (size_t i = 0; i < B_row; i++) {
 
 						const size_t indexA = y * A_row + i;

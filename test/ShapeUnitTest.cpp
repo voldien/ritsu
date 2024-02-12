@@ -3,8 +3,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <gtest/gtest.h>
-#include <stdexcept>
-#include <tuple>
 
 using namespace Ritsu;
 
@@ -140,36 +138,36 @@ TYPED_TEST_P(ShapeType, Append) {
 
 	/*	*/
 	{
-		Shape<uint32_t> a({3});
-		Shape<uint32_t> b({3});
-		Shape<uint32_t> c;
+		Shape<TypeParam> shape0({3});
+		Shape<TypeParam> shape1({3});
+		Shape<TypeParam> shape2;
 
 		// TODO:
-		ASSERT_NO_THROW(c = a + b);
+		ASSERT_NO_THROW(shape2 = shape0 + shape1);
 
-		ASSERT_EQ(c, Shape<uint32_t>({6}));
+		ASSERT_EQ(shape2, Shape<TypeParam>({6}));
 	}
 
 	/*	*/
 	{
-		Shape<uint32_t> a({3, 1});
-		Shape<uint32_t> b({3, 1});
-		Shape<uint32_t> c;
+		Shape<TypeParam> shape0({3, 1});
+		Shape<TypeParam> shape1({3, 1});
+		Shape<TypeParam> shape2;
 		// TODO:
-		ASSERT_NO_THROW(c = a + b);
+		ASSERT_NO_THROW(shape2 = shape0 + shape1);
 
-		ASSERT_EQ(c, Shape<uint32_t>({3, 2}));
+		ASSERT_EQ(shape2, Shape<TypeParam>({3, 2}));
 	}
 
 	/*	*/
 	{
-		Shape<uint32_t> a({8, 8, 1});
-		Shape<uint32_t> b({8, 8, 1});
-		Shape<uint32_t> c;
+		Shape<TypeParam> shape0({8, 8, 1});
+		Shape<TypeParam> shape1({8, 8, 1});
+		Shape<TypeParam> shape2;
 		// TODO:
-		ASSERT_NO_THROW(c = a + b);
+		ASSERT_NO_THROW(shape2 = shape0 + shape1);
 
-		ASSERT_EQ(c, Shape<uint32_t>({8, 8, 2}));
+		ASSERT_EQ(shape2, Shape<TypeParam>({8, 8, 2}));
 	}
 }
 
@@ -177,36 +175,36 @@ TYPED_TEST_P(ShapeType, Erase) {
 
 	/*	*/
 	{
-		Shape<uint32_t> a({6});
-		Shape<uint32_t> b({3});
-		Shape<uint32_t> c;
+		Shape<TypeParam> shape0({6});
+		Shape<TypeParam> shape1({3});
+		Shape<TypeParam> shape2;
 
 		// TODO:
-		ASSERT_NO_THROW(c = a - b);
+		ASSERT_NO_THROW(shape2 = shape0 - shape1);
 
-		ASSERT_EQ(c, Shape<uint32_t>({3}));
+		ASSERT_EQ(shape2, Shape<TypeParam>({3}));
 	}
 
 	/*	*/
 	{
-		Shape<uint32_t> a({3, 2});
-		Shape<uint32_t> b({3, 1});
-		Shape<uint32_t> c;
+		Shape<TypeParam> shape0({3, 2});
+		Shape<TypeParam> shape1({3, 1});
+		Shape<TypeParam> shape2;
 		// TODO:
-		ASSERT_NO_THROW(c = a - b);
+		ASSERT_NO_THROW(shape2 = shape0 - shape1);
 
-		ASSERT_EQ(c, Shape<uint32_t>({3, 1}));
+		ASSERT_EQ(shape2, Shape<TypeParam>({3, 1}));
 	}
 
 	/*	*/
 	{
-		Shape<uint32_t> a({8, 8, 3});
-		Shape<uint32_t> b({8, 8, 2});
-		Shape<uint32_t> c;
+		Shape<TypeParam> shape0({8, 8, 3});
+		Shape<TypeParam> shape1({8, 8, 2});
+		Shape<TypeParam> shape2;
 		// TODO:
-		ASSERT_NO_THROW(c = a - b);
+		ASSERT_NO_THROW(shape2 = shape0 - shape1);
 
-		ASSERT_EQ(c, Shape<uint32_t>({8, 8, 1}));
+		ASSERT_EQ(shape2, Shape<TypeParam>({8, 8, 1}));
 	}
 }
 
@@ -214,45 +212,71 @@ TYPED_TEST_P(ShapeType, Equality) {
 
 	/*	*/
 	{
-		Shape<uint32_t> a({3});
-		Shape<uint32_t> b({3});
+		Shape<TypeParam> shape0({3});
+		Shape<TypeParam> shape1({3});
 
-		ASSERT_EQ(a, b);
-		ASSERT_EQ(a, a);
-		ASSERT_EQ(b, b);
+		ASSERT_EQ(shape0, shape1);
+		ASSERT_EQ(shape0, shape0);
+		ASSERT_EQ(shape1, shape1);
 	}
 
 	/*	*/
 	{
-		Shape<uint32_t> a({28, 28, 3});
-		Shape<uint32_t> b({28, 28, 3});
+		Shape<TypeParam> shape0({28, 28, 3});
+		Shape<TypeParam> shape1({28, 28, 3});
 
-		ASSERT_EQ(a, b);
-		ASSERT_EQ(a, a);
-		ASSERT_EQ(b, b);
+		ASSERT_EQ(shape0, shape1);
+		ASSERT_EQ(shape0, shape0);
+		ASSERT_EQ(shape1, shape1);
 	}
 
 	/*	*/
 	{
-		Shape<uint32_t> a({3});
-		Shape<uint32_t> b({6});
+		Shape<TypeParam> shape0({3});
+		Shape<TypeParam> shape1({6});
 
-		ASSERT_NE(a, b);
-		ASSERT_NE(b, a);
+		ASSERT_NE(shape0, shape1);
+		ASSERT_NE(shape1, shape0);
 	}
 
 	/*	*/
 	{
-		Shape<uint32_t> a({3, 1});
-		Shape<uint32_t> b({3});
+		Shape<TypeParam> shape0({3, 1});
+		Shape<TypeParam> shape1({3});
 
-		ASSERT_EQ(a, b);
-		ASSERT_EQ(b, a);
+		ASSERT_EQ(shape0, shape1);
+		ASSERT_EQ(shape1, shape0);
+	}
+}
+
+TYPED_TEST_P(ShapeType, MemoryIndexOrder) {
+	/*	*/
+	{
+		Shape<TypeParam> shape({3});
+		ASSERT_EQ(Shape<TypeParam>::getIndexMemoryOffset(shape, 0, 0), 0);
+		ASSERT_EQ(Shape<TypeParam>::getIndexMemoryOffset(shape, 1, 0), 1);
+		ASSERT_EQ(Shape<TypeParam>::getIndexMemoryOffset(shape, 2, 0), 2);
+	}
+	{
+		Shape<TypeParam> shape({32, 32, 3});
+		/*	*/
+		ASSERT_EQ(Shape<TypeParam>::getIndexMemoryOffset(shape, 0, 1), 0);
+		ASSERT_EQ(Shape<TypeParam>::getIndexMemoryOffset(shape, 0, 2), 0);
+
+		ASSERT_EQ(Shape<TypeParam>::getIndexMemoryOffset(shape, 1, 1), 32);
+		ASSERT_EQ(Shape<TypeParam>::getIndexMemoryOffset(shape, 2, 1), 64);
+		ASSERT_EQ(Shape<TypeParam>::getIndexMemoryOffset(shape, 32, 1), 1);
+
+		/*	*/
+		ASSERT_EQ(Shape<TypeParam>::getIndexMemoryOffset(shape, 1, 2), 1024);
+		ASSERT_EQ(Shape<TypeParam>::getIndexMemoryOffset(shape, 2, 2), 2048);
+		ASSERT_EQ(Shape<TypeParam>::getIndexMemoryOffset(shape, 3, 2), 1);
+		ASSERT_EQ(Shape<TypeParam>::getIndexMemoryOffset(shape, 32 * 3, 2), 32);
 	}
 }
 
 REGISTER_TYPED_TEST_SUITE_P(ShapeType, DefaultConstructor, DimIndexOrder, SetGetValues, Flatten, Reshape, SubShape,
-							Reduce, ComputeIndex, Append, Erase, Equality);
+							Reduce, ComputeIndex, Append, Erase, Equality, MemoryIndexOrder);
 
 using ShapePrimitiveDataTypes = ::testing::Types<int16_t, uint16_t, int32_t, uint32_t, size_t>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Shape, ShapeType, ShapePrimitiveDataTypes);
