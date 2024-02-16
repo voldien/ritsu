@@ -1,5 +1,5 @@
+#include "RitsuUnitTest.h"
 #include <Ritsu.h>
-#include"RitsuUnitTest.h"
 #include <gtest/gtest.h>
 #include <tuple>
 

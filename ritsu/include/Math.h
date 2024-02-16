@@ -17,6 +17,7 @@
 #include <cassert>
 #include <cfloat>
 #include <cmath>
+#include <cstdlib>
 #include <vector>
 
 namespace Ritsu {
@@ -27,11 +28,10 @@ namespace Ritsu {
 	 */
 	class Math {
 	  public:
-	  
 		/**
 		 *
 		 */
-		template <class T> inline constexpr static T clamp(const T value, const T min, const T max) noexcept {
+		template <typename T> inline constexpr static T clamp(const T value, const T min, const T max) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return Math::max<T>(min, Math::min<T>(max, value));
@@ -40,11 +40,12 @@ namespace Ritsu {
 		/**
 		 *
 		 */
-		template <class T> inline constexpr static T abs(const T value) noexcept {
+		template <typename T> inline constexpr static T abs(const T value) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
+
 			if constexpr (std::is_integral<T>::value) {
-				return std::abs(value);
+				return std::abs(static_cast<long>(value));
 			} else if constexpr (std::is_floating_point<T>::value) {
 				return std::fabs(value);
 			} else {

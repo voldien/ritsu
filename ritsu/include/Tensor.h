@@ -64,8 +64,6 @@ namespace Ritsu {
 		 * @param dimensions
 		 * @param elementSize
 		 */
-		// TODO remove element size, replace with the generic type size.
-		// template <typename Param>
 		Tensor(const std::vector<IndexType> &dimensions, const size_t elementSize = DTypeSize) {
 			this->resizeBuffer(dimensions, elementSize);
 			this->typeinfo = &typeid(DType);
@@ -76,24 +74,44 @@ namespace Ritsu {
 			this->typeinfo = &typeid(DType);
 		}
 
-		Tensor(uint8_t *buffer, const size_t sizeInBytes, const std::vector<IndexType> &dimensions,
-			   const size_t elementSize = DTypeSize) noexcept {
+		Tensor(const uint8_t *buffer, const size_t sizeInBytes, const std::vector<IndexType> &dimensions,
+			   const size_t elementSize = DTypeSize) {
 
-			/*	TODO: verify */
-			this->memoryBuffer.buffer.buffer = buffer;
+			const size_t nrElementsInBuffer = sizeInBytes / elementSize;
+			if (Shape<IndexType>::computeNrElements(dimensions) < nrElementsInBuffer) {
+				throw InvalidIndexException("Invalid Shape.");
+			}
+
+			this->memoryBuffer.buffer.data = const_cast<uint8_t *>(buffer);
 			this->memoryBuffer.ownerUid = reinterpret_cast<size_t>(buffer);
 			this->memoryBuffer.uid = reinterpret_cast<size_t>(this);
 			this->memoryBuffer.allocationSize = sizeInBytes;
 			this->shape = dimensions;
 			this->NrElements = this->getShape().getNrElements();
 			this->memoryBuffer.element_size = elementSize;
+			this->memoryBuffer.memoryShape = dimensions;
 			this->typeinfo = &typeid(DType);
+		}
+
+		Tensor(const Shape<IndexType> &newShape, const Tensor &parent) {
+
+			this->memoryBuffer.buffer.data = parent.memoryBuffer.buffer.data;
+			this->memoryBuffer.ownerUid = reinterpret_cast<size_t>(parent.memoryBuffer.ownerUid);
+			this->memoryBuffer.uid = reinterpret_cast<size_t>(this);
+			this->memoryBuffer.allocationSize = parent.memoryBuffer.allocationSize;
+			this->memoryBuffer.memoryShape = parent.memoryBuffer.memoryShape;
+			this->shape = newShape;
+			this->NrElements = this->getShape().getNrElements();
+			this->memoryBuffer.element_size = parent.getElementSize();
+			this->typeinfo = parent.typeinfo;
 		}
 
 		Tensor(const Tensor &other) {
 			this->resizeBuffer(other.getShape(), other.memoryBuffer.element_size);
-			/*	*/
-			std::memcpy(this->memoryBuffer.buffer.buffer, other.memoryBuffer.buffer.buffer, other.getDatSize());
+
+			/*	Transfer data.	*/
+			std::memcpy(this->memoryBuffer.buffer.data, other.memoryBuffer.buffer.data, this->getInternalDatSize());
+
 			this->typeinfo = other.typeinfo;
 		}
 
@@ -101,8 +119,9 @@ namespace Ritsu {
 			this->release();
 
 			/*	*/
-			this->memoryBuffer.buffer.buffer = std::exchange(other.memoryBuffer.buffer.buffer, nullptr);
+			this->memoryBuffer.buffer.data = std::exchange(other.memoryBuffer.buffer.data, nullptr);
 			this->shape = std::move(other.shape);
+
 			/*	*/
 			this->NrElements = other.NrElements;
 			this->memoryBuffer.allocationSize = other.memoryBuffer.allocationSize;
@@ -120,19 +139,24 @@ namespace Ritsu {
 
 		void release() noexcept {
 
+			/*	*/
 			this->memoryBuffer.nrReferences.fetch_sub(1);
-			if (this->memoryBuffer.nrReferences.load() == 0 && this->ownAllocation() &&
-				this->memoryBuffer.buffer.buffer != nullptr) {
 
-				free(this->memoryBuffer.buffer.buffer);
-				this->memoryBuffer.buffer.buffer = nullptr;
+			/*	Determine if the memory can be released.	*/
+			if (this->memoryBuffer.nrReferences.load() == 0 && this->ownAllocation() &&
+				this->memoryBuffer.buffer.data != nullptr) {
+
+				free(this->memoryBuffer.buffer.data);
+				this->memoryBuffer.buffer.data = nullptr;
 			}
 		}
 
 		auto &operator=(const Tensor &other) {
+
 			this->resizeBuffer(other.getShape(), other.memoryBuffer.element_size);
-			std::memcpy(this->memoryBuffer.buffer.buffer, other.memoryBuffer.buffer.buffer, other.getDatSize());
+			std::memcpy(this->memoryBuffer.buffer.data, other.memoryBuffer.buffer.data, other.getDatSize());
 			this->typeinfo = other.typeinfo;
+
 			return *this;
 		}
 
@@ -140,7 +164,7 @@ namespace Ritsu {
 			this->release();
 
 			/*	*/
-			this->memoryBuffer.buffer.buffer = std::exchange(other.memoryBuffer.buffer.buffer, nullptr);
+			this->memoryBuffer.buffer.data = std::exchange(other.memoryBuffer.buffer.data, nullptr);
 			this->shape = std::move(other.shape);
 
 			/*	*/
@@ -165,8 +189,8 @@ namespace Ritsu {
 			}
 
 			/*	Check internal buffer.	*/
-			if (static_cast<const void *>(&tensor.memoryBuffer.buffer.buffer) ==
-				static_cast<const void *>(this->memoryBuffer.buffer.buffer)) {
+			if (static_cast<const void *>(&tensor.memoryBuffer.buffer.data) ==
+				static_cast<const void *>(this->memoryBuffer.buffer.data)) {
 				return true;
 			}
 
@@ -181,7 +205,7 @@ namespace Ritsu {
 			}
 
 			/*	*/
-			if (tensor.memoryBuffer.buffer.buffer == nullptr || this->memoryBuffer.buffer.buffer == nullptr) {
+			if (tensor.memoryBuffer.buffer.data == nullptr || this->memoryBuffer.buffer.data == nullptr) {
 				return false;
 			}
 
@@ -191,7 +215,7 @@ namespace Ritsu {
 			}
 
 			// Last check, see if the content matches.
-			if (memcmp(this->memoryBuffer.buffer.buffer, tensor.memoryBuffer.buffer.buffer, this->getDatSize()) != 0) {
+			if (memcmp(this->memoryBuffer.buffer.data, tensor.memoryBuffer.buffer.data, this->getDatSize()) != 0) {
 				return false;
 			}
 
@@ -225,8 +249,11 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			static_assert(!std::is_pointer<U>::value, "Can not be pointer");
+
+			Shape<IndexType>::getIndexMemoryOffset(this->getShape(), index);
+
 			assert(index < this->getNrElements());
-			U *addr = reinterpret_cast<U *>(&this->memoryBuffer.buffer.buffer[index * this->memoryBuffer.element_size]);
+			U *addr = reinterpret_cast<U *>(&this->memoryBuffer.buffer.data[index * this->memoryBuffer.element_size]);
 			return *addr;
 		}
 
@@ -235,9 +262,10 @@ namespace Ritsu {
 						  "Must be a decimal type(float/double/half) or integer.");
 			static_assert(!std::is_pointer<U>::value, "Can not be pointer");
 
+			Shape<IndexType>::getIndexMemoryOffset(this->getShape(), index);
 			assert(index < this->getNrElements());
 			const U *addr =
-				reinterpret_cast<const U *>(&this->memoryBuffer.buffer.buffer[index * this->memoryBuffer.element_size]);
+				reinterpret_cast<const U *>(&this->memoryBuffer.buffer.data[index * this->memoryBuffer.element_size]);
 			return *addr;
 		}
 
@@ -394,16 +422,39 @@ namespace Ritsu {
 			}
 		}
 
-		Tensor getSubset(size_t start, size_t end, const Shape<IndexType> &newShape = {}) const {
+		/**
+		 * @brief Get the Subset object
+		 */
+		Tensor getSubset(size_t start, size_t end, const Shape<IndexType> &newShape) const {
+
 			// TODO update shape
 			if (newShape.getNrDimensions() == 0) {
+				throw InvalidArgumentException("Must Have a valid Shape");
+			}
+			if ((end - start) != newShape.getNrElements()) {
+				throw InvalidArgumentException("Invalid Start/End and Shape");
 			}
 
 			//	this->memoryBuffer.nrReferences.fetch_add(1);
-			Tensor subset = Tensor(static_cast<uint8_t *>(&this->memoryBuffer.buffer.buffer[start * DTypeSize]),
+			Tensor subset = Tensor(static_cast<uint8_t *>(&this->memoryBuffer.buffer.data[start * DTypeSize]),
 								   end - start, newShape, this->memoryBuffer.element_size);
 
 			return subset;
+		}
+
+		/**
+		 * @brief Get the Subset object
+		 */
+		Tensor getSubset(const std::initializer_list<ShapePair<IndexType>> subaxisGroup) const {
+
+			const Shape<IndexType> newShape = getShape().getSubShape(subaxisGroup);
+
+			/*	Validate new subset shape size request.	*/
+			if (newShape.getNrDimensions() == 0) {
+			}
+
+			/*	Create a tensor, parent to this.	*/
+			return Tensor(newShape, *this);
 		}
 
 		Tensor &flatten() noexcept {
@@ -420,7 +471,7 @@ namespace Ritsu {
 
 		template <typename U> Tensor &insert(const U tensor) { return *this; }
 
-		DType dot(const Tensor &tensor) const noexcept { return Tensor::dot(*this, tensor); }
+		inline DType dot(const Tensor &tensor) const noexcept { return Tensor::dot(*this, tensor); }
 
 		static DType dot(const Tensor &tensorA, const Tensor &tensorB) noexcept {
 			// TODO: determine type.
@@ -432,28 +483,42 @@ namespace Ritsu {
 			return *this;
 		}
 
-		DType mean() const noexcept { return Tensor::mean<DType>(*this); }
+		/**
+		 * @brief
+		 */
+		inline DType mean() const noexcept { return Tensor::mean<DType>(*this); }
 
-		Tensor mean(const Tensor &tensorA) noexcept { return fromArray({Tensor::mean<DType>(tensorA)}); }
+		/**
+		 * @brief
+		 *
+		 */
+		inline Tensor mean(int axis) noexcept { return Tensor::mean<DType>(*this, axis); }
 
 		DType min() const noexcept {
-			DType min = std::numeric_limits<DType>::max();
+			DType minValue = std::numeric_limits<DType>::max();
 			const IndexType elements = this->getNrElements();
 
-#pragma omp parallel for default(shared) reduction(min : min)
+#pragma omp parallel for default(shared) reduction(min : minValue)
 			for (IndexType i = 0; i < elements; i++) {
-				min = Math::min<DType>(getValue(i), min);
+				minValue = Math::min<DType>(getValue(i), minValue);
 			}
-			return min;
+			return minValue;
 		}
+
+		/**
+		 * @brief
+		 *
+		 * @return DType
+		 */
 		DType max() const noexcept {
-			DType max = std::numeric_limits<DType>::min();
+			DType maxValue = std::numeric_limits<DType>::min();
+
 			const IndexType elements = this->getNrElements();
-#pragma omp parallel for default(shared) reduction(min : max)
+#pragma omp parallel for default(shared) reduction(max : maxValue)
 			for (IndexType i = 0; i < elements; i++) {
-				max = Math::max<DType>(this->getValue(i), max);
+				maxValue = Math::max<DType>(this->getValue(i), maxValue);
 			}
-			return max;
+			return maxValue;
 		}
 
 		Tensor &append(const Tensor &tensor, int axis = -1) { // TODO: add axis
@@ -587,7 +652,7 @@ namespace Ritsu {
 		void resizeBuffer(const Shape<IndexType> &shape, const size_t elementSize) {
 			const size_t total_nr_elements = shape.getNrElements();
 
-			if (this->memoryBuffer.buffer.buffer != nullptr && !this->ownAllocation()) {
+			if (this->memoryBuffer.buffer.data != nullptr && !this->ownAllocation()) {
 				/*	*/
 				throw RuntimeException("Can not allocate on not owned tensor.");
 			}
@@ -603,7 +668,7 @@ namespace Ritsu {
 			// TODO handle if not the same pointer is returned.
 
 			/*	Set ownership if never allocated before.	*/
-			if (this->memoryBuffer.buffer.dbuffer == nullptr) {
+			if (this->memoryBuffer.buffer.ddata == nullptr) {
 				this->memoryBuffer.uid = reinterpret_cast<size_t>(this);
 				if (this->memoryBuffer.ownerUid == 0) {
 					this->memoryBuffer.ownerUid = this->memoryBuffer.uid;
@@ -611,27 +676,31 @@ namespace Ritsu {
 			}
 
 			/*	*/
-			const void *prevBuf = this->memoryBuffer.buffer.buffer;
-			this->memoryBuffer.buffer.buffer =
-				static_cast<uint8_t *>(realloc(this->memoryBuffer.buffer.buffer, nrBytesAllocateAligned));
+			const void *prevBuf = this->memoryBuffer.buffer.data;
+			this->memoryBuffer.buffer.data =
+				static_cast<uint8_t *>(realloc(this->memoryBuffer.buffer.data, nrBytesAllocateAligned));
 
 			this->memoryBuffer.allocationSize = nrBytesAllocateAligned;
 
-			if (this->memoryBuffer.buffer.buffer == nullptr) {
+			if (this->memoryBuffer.buffer.data == nullptr) {
 				throw RuntimeException("Error");
 			}
 
 			this->shape = shape;
 			this->NrElements = total_nr_elements;
 			this->memoryBuffer.element_size = elementSize;
+			this->memoryBuffer.memoryShape = shape;
 		}
 
-		friend std::ostream &operator<<(std::ostream &stream, Tensor &tensor) {
+		friend std::ostream &operator<<(std::ostream &stream, Tensor &tensor) noexcept {
+
 			const IndexType number_elements = tensor.getNrElements();
 
 			/*	*/
 			for (IndexType index = 0; index < number_elements; index++) {
+
 				DType value = tensor.getValue<DType>(index);
+
 				stream << value << ",";
 			}
 
@@ -646,17 +715,17 @@ namespace Ritsu {
 
 		template <typename U> inline constexpr const U *getRawData() const noexcept {
 			static_assert(!std::is_pointer<U>::value, "Can not be pointer");
-			return reinterpret_cast<const U *>(this->memoryBuffer.buffer.buffer);
+			return reinterpret_cast<const U *>(this->memoryBuffer.buffer.data);
 		}
 		template <typename U> inline constexpr U *getRawData() noexcept {
 			static_assert(!std::is_pointer<U>::value, "Can not be pointer");
-			return reinterpret_cast<U *>(this->memoryBuffer.buffer.buffer);
+			return reinterpret_cast<U *>(this->memoryBuffer.buffer.data);
 		}
 
 		inline IndexType getNrElements() const noexcept { return this->NrElements; }
 		inline IndexType getDatSize() const noexcept { return this->getNrElements() * this->memoryBuffer.element_size; }
 		inline IndexType getInternalDatSize() const noexcept { return this->memoryBuffer.allocationSize; }
-		inline size_t getElementSize() const noexcept { return this->memoryBuffer.element_size; }
+		inline uint32_t getElementSize() const noexcept { return this->memoryBuffer.element_size; }
 
 		static bool verifyShape(const Tensor &tensorA, const Tensor &tensorB) noexcept {
 			/*	*/
@@ -670,17 +739,18 @@ namespace Ritsu {
 
 	  private:
 		using TensorBuffer = union _buffer_t {
-			uint8_t *buffer = nullptr;
-			float *fbuffer;
-			DType *dbuffer;
+			uint8_t *data = nullptr; /*	*/
+			DType *ddata;			 /*	*/
 		};
+
 		using InternalBuffer = struct internal_buffer_t {
-			TensorBuffer buffer;
-			size_t allocationSize;
-			size_t uid = 0;
-			std::atomic_int32_t nrReferences = {1};
-			size_t ownerUid = 0;
-			uint32_t element_size = 0;
+			TensorBuffer buffer;				 /*	*/
+			size_t allocationSize = 0;			 /*	*/
+			size_t uid = 0;						 /*	*/
+			std::atomic_int32_t nrReferences{1}; /*	*/
+			size_t ownerUid = 0;				 /*	*/
+			uint32_t element_size = 0;			 /*	*/
+			Shape<IndexType> memoryShape;		 /*	*/
 		};
 
 		size_t NrElements = 0;		 /*	Cache value of shape number of elements.*/
@@ -712,14 +782,17 @@ namespace Ritsu {
 
 		template <typename U> static U mean(const Tensor &tensorA) noexcept {
 
+			/*	*/
 			if (tensorA.getNrElements() == 0) {
 				return 0;
 			}
+
 			return static_cast<U>(Math::mean<DType>(tensorA.getRawData<DType>(), tensorA.getNrElements()));
 		}
 
 		template <typename U> static Tensor mean(const Tensor &tensorA, int axis) noexcept {
 
+			/*	*/
 			if (tensorA.getNrElements() == 0) {
 				return {};
 			}
@@ -837,19 +910,19 @@ namespace Ritsu {
 			const size_t output_row = output.getShape()[0];
 			const size_t output_col = output.getShape().getNrDimensions() > 1 ? output.getShape()[1] : 1;
 
-//#pragma omp parallel for collapse(2) shared(tensorALeft, tensorBRight, output)
-			for (size_t y = 0; y < A_row; y++) {
+			//#pragma omp parallel for collapse(2) shared(tensorALeft, tensorBRight, output)
+			for (size_t a_row = 0; a_row < A_row; a_row++) {
 
-				for (size_t x = 0; x < B_col; x++) {
+				for (size_t b_col = 0; b_col < B_col; b_col++) {
 
-					const size_t indexOutput = y * output_col + x;
+					const size_t indexOutput = a_row * output_col + b_col;
 
 					DType sum = 0;
-//#pragma omp simd reduction(+ : sum)
+					//#pragma omp simd reduction(+ : sum)
 					for (size_t i = 0; i < B_row; i++) {
 
-						const size_t indexA = y * A_row + i;
-						const size_t indexB = i * B_col + x;
+						const size_t indexA = a_row * A_row + i;
+						const size_t indexB = i * B_col + b_col;
 
 						assert(indexA < tensorALeft.getNrElements());
 						assert(indexB < tensorBRight.getNrElements());

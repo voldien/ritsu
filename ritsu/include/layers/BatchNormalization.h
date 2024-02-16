@@ -16,6 +16,7 @@
 #pragma once
 #include "../Math.h"
 #include "Layer.h"
+#include "core/Shape.h"
 
 namespace Ritsu {
 
@@ -75,7 +76,7 @@ namespace Ritsu {
 
 			for (size_t i = 0; i < ndims; i++) {
 
-				Tensor<float> subset = input.getSubset(0, 12);
+				Tensor<float> subset = input.getSubset(0, 12, Shape<IndexType>({12}));
 				DType mean = Math::mean(subset.getRawData<DType>(), subset.getNrElements());
 				// TODO add // (subset - mean) /
 				(Math::variance<DType>(subset.getRawData<DType>(), subset.getNrElements(), mean) + 0.00001f);

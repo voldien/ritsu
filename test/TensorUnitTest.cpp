@@ -17,6 +17,25 @@ TYPED_TEST_P(TensorType, DefaultType) {
 	ASSERT_EQ(tensor.getDType(), typeid(TypeParam));
 }
 
+TYPED_TEST_P(TensorType, PrintNoThrow) {
+
+	{
+		Tensor<TypeParam> tensor({32, 32, 3});
+		std::stringstream buf;
+		ASSERT_NO_THROW(buf << tensor);
+	}
+	{
+		Tensor<TypeParam> tensor({1}); /*	*/
+		std::stringstream buf;
+		ASSERT_NO_THROW(buf << tensor);
+	}
+	{
+		Tensor<TypeParam> tensor({32, 32, 3}); /*	*/
+		std::stringstream buf;
+		ASSERT_NO_THROW(buf << tensor);
+	}
+}
+
 TYPED_TEST_P(TensorType, AssignMove) {
 	Tensor<TypeParam> tensor({32, 32, 3}, sizeof(TypeParam));
 	void *data = tensor.template getRawData<void>();
@@ -357,25 +376,60 @@ TYPED_TEST_P(TensorType, Cast) {
 
 TYPED_TEST_P(TensorType, SubSet) {
 
+	/*	Memory.	*/
 	{
-		Tensor<TypeParam> tensorA(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
-		Tensor<TypeParam> tensorB(Shape<uint32_t>({8, 8, 3}), sizeof(TypeParam));
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({8, 8, 3}));
+		ASSERT_NO_THROW(tensorA.getSubset(0, 1, Shape<uint32_t>({1})));
 
 		Tensor<TypeParam> subset = std::move(tensorA.getSubset(0, 1, Shape<uint32_t>({1})));
+		ASSERT_EQ(subset.getShape(), Shape<uint32_t>({1}));
+	}
 
+	/*	Shape.	*/
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({8, 8, 3}));
+		ASSERT_NO_THROW(tensorA.getSubset({{0}}));
+
+		Tensor<TypeParam> subset0 = std::move(tensorA.getSubset({{0}}));
 		// TODO:
-		ASSERT_EQ(subset.getShape(), Shape<uint32_t>({8, 8, 3}));
+		ASSERT_EQ(subset0.getShape(), Shape<uint32_t>({1, 8, 3}));
 
-		// ASSERT_THROW(subset.append({0, 1}), RuntimeException);
+		ASSERT_NO_THROW(tensorA.getSubset({{0}}).getSubset({{0}}));
+
+		Tensor<TypeParam> subset1 = std::move(tensorA.getSubset({{0}}).getSubset({{0}}));
 	}
 }
 
-REGISTER_TYPED_TEST_SUITE_P(TensorType, DefaultConstructor, DefaultType, AssignMove, DataSize, Addition, Subtract,
-							MultiplyFactor, ElementCount, FromArray, SetGetValues, Log10, Mean, Flatten, InnerProduct,
-							Append, Reduce, Reshape, Cast, SubSet, MatrixMultiplication, Equal, NotEqual);
+TYPED_TEST_P(TensorType, Transpose) {
 
-using TensorPrimitiveDataTypes = ::testing::Types<int16_t, uint16_t, int32_t, uint32_t, long, size_t, float, double>;
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({2, 4}));
+		ASSERT_NO_THROW(tensorA.transpose());
+	}
+
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({2, 4}));
+		ASSERT_EQ(tensorA.transpose().transpose().getShape(), Shape<uint32_t>({2, 4}));
+	}
+}
+
+TYPED_TEST_P(TensorType, OneShot) {
+
+	{
+		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::fromArray({1, 2, 4, 1, 2, 4, 2, 1, 2, 4, 1});
+		const TypeParam max = tensorA.max() + 1;
+
+		const Tensor<TypeParam> oneshot = Tensor<TypeParam>::oneShot(tensorA);
+
+		ASSERT_EQ(oneshot.getShape()[-1], max);
+	}
+}
+
+REGISTER_TYPED_TEST_SUITE_P(TensorType, DefaultConstructor, DefaultType, PrintNoThrow, AssignMove, DataSize, Addition,
+							Subtract, MultiplyFactor, ElementCount, FromArray, SetGetValues, Log10, Mean, Flatten,
+							Transpose, InnerProduct, Append, Reduce, Reshape, Cast, SubSet, MatrixMultiplication, Equal,
+							NotEqual, OneShot);
+
+using TensorPrimitiveDataTypes =
+	::testing::Types<bool, int16_t, uint16_t, int32_t, uint32_t, long, size_t, float, double>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Parameter, TensorType, TensorPrimitiveDataTypes);
-
-// resize
-// Axis dim

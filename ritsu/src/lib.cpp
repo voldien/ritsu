@@ -5,7 +5,9 @@
 namespace Ritsu {
 
 	template class Shape<std::uint32_t>;
-	// template class Shape<std::int32_t>;
+	template class Shape<std::int32_t>;
+	template class Shape<std::int16_t>;
+	template class Shape<std::uint16_t>;
 
 	template class Model<std::float_t>;
 	template class Model<std::int32_t>;

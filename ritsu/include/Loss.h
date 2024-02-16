@@ -72,10 +72,13 @@ namespace Ritsu {
 
 	static void loss_mse(const Tensor<float> &evoluated, const Tensor<float> &expected, Tensor<float> &output_result) {
 
+		/*	(A - B)^2	*/
 		output_result = std::move(evoluated - expected);
 		output_result = output_result * output_result;
 
-		output_result = Tensor<float>::mean<float>(output_result, evoluated.getShape().getAxisDimensions(-1));
+		/*	Mean for each batch index.	*/
+		const size_t batchIndex = evoluated.getShape().getAxisDimensions(0);
+		output_result = std::move(output_result.mean(batchIndex));
 	}
 
 	static void loss_msa(const Tensor<float> &evoluated, const Tensor<float> &expected, Tensor<float> &output_result) {

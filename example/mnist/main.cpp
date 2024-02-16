@@ -19,7 +19,7 @@ int main(int argc, const char **argv) {
 
 	try {
 		/*	*/
-		const unsigned int batchSize = 1;
+		const unsigned int batchSize = 10;
 		const unsigned int epochs = 128;
 		const size_t dataBufferSize = 5;
 		const float learningRate = 0.002f;
@@ -39,16 +39,17 @@ int main(int argc, const char **argv) {
 		std::cout << "Loaded MNIST Data Set: " << inputDataX.getShape() << " Labels: " << inputResY.getShape()
 				  << std::endl;
 
-		inputResY = Tensor<uint8_t>::oneShot(inputResY);
-		inputResTestY = Tensor<uint8_t>::oneShot(inputResTestY);
+		/*	*/
+		inputResY = std::move(Tensor<uint8_t>::oneShot(inputResY));
+		inputResTestY = std::move(Tensor<uint8_t>::oneShot(inputResTestY));
 
 		/*	*/
 		Tensor<float> inputResYF = inputResY.cast<float>();
 		Tensor<float> inputResTestYF = inputResTestY.cast<float>();
 
 		/*	Extract data shape.	*/
-		Shape<unsigned int> dataShape = inputDataX.getShape().getSubShape(1, 3);
-		Shape<unsigned int> resultShape = inputResY.getShape().getSubShape(1, 1);
+		Shape<unsigned int> dataShape = inputDataX.getShape().getSubShapeMem(1, 3);
+		Shape<unsigned int> resultShape = inputResY.getShape().getSubShapeMem(1, 1);
 		const unsigned int output_size = 10;
 
 		inputDataX = inputDataX.cast<float>();
@@ -115,8 +116,7 @@ int main(int argc, const char **argv) {
 			MetricMean lossmetric("loss");
 
 			Loss mse_loss(sparse_categorical_crossentropy);
-			forwardModel.compile(&optimizer, sparse_categorical_crossentropy,
-								 {dynamic_cast<Metric *>(&lossmetric), (Metric *)&accuracy});
+			forwardModel.compile(&optimizer, loss_mse, {dynamic_cast<Metric *>(&lossmetric), (Metric *)&accuracy});
 			std::cout << forwardModel.summary() << std::endl;
 
 			forwardModel.fit(epochs, inputDataX, inputResYF, batchSize);

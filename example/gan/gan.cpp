@@ -40,8 +40,8 @@ int main(int argc, const char **argv) {
 	std::cout << "Loaded MNIST Data Set: " << inputDataX.getShape() << " Labels: " << inputResY.getShape() << std::endl;
 
 	/*	*/
-	Shape<unsigned int> dataShape = inputDataX.getShape().getSubShape(1, 3);
-	Shape<unsigned int> resultShape = inputResY.getShape().getSubShape(1, 1);
+	Shape<unsigned int> dataShape = inputDataX.getShape().getSubShapeMem(1, 3);
+	Shape<unsigned int> resultShape = inputResY.getShape().getSubShapeMem(1, 1);
 	const unsigned int output_size = 1;
 
 	/*	*/
