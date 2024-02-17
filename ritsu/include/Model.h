@@ -46,6 +46,7 @@ namespace Ritsu {
 	  public:
 		using DType = T;
 		const size_t DTypeSize = sizeof(DType);
+		using IndexType = unsigned int;
 
 	  public:
 		Model(const std::vector<Layer<T> *> inputs, const std::vector<Layer<T> *> outputs,
@@ -71,19 +72,19 @@ namespace Ritsu {
 				throw std::bad_exception();
 			}
 
+			/*	Number of batches in dataset.	*/
+			const size_t batchXIndex = inputData.getShape()[batch_shape_index];
+			const size_t batchYIndex = expectedData.getShape()[batch_shape_index];
+
 			/*	*/
-			const size_t nrTrainBatches = inputData.getShape()[0] / batch_size;
-			const size_t nrValidationBatches = nrTrainBatches * validation_split;
+			const size_t nrTrainBatches = std::floor((float)batchXIndex / (float)batch_size);
+			const size_t nrValidationBatches = std::floor(nrTrainBatches * validation_split);
 			// TODO verify shape and etc.
 
 			// TODO add array support.
 			Tensor<float> batchResult;
 
 			// TODO add support
-
-			/*	Number of batches in dataset.	*/
-			const size_t batchXIndex = inputData.getShape()[batch_shape_index];
-			const size_t batchYIndex = expectedData.getShape()[batch_shape_index];
 
 			/*	*/
 			Tensor<float> validationData;
@@ -120,7 +121,7 @@ namespace Ritsu {
 														static_cast<unsigned int>((ibatch + 1) * batch_size) - 1}}));
 
 					/*	*/
-					const Tensor<float> subsetExpecetedBatch =
+					const Tensor<float> subsetExpectedBatch =
 						std::move(expectedData.getSubset({{static_cast<unsigned int>(ibatch * batch_size),
 														   static_cast<unsigned int>((ibatch + 1) * batch_size) - 1}}));
 
@@ -129,7 +130,7 @@ namespace Ritsu {
 
 					/*	Compute the loss/cost.	*/
 					Tensor<float> loss_error =
-						std::move(this->lossFunction.computeLoss(batchResult, subsetExpecetedBatch));
+						std::move(this->lossFunction.computeLoss(batchResult, subsetExpectedBatch));
 
 					/*	Apply metric update.	*/
 					for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
@@ -139,6 +140,7 @@ namespace Ritsu {
 					/*	*/
 					this->backPropagation(loss_error, cachedResult);
 
+					/*	*/
 					this->print_status(std::cout);
 
 					{
@@ -308,7 +310,7 @@ namespace Ritsu {
 							   std::map<std::string, Tensor<float>> *cacheResult = nullptr) {
 
 			const size_t batchIndex = inputData.getShape()[0];
-			Layer<T> *current = this->inputs[0];
+			// Layer<T> *current = this->inputs[0];
 
 			/*	*/
 			Tensor<float> layerResult = inputData;
@@ -320,14 +322,19 @@ namespace Ritsu {
 
 				Tensor<float> batchTmp =
 					Shape<unsigned int>({static_cast<unsigned int>(batchIndex)}).insert(1, current->getShape());
+
+				//std::cout << layerResult << std::endl << std::endl;
 				/*	Compute each batch element.	*/
 				for (size_t i = 0; i < batchSize; i++) {
-					Tensor<float> batch = layerResult.getSubset({{(unsigned int)i}});
-
+					Tensor<float> batch = std::move(layerResult.getSubset({{(IndexType)i}}));
 					batch.reduce();
+
+					Tensor<float> resultSubset = std::move(batchTmp.getSubset({(IndexType)i}));
+
 					/*	Perform layer on data.	*/
-					batchTmp.getSubset({i}) = std::move((*current) << ((const Tensor<float> &)batch));
+					resultSubset.copy((*current) << ((const Tensor<float> &)batch));
 				}
+				/*	Override the layer result with the batch.	*/
 				layerResult = std::move(batchTmp);
 
 				/*	validate result shape. */
@@ -345,8 +352,7 @@ namespace Ritsu {
 				}
 			}
 
-			/*	*/ // TODO:remove and fix.
-			//layerResult.reshape(Shape<unsigned int>({(unsigned int)batchIndex, 10}));
+			/*	*/
 			result = std::move(layerResult);
 		}
 
@@ -470,6 +476,7 @@ namespace Ritsu {
 
 		/*	*/
 		std::vector<Metric *> metrics;
+		std::map<std::string, Object> batchCache;
 
 	  private: /*	Internal data.	*/
 		std::list<Layer<DType> *> forwardSequence;

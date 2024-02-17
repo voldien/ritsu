@@ -19,7 +19,7 @@ int main(int argc, const char **argv) {
 
 	try {
 		/*	*/
-		const unsigned int batchSize = 10;
+		const unsigned int batchSize = 1;
 		const unsigned int epochs = 128;
 		const size_t dataBufferSize = 5;
 		const float learningRate = 0.002f;
@@ -29,8 +29,8 @@ int main(int argc, const char **argv) {
 		Tensor<uint8_t> inputResY;
 		Tensor<uint8_t> inputResTestY;
 
-		Tensor<float> inputDataX;
-		Tensor<float> inputTestX;
+		Tensor<uint8_t> inputDataX;
+		Tensor<uint8_t> inputTestX;
 
 		/*	*/
 		RitsuDataSet::loadMNIST("train-images.idx3-ubyte", "train-labels.idx1-ubyte", "t10k-images.idx3-ubyte",
@@ -40,20 +40,21 @@ int main(int argc, const char **argv) {
 				  << std::endl;
 
 		/*	*/
+
 		inputResY = std::move(Tensor<uint8_t>::oneShot(inputResY));
 		inputResTestY = std::move(Tensor<uint8_t>::oneShot(inputResTestY));
 
 		/*	*/
-		Tensor<float> inputResYF = inputResY.cast<float>();
-		Tensor<float> inputResTestYF = inputResTestY.cast<float>();
+		const Tensor<float> inputResYF = inputResY.cast<float>();
+		const Tensor<float> inputResTestYF = inputResTestY.cast<float>();
 
 		/*	Extract data shape.	*/
 		Shape<unsigned int> dataShape = inputDataX.getShape().getSubShapeMem(1, 3);
 		Shape<unsigned int> resultShape = inputResY.getShape().getSubShapeMem(1, 1);
 		const unsigned int output_size = 10;
 
-		inputDataX = inputDataX.cast<float>();
-		inputTestX = inputTestX.cast<float>();
+		const Tensor<float> inputDataXF = inputDataX.cast<float>();
+		const Tensor<float> inputTestXF = inputTestX.cast<float>();
 
 		/*	*/
 		std::cout << "Train Object Size: " << dataShape << " Expected result Size: " << resultShape << std::endl;
@@ -84,9 +85,10 @@ int main(int argc, const char **argv) {
 
 		/*	*/
 		{
-			Layer<float> *lay = &cast2Float(input0node);
+			// Layer<float> *lay = &cast2Float(input0node);
 
-			lay = &normalizedLayer(*lay);
+			// lay = &normalizedLayer(*lay);
+			Layer<float> *lay = &normalizedLayer(input0node);
 			lay = &flattenInput(*lay);
 
 			lay = &noise(*lay);
@@ -115,13 +117,13 @@ int main(int argc, const char **argv) {
 			MetricAccuracy accuracy;
 			MetricMean lossmetric("loss");
 
-			Loss mse_loss(sparse_categorical_crossentropy);
+			Loss mse_loss(loss_mse);
 			forwardModel.compile(&optimizer, loss_mse, {dynamic_cast<Metric *>(&lossmetric), (Metric *)&accuracy});
 			std::cout << forwardModel.summary() << std::endl;
 
-			forwardModel.fit(epochs, inputDataX, inputResYF, batchSize);
+			forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize);
 
-			Tensor<float> predict = std::move(forwardModel.predict(inputTestX));
+			Tensor<float> predict = std::move(forwardModel.predict(inputTestXF));
 
 			/*	*/
 			Tensor<float> predict_result = Tensor<float>::equal(predict, inputResTestYF);

@@ -86,7 +86,7 @@ namespace Ritsu {
 			va_start(args, tensor);
 
 			const Tensor<float> *refA = &tensor;
-			m_result.getValue<float>(0) = Tensor<float>::mean<float>(*refA);
+			m_result.getValue<float>(0) = refA->mean();
 
 			va_end(args);
 		}

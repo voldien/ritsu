@@ -500,5 +500,6 @@ namespace Ritsu {
 	  private:
 		std::vector<IndexType> dims;
 		IndexType count;
+		std::vector<IndexType> cacheDim;
 	};
 } // namespace Ritsu

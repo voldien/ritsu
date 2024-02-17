@@ -160,7 +160,7 @@ namespace Ritsu {
 
 		void initweight() noexcept {
 			// TODO improve
-			RandomNormal<DType> random(0.1, 1.0);
+			RandomNormal<DType> random(0.0, 1.0);
 #pragma omp parallel for simd shared(weight)
 
 			for (size_t i = 0; i < this->weight.getNrElements(); i++) {
@@ -170,10 +170,9 @@ namespace Ritsu {
 
 		void initbias() noexcept {
 			// TODO improve
-			RandomNormal<DType> random(0.1, 1.0);
+			RandomNormal<DType> random(0.0, 1.0);
 
-#pragma omp parallel shared(bias)
-#pragma omp simd
+#pragma omp parallel for simd shared(bias)
 			for (size_t i = 0; i < this->bias.getNrElements(); i++) {
 				this->bias.getValue<DType>(i) = random.rand();
 			}

@@ -14,6 +14,7 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
+#include "RitsuDef.h"
 #include <string>
 
 namespace Ritsu {
@@ -32,5 +33,5 @@ namespace Ritsu {
 	  private:
 		std::string name;
 	};
-	
+
 } // namespace Ritsu

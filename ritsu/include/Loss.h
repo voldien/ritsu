@@ -49,7 +49,7 @@ namespace Ritsu {
 
 		virtual Tensor<float> computeLoss(const Tensor<float> &inputX0, const Tensor<float> &inputX1) {
 
-			Tensor<float> batchLossResult(inputX0.getShape(), Tensor<float>::DTypeSize);
+			Tensor<float> batchLossResult;
 
 			/*	*/
 			if (!Tensor<float>::verifyShape(inputX0, inputX1)) {
@@ -70,6 +70,9 @@ namespace Ritsu {
 		LossFunction loss_function;
 	};
 
+	/**
+	 * @brief
+	 */
 	static void loss_mse(const Tensor<float> &evoluated, const Tensor<float> &expected, Tensor<float> &output_result) {
 
 		/*	(A - B)^2	*/
@@ -77,41 +80,68 @@ namespace Ritsu {
 		output_result = output_result * output_result;
 
 		/*	Mean for each batch index.	*/
-		const size_t batchIndex = evoluated.getShape().getAxisDimensions(0);
+		const int batchIndex = -1;
 		output_result = std::move(output_result.mean(batchIndex));
 	}
 
+	/**
+	 * @brief
+	 */
 	static void loss_msa(const Tensor<float> &evoluated, const Tensor<float> &expected, Tensor<float> &output_result) {
 
-		output_result = evoluated;
-		output_result = output_result - expected;
+		/*	(A - B)	*/
+		output_result = std::move(evoluated - expected);
+		output_result = output_result * output_result;
 
 		output_result = Tensor<float>::abs(output_result);
 
-		output_result = Tensor<float>::mean<float>(output_result, evoluated.getShape().getAxisDimensions(-1));
+		const int batchIndex = -1;
+		output_result = std::move(output_result.mean(batchIndex));
 	}
 
+	/**
+	 * @brief
+	 */
 	static void loss_binary_cross_entropy(const Tensor<float> &evoluated, const Tensor<float> &expected,
 										  Tensor<float> &output) {
+
 		output = std::move(expected * Tensor<float>::log10(evoluated) * -1.0f);
+
+		const int batchIndex = -1;
+		output = std::move(output.mean(batchIndex));
 	}
 
+	/**
+	 * @brief
+	 */
 	static void loss_cross_entropy(const Tensor<float> &evoluated, const Tensor<float> &expected,
 								   Tensor<float> &output) {
+
 		Tensor<float> A = Tensor<float>::log10(expected);
+
 		// TODO add support for primitve
 		Tensor<float> one(evoluated.getShape());
-		output = -expected * A + (one - expected) * A;
+		output = std::move(-expected * A + (1.0f - expected) * A);
+
+		const int batchIndex = -1;
+		output = std::move(output.mean(batchIndex));
 	}
 
 	// TODO convert to one shot vector.
+	/**
+	 * @brief
+	 */
 	static void loss_cross_catagorial_entropy(const Tensor<float> &evoluated, const Tensor<float> &expected,
 											  Tensor<float> &output) {
+
 		output = std::move(expected * Tensor<float>::log10(evoluated) * -1.0f);
 
 		/*Tensor<float> A = inputA * log(inputB);*/
 	}
 
+	/**
+	 * @brief
+	 */
 	static void sparse_categorical_crossentropy(const Tensor<float> &evoluated, const Tensor<float> &expected,
 												Tensor<float> &output) {
 
@@ -128,8 +158,14 @@ namespace Ritsu {
 		return loss_cross_catagorial_entropy(evoluated, expected_one_shot, output);
 	}
 
+	/**
+	 * @brief
+	 */
 	static void loss_ssim(const Tensor<float> &inputA, const Tensor<float> &inputB, Tensor<float> &output) {
 		/*Tensor<float> A = inputA * log(inputB);*/
+
+		const int batchIndex = -1;
+		output = std::move(output.mean(batchIndex));
 	}
 
 	static void loss_psnr(const Tensor<float> &inputA, const Tensor<float> &inputB, Tensor<float> &output) {
@@ -140,5 +176,7 @@ namespace Ritsu {
 
 		// TODO:
 		// output = 20 * std::log10(255.0 / rmse);
+		const int batchIndex = -1;
+		output = std::move(output.mean(batchIndex));
 	}
 }; // namespace Ritsu

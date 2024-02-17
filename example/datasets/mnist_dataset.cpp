@@ -21,7 +21,7 @@ template <typename T> static inline constexpr T swap_endian(const T value) {
 	return bi0 | bi1 | bi2 | bi3;
 }
 
-static void load_image_dataset(std::ifstream &stream, Ritsu::Tensor<float> &dataX) {
+static void load_image_dataset(std::ifstream &stream, Ritsu::Tensor<uint8_t> &dataX) {
 	/*	*/
 	int32_t width, height, nr_images, image_magic;
 
@@ -49,7 +49,7 @@ static void load_image_dataset(std::ifstream &stream, Ritsu::Tensor<float> &data
 
 	const size_t ImageSize = static_cast<size_t>(width) * static_cast<size_t>(height);
 
-	dataX = Tensor<float>(
+	dataX = Tensor<uint8_t>(
 		{static_cast<unsigned int>(nr_images), static_cast<unsigned int>(width), static_cast<unsigned int>(height), 1},
 		sizeof(uint8_t));
 
@@ -109,7 +109,7 @@ static void load_label_dataset(std::ifstream &stream, Ritsu::Tensor<uint8_t> &da
 
 void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &labelPath,
 							 const std::string &imageTestPath, const std::string &labelTestPath,
-							 Ritsu::Tensor<float> &dataX, Ritsu::Tensor<uint8_t> &dataY, Ritsu::Tensor<float> &testX,
+							 Ritsu::Tensor<uint8_t> &dataX, Ritsu::Tensor<uint8_t> &dataY, Ritsu::Tensor<uint8_t> &testX,
 							 Ritsu::Tensor<uint8_t> &testY) {
 
 	/*	*/

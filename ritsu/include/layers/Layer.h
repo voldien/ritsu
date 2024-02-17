@@ -40,13 +40,13 @@ namespace Ritsu {
 		virtual Tensor<float> &operator()(Tensor<float> &tensor) { return tensor; }
 
 		// TODO: varadic + helper method to extract all of them easily.
-		template <class U> auto &operator()(const U &layer...) {
+		template <typename U> auto &operator()(const U &layer...) {
 			this->getInputs()[0] = layer;
 			return *this;
 		}
 
 		// TODO: varadic
-		template <class U> auto &operator()(U &layer...) {
+		template <typename U> auto &operator()(U &layer...) {
 			this->setInputs({&layer});
 			layer.setOutputs({this});
 			return *this;

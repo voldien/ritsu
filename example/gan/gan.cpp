@@ -30,8 +30,8 @@ int main(int argc, const char **argv) {
 	Tensor<uint8_t> inputResY;
 	Tensor<uint8_t> inputResTestY;
 
-	Tensor<float> inputDataX;
-	Tensor<float> inputTestX;
+	Tensor<uint8_t> inputDataX;
+	Tensor<uint8_t> inputTestX;
 
 	/*	*/
 	RitsuDataSet::loadMNIST("train-images.idx3-ubyte", "train-labels.idx1-ubyte", "t10k-images.idx3-ubyte",
@@ -103,10 +103,10 @@ int main(int argc, const char **argv) {
 
 		//	discriminatorModel.fit(epochs, inputDataX, inputResY, batchSize);
 
-		Tensor<float> predict = std::move(discriminatorModel.predict(inputTestX));
+		//Tensor<float> predict = std::move(discriminatorModel.predict(inputTestX));
 		// TODO Compare.
 		// TODO Accuracy.
-		std::cout << "Predict " << predict << std::endl;
+		//std::cout << "Predict " << predict << std::endl;
 	}
 
 	return EXIT_SUCCESS;

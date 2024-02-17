@@ -397,6 +397,8 @@ TYPED_TEST_P(TensorType, SubSet) {
 		ASSERT_NO_THROW(tensorA.getSubset({{0}}).getSubset({{0}}));
 
 		Tensor<TypeParam> subset1 = std::move(tensorA.getSubset({{0}}).getSubset({{0}}));
+
+		// ASSERT_NO_FATAL_FAILURE()
 	}
 }
 
