@@ -23,12 +23,14 @@
 #include <initializer_list>
 #include <iostream>
 #include <omp.h>
-#include <stdexcept>
 #include <utility>
 #include <vector>
 
 namespace Ritsu {
 
+	/**
+	 * @brief
+	 */
 	template <typename V> class ShapePair {
 	  public:
 		constexpr ShapePair(const V start) : start0(start), end0(start) {}
@@ -275,12 +277,7 @@ namespace Ritsu {
 				*this = {1, this->getNrElements()};
 
 			} else if (this->getNrDimensions() == 2) {
-				for (size_t x = 0; x < this->getAxisDimensions(0); x++) {
-					for (size_t y = 0; y < this->getAxisDimensions(1); y++) {
-						std::swap(dims[(x - 1) * this->getAxisDimensions(0) + y - 1],
-								  dims[(x - 1) * this->getAxisDimensions(0) + y - 1]);
-					}
-				}
+				std::swap(dims[0], dims[1]);
 			} else {
 				/*	*/
 			}
@@ -291,7 +288,7 @@ namespace Ritsu {
 
 		Shape<IndexType> transpose() const noexcept {
 			Shape<IndexType> tmp = *this;
-
+			tmp.transpose();
 			return tmp;
 		}
 

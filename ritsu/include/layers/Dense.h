@@ -153,16 +153,18 @@ namespace Ritsu {
 			output = (this->weight % inputTesnor) + this->bias;
 		}
 
-		void computeDerivative(const Tensor<float> &error, Tensor<float> &result) const {
-			// result = computeMatrix(this->weight, error);
-			result = this->weight * -1.0f; // TODO: validate
+		inline void computeDerivative(const Tensor<float> &error, Tensor<float> &result) const {
+			Tensor<float> tmp = error;
+			tmp.transpose();
+			Tensor<float> tmpWeight = weight;
+			///	result = (tmp.transpose() % this->weight);
+			tmp.dot(tmpWeight.transpose(), result);
 		}
 
 		void initweight() noexcept {
 			// TODO improve
 			RandomNormal<DType> random(0.0, 1.0);
 #pragma omp parallel for simd shared(weight)
-
 			for (size_t i = 0; i < this->weight.getNrElements(); i++) {
 				this->weight.getValue<DType>(i) = random.rand();
 			}

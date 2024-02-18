@@ -73,11 +73,33 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
+	static void loss_error(const Tensor<float> &evoluated, const Tensor<float> &expected,
+						   Tensor<float> &output_result) {
+
+		/*	(A - B)^2	*/
+		output_result = std::move(evoluated - expected);
+
+		if (output_result.getShape()[0] == 1) {
+			return;
+		}
+
+		/*	Mean for each batch index.	*/
+		const int batchIndex = -1;
+		output_result = std::move(output_result.mean(batchIndex));
+	}
+
+	/**
+	 * @brief
+	 */
 	static void loss_mse(const Tensor<float> &evoluated, const Tensor<float> &expected, Tensor<float> &output_result) {
 
 		/*	(A - B)^2	*/
 		output_result = std::move(evoluated - expected);
 		output_result = output_result * output_result;
+
+		if (output_result.getShape()[0] == 1) {
+			return;
+		}
 
 		/*	Mean for each batch index.	*/
 		const int batchIndex = -1;
@@ -94,6 +116,10 @@ namespace Ritsu {
 		output_result = output_result * output_result;
 
 		output_result = Tensor<float>::abs(output_result);
+
+		if (output_result.getShape()[0] == 1) {
+			return;
+		}
 
 		const int batchIndex = -1;
 		output_result = std::move(output_result.mean(batchIndex));

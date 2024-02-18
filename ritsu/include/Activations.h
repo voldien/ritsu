@@ -23,14 +23,14 @@ namespace Ritsu {
 	  public:
 	};
 
-#pragma omp declare simd uniform(value)
+#pragma omp declare simd uniform(value) simdlen(4)
 	template <typename T> inline static T computeSigmoid(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		return static_cast<T>(1) / (std::exp(-value) + static_cast<T>(1));
 	}
 
-#pragma omp declare simd uniform(value)
+#pragma omp declare simd uniform(value) simdlen(4)
 	template <typename T> inline static T computeSigmoidDerivate(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -38,14 +38,14 @@ namespace Ritsu {
 		return sig * (static_cast<T>(1) - sig);
 	}
 
-#pragma omp declare simd uniform(value)
+#pragma omp declare simd uniform(value) simdlen(4)
 	template <typename T> inline static constexpr T relu(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		return std::max<T>(0, value);
 	}
 
-#pragma omp declare simd uniform(value)
+#pragma omp declare simd uniform(value) simdlen(4)
 	template <typename T> inline static constexpr T reluDeriviate(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -55,7 +55,7 @@ namespace Ritsu {
 		return 0;
 	}
 
-#pragma omp declare simd uniform(value, alpha)
+#pragma omp declare simd uniform(value, alpha) simdlen(4)
 	template <typename T> inline static constexpr T leakyRelu(const T alpha, const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -65,7 +65,7 @@ namespace Ritsu {
 		return std::max<T>(0, value);
 	}
 
-#pragma omp declare simd uniform(value, alpha)
+#pragma omp declare simd uniform(value, alpha) simdlen(4)
 	template <typename T> inline static constexpr T leakyReluDerivative(const T alpha, const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -75,7 +75,7 @@ namespace Ritsu {
 		return alpha;
 	}
 
-#pragma omp declare simd uniform(value)
+#pragma omp declare simd uniform(value) simdlen(4)
 	template <typename T> inline static constexpr T computeTanh(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -86,7 +86,7 @@ namespace Ritsu {
 		return (positive_e - negative_e) / (positive_e + negative_e);
 	}
 
-#pragma omp declare simd uniform(value)
+#pragma omp declare simd uniform(value) simdlen(4)
 	template <typename T> inline static constexpr T computeTanhDerivate(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -100,14 +100,14 @@ namespace Ritsu {
 		return coeff * value;
 	}
 
-#pragma omp declare simd uniform(coeff)
+#pragma omp declare simd uniform(coeff) simdlen(4)
 	template <typename T> inline static constexpr T computeLinearDerivative(const T coeff) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		return coeff;
 	}
 
-#pragma omp declare simd uniform(coeff, value)
+#pragma omp declare simd uniform(coeff, value) simdlen(4)
 	template <typename T> inline static constexpr T computeExpLinear(const T coeff, const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -117,7 +117,7 @@ namespace Ritsu {
 		return coeff * (std::exp(value) - 1);
 	}
 
-#pragma omp declare simd uniform(coeff, value)
+#pragma omp declare simd uniform(coeff, value) simdlen(4)
 	template <typename T> inline static constexpr T computeExpLinearDerivative(const T coeff, const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -127,14 +127,14 @@ namespace Ritsu {
 		return coeff * std::exp(value);
 	}
 
-#pragma omp declare simd uniform(value, beta)
+#pragma omp declare simd uniform(value, beta) simdlen(4)
 	template <typename T> inline static constexpr T computeSwish(const T value, const T beta) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		return value * computeSigmoid<T>(value * beta);
 	}
 
-#pragma omp declare simd uniform(value, beta)
+#pragma omp declare simd uniform(value, beta) simdlen(4)
 	template <typename T> inline static constexpr T computeSwishDerivative(const T value, const T beta) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -143,6 +143,7 @@ namespace Ritsu {
 			   (sigmoid(value, beta) * (1 - (beta * computeSigmoid(value, beta))));
 	}
 
+#pragma omp declare simd
 	template <typename T> Tensor<T> &softMax(Tensor<T> &tensor, const int axis = -1) {
 		// TODO: check if subarray exists.
 		/*	Iterate through each all elements.    */

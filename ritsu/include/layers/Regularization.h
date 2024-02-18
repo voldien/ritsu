@@ -26,9 +26,8 @@ namespace Ritsu {
 	 *
 	 */
 	class Regularization : public Layer<float> {
-
 	  public:
-		Regularization(const DType L1 = 0, const DType L2 = 0, const std::string &name = "Regularization")
+		Regularization(const DType L1 = 0, const DType L2 = 0, const std::string &name = "regularization")
 			: Layer<float>(name), l1(L1), l2(L2) {}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
@@ -105,23 +104,24 @@ namespace Ritsu {
 		}
 
 	  private:
-		static inline void computeElementSum(Tensor<float> &inputA, const Tensor<float> &inputB) { inputA = inputA + inputB; }
-
 		// TODO: relocate
 		static void computeL1(const Tensor<float> &tensor, const DType L1, Tensor<float> &output) noexcept {
-			/*	*/
-#pragma omp parallel shared(output, tensor)
+
+			DType sum = 0;
+#pragma omp simd reduction(+ : sum)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
-				output.getValue<DType>(i) = L1 * std::abs(tensor.getValue<DType>(i));
+				sum += std::abs(tensor.getValue<DType>(i));
 			}
+			sum *= L1;
+
+			output.assign(output);
+			output = sum + output;
 		}
 
 		static void computeL2(const Tensor<float> &tensor, const DType L2, Tensor<float> &output) noexcept {
-			/*	*/
-#pragma omp parallel shared(output, tensor)
-			for (size_t i = 0; i < tensor.getNrElements(); i++) {
-				output.getValue<DType>(i) = L2 * (tensor.getValue<DType>(i) * tensor.getValue<DType>(i));
-			}
+			const DType value = L2 * tensor.dot(tensor);
+			output.assign(tensor);
+			output = value + output;
 		}
 
 	  private:

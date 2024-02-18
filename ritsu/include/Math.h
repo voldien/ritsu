@@ -31,7 +31,8 @@ namespace Ritsu {
 		/**
 		 *
 		 */
-		template <typename T> inline constexpr static T clamp(const T value, const T min, const T max) noexcept {
+//#pragma omp declare simd uniform(value, min, max) notinbranch
+		template <typename T> static inline constexpr  T clamp(const T value, const T min, const T max) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return Math::max<T>(min, Math::min<T>(max, value));
@@ -56,7 +57,8 @@ namespace Ritsu {
 		/**
 		 *	Get max value of a and b.
 		 */
-		template <typename T> inline constexpr static T max(const T value0, const T value1) noexcept {
+//#pragma omp declare simd uniform(value0, value1) notinbranch
+		template <typename T> static inline constexpr  T max(const T value0, const T value1) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return (static_cast<T>(value0) < static_cast<T>(value1)) ? static_cast<T>(value1) : static_cast<T>(value0);
@@ -65,7 +67,8 @@ namespace Ritsu {
 		/**
 		 *	Get min value of a and b.
 		 */
-		template <typename T> inline constexpr static T min(const T value0, const T value1) noexcept {
+//#pragma omp declare simd uniform(value0, value1) notinbranch
+		template <typename T> static inline constexpr  T min(const T value0, const T value1) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return (static_cast<T>(value1) < static_cast<T>(value0)) ? static_cast<T>(value1) : static_cast<T>(value0);
@@ -88,9 +91,12 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
-#pragma omp parallel for simd reduction(+ : sum) shared(list, nrElements)
-			for (size_t i = 0; i < nrElements; i++) {
-				sum += list[i];
+			T value;
+			size_t i;
+#pragma omp simd reduction(+ : sum) private(value) simdlen(4) linear(i : 1)
+			for (i = 0; i < nrElements; i++) {
+				value = list[i];
+				sum += value;
 			}
 			return sum;
 		}
@@ -105,8 +111,10 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T product_combined = 1;
-#pragma omp parallel for reduction(* : product_combined) shared(list, nrElements)
-			for (size_t i = 0; i < nrElements; i++) {
+			size_t i;
+
+#pragma omp simd reduction(* : product_combined) simdlen(4) linear(i : 1)
+			for (i = 0; i < nrElements; i++) {
 				product_combined *= list[i];
 			}
 			return product_combined;
@@ -116,9 +124,9 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
-
-#pragma omp parallel for simd reduction(+ : sum) shared(listA, listB, nrElements)
-			for (size_t i = 0; i < nrElements; i++) {
+			size_t i;
+#pragma omp simd reduction(+ : sum) simdlen(4) linear(i : 1)
+			for (i = 0; i < nrElements; i++) {
 				sum += listA[i] * listB[i];
 			}
 			return sum;
@@ -129,9 +137,10 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			/*	*/
-#pragma omp parallel for simd shared(list, nrElements)
-			for (size_t i = 0; i < nrElements; i++) {
-				list[i] = std::pow(list[i], exponent);
+			size_t i;
+#pragma omp simd simdlen(4) linear(i : 1)
+			for (i = 0; i < nrElements; i++) {
+				list[i] = static_cast<T>(std::pow(list[i], exponent));
 			}
 		}
 
@@ -155,8 +164,9 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
-#pragma omp parallel for simd reduction(+ : sum) shared(list, mean)
-			for (size_t i = 0; i < nrElements; i++) {
+			size_t i;
+#pragma omp simd reduction(+ : sum) simdlen(4) linear(i : 1)
+			for (i = 0; i < nrElements; i++) {
 				sum += (list[i] - mean) * (list[i] - mean);
 			}
 
@@ -229,7 +239,6 @@ namespace Ritsu {
 			return angle;
 		}
 
-#pragma omp declare simd uniform(value0, value1, interp)
 		/**
 		 * @brief Linear interpolation.
 		 *
@@ -240,17 +249,20 @@ namespace Ritsu {
 		 * 	and will thus exceed eitehr the start or the end point.
 		 * @return constexpr T
 		 */
+//#pragma omp declare simd uniform(value0, value1, interp)
 		template <typename T> inline constexpr static T lerp(const T value0, const T value1, const T interp) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			return (value0 + (value1 - value0) * interp);
 		}
-#pragma omp declare simd uniform(value0, value1, interp)
+
+//#pragma omp declare simd uniform(value0, value1, interp)
 		template <typename T>
 		inline constexpr static T lerpClamped(const T value0, const T value1, const T interp) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			return (value0 + (value1 - value0) * Math::clamp<T>(interp, static_cast<T>(0.0), static_cast<T>(1.0)));
 		}
 
+//#pragma omp declare simd uniform(value, mod)
 		template <typename T> inline constexpr static T mod(const T value, const T mod) noexcept {
 			static_assert(std::is_integral<T>::value, "Must be a integer type.");
 			return (value % mod + mod) % mod;
@@ -393,6 +405,7 @@ namespace Ritsu {
 			return {static_cast<T>(::drand48()), static_cast<T>(::drand48())};
 		}
 
+//#pragma omp declare simd uniform(size, alignment) notinbranch simdlen(4)
 		template <typename T> static inline constexpr T align(const T size, const T alignment) noexcept {
 			static_assert(std::is_integral<T>::value, "Must be an integral type.");
 			return size + (alignment - (size % alignment));

@@ -42,7 +42,7 @@ namespace Ritsu {
 	 * @brief Multi dimensional array
 	 *
 	 */
-	template <typename T = float> class Tensor {
+	template <typename T = float, unsigned int alignment = 16> class Tensor {
 	  public:
 		/*	*/
 		using DType = T;
@@ -50,7 +50,8 @@ namespace Ritsu {
 
 		/*	*/
 		using IndexType = unsigned int;
-		static constexpr unsigned int IndexTypeSize = sizeof(IndexType);
+		static constexpr const unsigned int IndexTypeSize = sizeof(IndexType);
+		static constexpr const unsigned int alignmentByte = alignment;
 
 		static_assert(std::is_floating_point<DType>::value || std::is_integral<DType>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -283,6 +284,19 @@ namespace Ritsu {
 			return *addr;
 		}
 
+		template <typename U = DType> inline U *getValuePtr(const IndexType index) const noexcept {
+			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
+						  "Must be a decimal type(float/double/half) or integer.");
+			static_assert(!std::is_pointer<U>::value, "Can not be pointer");
+
+			const IndexType acuIndex = Shape<IndexType>::getIndexMemoryOffset(this->getShape(), index);
+
+			assert(acuIndex < this->getNrElements());
+			U *addr =
+				reinterpret_cast<U *>(&this->memoryBuffer.buffer.data[acuIndex * this->memoryBuffer.element_size]);
+			return addr;
+		}
+
 		auto &operator+(const Tensor &tensor) {
 			if (verifyShape(*this, tensor)) {
 				/*	*/
@@ -296,21 +310,19 @@ namespace Ritsu {
 			return *this;
 		}
 
-		template <typename U> auto &operator+(const U &vec) noexcept {
-			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
-						  "Must be a decimal type(float/double/half) or integer.");
+		friend Tensor &operator+(const DType value, Tensor &tensor) noexcept {
+			const size_t nrElements = tensor.getNrElements();
 
-			const size_t nrElements = this->getNrElements();
+#pragma omp simd simdlen(4)
 			for (size_t index = 0; index < nrElements; index++) {
-				this->getValue<DType>(index) = this->getValue<DType>(index) + vec;
+				tensor.getValue<DType>(index) = value + tensor.getValue<DType>(index);
 			}
-
-			return *this;
+			return tensor;
 		}
 
 		auto &operator-() noexcept {
-			size_t nrElements = this->getNrElements();
-// #pragma omp parallel shared(tensor)
+			const size_t nrElements = this->getNrElements();
+
 #pragma omp parallel for simd
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = -this->getValue<DType>(index);
@@ -433,12 +445,14 @@ namespace Ritsu {
 			return tmp;
 		}
 
-		auto &operator%(const Tensor &tensor) noexcept {
+		auto inline &operator%(const Tensor &tensor) noexcept {
 			*this = std::move(matrixMultiply(*this, tensor));
 			return *this;
 		}
 
-		friend auto operator%(const Tensor &tensorA, const Tensor &tensorB) { return matrixMultiply(tensorA, tensorB); }
+		friend inline auto operator%(const Tensor &tensorA, const Tensor &tensorB) {
+			return matrixMultiply(tensorA, tensorB);
+		}
 
 		template <typename U> auto &operator/(const Tensor &tensor) {
 			const size_t nrElements = this->getNrElements();
@@ -451,7 +465,7 @@ namespace Ritsu {
 			return *this;
 		}
 
-		Tensor &copy(const Tensor &other) {
+		Tensor &assign(const Tensor &other) {
 			/*	Transfer data.	*/
 			const size_t dataSizeInBytes = other.getDatSize();
 			std::memcpy(this->memoryBuffer.buffer.data, other.memoryBuffer.buffer.data, dataSizeInBytes);
@@ -527,9 +541,24 @@ namespace Ritsu {
 
 		inline DType dot(const Tensor &tensor) const noexcept { return Tensor::dot(*this, tensor); }
 
-		static DType dot(const Tensor &tensorA, const Tensor &tensorB) noexcept {
+		static inline DType dot(const Tensor &tensorA, const Tensor &tensorB) noexcept {
 			// TODO: determine type.
 			return Math::dot<DType>(tensorA.getRawData<DType>(), tensorB.getRawData<DType>(), tensorA.getNrElements());
+		}
+
+		void dot(const Tensor &tensorB, Tensor &output) const { Tensor::dot(*this, tensorB, output); }
+
+		static Tensor &dot(const Tensor &tensorA, const Tensor &tensorB, Tensor &output) {
+			// TODO: determine type.
+			const IndexType a0 = tensorB.getShape()[0];
+			const IndexType b0 = tensorA.getShape()[0];
+			output = Tensor({b0, a0});
+
+			for (size_t i = 0; i < b0; i++) {
+				output.getValue<DType>(i * b0) = Math::dot(tensorB.getValuePtr(a0 * i), tensorA.getValuePtr(0), b0);
+			}
+
+			return output;
 		}
 
 		Tensor &pow(const DType value) noexcept {
@@ -656,7 +685,7 @@ namespace Ritsu {
 
 				Tensor<U> tmp = Tensor<U>(this->getShape());
 
-				//#pragma omp parallel for simd
+				// #pragma omp parallel for simd
 				for (size_t i = 0; i < this->getNrElements(); i++) {
 					const DType dvalue = this->getValue<DType>(i);
 					tmp.template getValue<U>(i) = static_cast<U>(dvalue);
@@ -722,7 +751,7 @@ namespace Ritsu {
 
 			/*	Compute size in bytes, aligned.	*/
 			const size_t nrByteUnAligned = total_nr_elements * elementSize;
-			const size_t nrBytesAllocateAligned = Math::align<size_t>(nrByteUnAligned, 4);
+			const size_t nrBytesAllocateAligned = Math::align<size_t>(nrByteUnAligned, alignmentByte);
 
 			// TODO handle if not the same pointer is returned.
 
@@ -877,8 +906,8 @@ namespace Ritsu {
 				const DType *data = subset.getRawData<DType>();
 
 				const size_t elements = subset.getNrElements();
-
-				result.getValue(i) = static_cast<U>(Math::mean<DType>(data, elements)); // TODO:
+				const DType meanResult = static_cast<U>(Math::mean<DType>(data, elements));
+				result.getValue(i) = meanResult; // TODO:
 			}
 
 			return result;
@@ -988,7 +1017,7 @@ namespace Ritsu {
 					const size_t indexOutput = a_row * output_col + b_col;
 
 					DType sum = 0;
-#pragma omp simd reduction(+ : sum)
+#pragma omp simd reduction(+ : sum) simdlen(4)
 					for (size_t i = 0; i < B_row; i++) {
 
 						const size_t indexA = a_row * A_row + i;
@@ -1025,6 +1054,7 @@ namespace Ritsu {
 			Tensor tensor({(IndexType)list.size()}, sizeof(U));
 
 			IndexType index = 0;
+			//#pragma omp simd simdlen(4)
 			for (typename std::initializer_list<U>::const_iterator i = list.begin(); i != list.end(); i++) {
 				const U value = *i;
 

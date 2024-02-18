@@ -40,21 +40,20 @@ namespace Ritsu {
 			Tensor<float> tmpGradient = gradient;
 
 			if (momentum > 0) {
-				// velocity = momentum * velocity - (gradient * this->getLearningRate());
-				// variable = variable + velocity;
+				const Tensor<float> velocityGradient = momentum * velocity - (gradient * this->getLearningRate());
+				variable = variable + velocityGradient;
 			} else {
-				Tensor<float> gradientUpdate = tmpGradient * this->getLearningRate();
+				Tensor<float> gradientUpdate = this->getLearningRate() + tmpGradient;
 
 				/*	*/
-				//std::cout << gradientUpdate.getShape() << " " << variable.getShape() << std::flush;
+				// std::cout << gradientUpdate.getShape() << " " << variable.getShape() << std::flush;
 
 				// TODO: check and validate.
 				assert(gradientUpdate.getShape() == variable.getShape());
 				/*	Verify the shape.	*/
 				if (gradientUpdate.getShape() == variable.getShape()) {
 
-					variable = gradientUpdate;
-				} else {
+					variable = variable - gradientUpdate;
 				}
 			}
 		}

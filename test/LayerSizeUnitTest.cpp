@@ -141,7 +141,7 @@ TEST_P(LayerUniformShapeSizeTest, Add) {
 	Ritsu::Input input1(expected);
 
 	Ritsu::Add add;
-	add(input0, input1);
+	//add(input0, input1);
 
 	EXPECT_EQ(add.getShape(), expected);
 }

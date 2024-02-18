@@ -14,6 +14,8 @@ TARGET_COMPILE_FEATURES(ritsu PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_s
 
 TARGET_LINK_LIBRARIES(ritsu PRIVATE m pthread PUBLIC OpenMP::OpenMP_CXX)
 
+#TARGET_COMPILE_OPTIONS(ritsu PUBLIC -fopenmp -offload-arch=gfx1100)
+
 TARGET_INCLUDE_DIRECTORIES(ritsu PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 	$<INSTALL_INTERFACE:include>

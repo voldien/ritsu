@@ -16,7 +16,6 @@
 #pragma once
 #include "Object.h"
 #include "Tensor.h"
-#include <cstdarg>
 #include <string>
 
 namespace Ritsu {
@@ -29,7 +28,11 @@ namespace Ritsu {
 	  public:
 		Metric(const std::string &m_name) : Object(m_name) {}
 
-		virtual void update_state(const Tensor<float> &args...) = 0;
+		virtual void update_state(const std::initializer_list<Tensor<float>> args) = 0;
+
+		template <typename... Args> void update_state(Args... args) {
+			return update_state({std::forward<Args>(args)...});
+		}
 
 		virtual void reset_state() = 0;
 
@@ -46,22 +49,23 @@ namespace Ritsu {
 	  public:
 		MetricAccuracy(const std::string &name = "accuracy") : Metric(name) { this->reset_state(); }
 
-		void update_state(const Tensor<float> &tensor...) override { /*	*/
-			va_list args;
-			va_start(args, tensor);
+		void update_state(const std::initializer_list<Tensor<float>> args) override { /*	*/
 
-			const Tensor<float> *refA = &tensor;
-			const Tensor<float> *refB = va_arg(args, const Tensor<float> *);
+			assert(args.size() >= 2);
+
+			/*	*/
+			const Tensor<float> *refA = &(*args.begin());
+			const Tensor<float> *refB = &(*(args.begin() + 1));
 
 			size_t correct = 0;
 			for (size_t i = 0; i < refA->getNrElements(); i++) {
+				/*	*/
 				if (refA->getValue<float>(i) == refB->getValue<float>(i)) {
 					correct++;
 				}
 			}
 
 			this->m_result.getValue<float>(0) = (float)correct / (float)refA->getNrElements();
-			va_end(args);
 		}
 
 		void reset_state() override { m_result = Tensor<float>({1}, sizeof(float)); }
@@ -80,20 +84,18 @@ namespace Ritsu {
 	  public:
 		MetricMean(const std::string &name = "mean") : Metric(name) { this->reset_state(); }
 
-		void update_state(const Tensor<float> &tensor...) override {
+		void update_state(const std::initializer_list<Tensor<float>> args) override {
 
-			va_list args;
-			va_start(args, tensor);
+			assert(args.size() >= 1);
 
-			const Tensor<float> *refA = &tensor;
+			const Tensor<float> *refA = &(*args.begin());
+
 			m_result.getValue<float>(0) = refA->mean();
-
-			va_end(args);
 		}
 
 		void reset_state() override {
-			this->m_result = Tensor<float>({1}, sizeof(float));
-			this->m_result.getValue<float>(0) = 1;
+			this->m_result = Tensor<float>({1});
+			this->m_result.getValue<float>(0) = 10000000;
 		}
 
 		const Tensor<float> &result() const noexcept override { return this->m_result; }

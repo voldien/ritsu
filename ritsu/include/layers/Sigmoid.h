@@ -90,7 +90,7 @@ namespace Ritsu {
 	  private:
 		void computeSigmoidDerivative(Tensor<float> &tensor) const noexcept {
 			const size_t nrElements = tensor.getNrElements();
-#pragma omp parallel shared(tensor)
+#pragma omp parallel for shared(tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
 				tensor.getValue<DType>(i) = computeSigmoidDerivate(tensor.getValue<DType>(i));
 			}
@@ -100,7 +100,7 @@ namespace Ritsu {
 			/*Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 
-#pragma omp parallel shared(tensor)
+#pragma omp parallel for shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
 				tensor.getValue<DType>(i) = computeSigmoid(tensor.getValue<DType>(i));
 			}

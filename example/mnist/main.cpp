@@ -22,7 +22,7 @@ int main(int argc, const char **argv) {
 		const unsigned int batchSize = 1;
 		const unsigned int epochs = 128;
 		const size_t dataBufferSize = 5;
-		const float learningRate = 0.002f;
+		const float learningRate = 0.0002f;
 		bool useBatchNorm = false;
 
 		/*	*/
@@ -79,7 +79,7 @@ int main(int argc, const char **argv) {
 		Dense fw2 =
 			Dense(output_size, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer2");
 
-		Regularization regulation(0.001f, 0.001f);
+		Regularization regulation(0.001f, 0.000f);
 
 		Sigmoid outputAct;
 
@@ -118,7 +118,7 @@ int main(int argc, const char **argv) {
 			MetricMean lossmetric("loss");
 
 			Loss mse_loss(loss_mse);
-			forwardModel.compile(&optimizer, loss_mse, {dynamic_cast<Metric *>(&lossmetric), (Metric *)&accuracy});
+			forwardModel.compile(&optimizer, loss_error, {dynamic_cast<Metric *>(&lossmetric), (Metric *)&accuracy});
 			std::cout << forwardModel.summary() << std::endl;
 
 			forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize);

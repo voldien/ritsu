@@ -323,7 +323,6 @@ namespace Ritsu {
 				Tensor<float> batchTmp =
 					Shape<unsigned int>({static_cast<unsigned int>(batchIndex)}).insert(1, current->getShape());
 
-				//std::cout << layerResult << std::endl << std::endl;
 				/*	Compute each batch element.	*/
 				for (size_t i = 0; i < batchSize; i++) {
 					Tensor<float> batch = std::move(layerResult.getSubset({{(IndexType)i}}));
@@ -332,7 +331,7 @@ namespace Ritsu {
 					Tensor<float> resultSubset = std::move(batchTmp.getSubset({(IndexType)i}));
 
 					/*	Perform layer on data.	*/
-					resultSubset.copy((*current) << ((const Tensor<float> &)batch));
+					resultSubset.assign((*current) << ((const Tensor<float> &)batch));
 				}
 				/*	Override the layer result with the batch.	*/
 				layerResult = std::move(batchTmp);
@@ -356,32 +355,31 @@ namespace Ritsu {
 			result = std::move(layerResult);
 		}
 
-		void backPropagation(const Tensor<float> &result, std::map<std::string, Tensor<float>> &cacheResult) {
+		void backPropagation(const Tensor<float> &error, std::map<std::string, Tensor<float>> &cacheResult) {
 
 			// Loss function compute differences.
 			Layer<T> *current = nullptr;
 
-			Tensor<float> differental_gradient(result.getShape());
-			differental_gradient = result;
+			Tensor<float> differental_error = error;
+
+			Tensor<float> &layerResult = cacheResult[(*this->forwardSequence.rbegin())->getName()];
 
 			/*	*/
 			for (auto it = this->forwardSequence.rbegin(); it != this->forwardSequence.rend(); it++) {
-
+				//	std::cout << differental_error << std::endl << std::endl;
 				Layer<T> *current = (*it);
 
-				differental_gradient =
-					current->compute_derivative(static_cast<const Tensor<float> &>(differental_gradient));
+				/*	*/
+				differental_error = current->compute_derivative(static_cast<const Tensor<float> &>(layerResult));
 
 				/*	Only apply if */
 				Tensor<float> *train_variables = current->getTrainableWeights();
 				if (train_variables) {
-					this->optimizer->update_step(differental_gradient, *train_variables);
+					this->optimizer->update_step(differental_error, *train_variables);
 				}
 
 				/*	*/
-				Tensor<float> &layerResult = cacheResult[current->getName()];
-
-				differental_gradient = differental_gradient; // - (layerResult - differental_gradient);
+				layerResult = cacheResult[current->getName()];
 			}
 		}
 

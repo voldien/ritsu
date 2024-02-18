@@ -20,10 +20,10 @@
 #include <cmath>
 
 namespace Ritsu {
-	
+
 	/**
-	 * @brief 
-	 * 
+	 * @brief
+	 *
 	 */
 	class Relu : public Activaction {
 	  public:
@@ -76,11 +76,10 @@ namespace Ritsu {
 		}
 
 	  protected:
-
 		void computeReluActivation(Tensor<float> &tensor) {
-			/*Iterate through each all elements.    */
+
 			const size_t nrElements = tensor.getNrElements();
-#pragma omp parallel shared(tensor)
+#pragma omp parallel for shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
 				tensor.getValue<DType>(i) = relu(tensor.getValue<DType>(i));
 			}
@@ -88,7 +87,7 @@ namespace Ritsu {
 
 		static void computeDeriviate(Tensor<float> &tensor) {
 			const size_t nrElements = tensor.getNrElements();
-#pragma omp parallel shared(tensor)
+#pragma omp parallel for shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
 				tensor.getValue<DType>(i) = reluDeriviate(tensor.getValue<DType>(i));
 			}
