@@ -3,18 +3,18 @@ FILE(GLOB_RECURSE SOURCE_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
 FILE(GLOB_RECURSE HEADER_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 
 FIND_PACKAGE(OpenMP REQUIRED)
+FIND_PACKAGE(CUDAToolkit QUIET)
+FIND_PACKAGE(HIP QUIET)
 
-#TODO: add one with and without openmp.
-#TODO: add so
+IF(OpenMP_FOUND)
+
+ENDIF()
+
 ADD_LIBRARY(ritsu ${SOURCE_FILES} ${HEADER_FILES})
-
 TARGET_COMPILE_FEATURES(ritsu PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
 	cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
 	cxx_generic_lambdas cxx_override cxx_noexcept cxx_aggregate_default_initializers)
-
 TARGET_LINK_LIBRARIES(ritsu PRIVATE m pthread PUBLIC OpenMP::OpenMP_CXX)
-
-#TARGET_COMPILE_OPTIONS(ritsu PUBLIC -fopenmp -offload-arch=gfx1100)
 
 TARGET_INCLUDE_DIRECTORIES(ritsu PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -22,3 +22,56 @@ TARGET_INCLUDE_DIRECTORIES(ritsu PUBLIC
 )
 
 INSTALL(TARGETS ritsu DESTINATION lib)
+
+# No OpenMP version.
+#-Wunknown-pragmas
+ADD_LIBRARY(ritsu-no-opm ${SOURCE_FILES} ${HEADER_FILES})
+TARGET_COMPILE_FEATURES(ritsu-no-opm PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
+	cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
+	cxx_generic_lambdas cxx_override cxx_noexcept cxx_aggregate_default_initializers)
+
+TARGET_LINK_LIBRARIES(ritsu-no-opm PRIVATE m)
+
+TARGET_INCLUDE_DIRECTORIES(ritsu-no-opm PUBLIC
+	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+	$<INSTALL_INTERFACE:include>
+)
+
+# Only supported on clang
+IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND HIP_FOUND)
+
+	ADD_LIBRARY(ritsu-rocm ${SOURCE_FILES} ${HEADER_FILES})
+	TARGET_COMPILE_FEATURES(ritsu-rocm PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
+		cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
+		cxx_generic_lambdas cxx_override cxx_noexcept cxx_aggregate_default_initializers)
+
+	TARGET_LINK_LIBRARIES(ritsu-rocm PRIVATE m pthread PUBLIC OpenMP::OpenMP_CXX)
+
+
+	TARGET_INCLUDE_DIRECTORIES(ritsu-rocm PUBLIC
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+		$<INSTALL_INTERFACE:include>
+	)
+
+	#TODO: add argument for arch.
+	TARGET_COMPILE_OPTIONS(ritsu-rocm PUBLIC -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa  -Xopenmp-target=amdgcn-amd-amdhsa -offload-arch=gfx1100)
+
+ENDIF()
+
+IF(CUDAToolkit_FOUND)
+
+	ADD_LIBRARY(ritsu-nv ${SOURCE_FILES} ${HEADER_FILES})
+	
+	TARGET_COMPILE_FEATURES(ritsu-nv PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
+		cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
+		cxx_generic_lambdas cxx_override cxx_noexcept cxx_aggregate_default_initializers)
+	TARGET_LINK_LIBRARIES(ritsu-nv PRIVATE m pthread PUBLIC OpenMP::OpenMP_CXX)
+
+	TARGET_COMPILE_OPTIONS(ritsu-nv PRIVATE –mp=gpu -gpu=cc80 -Xcompiler -fgomp)
+
+	TARGET_INCLUDE_DIRECTORIES(ritsu-nv PUBLIC
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+		$<INSTALL_INTERFACE:include>
+	)
+
+ENDIF()

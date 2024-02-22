@@ -45,21 +45,6 @@ namespace Ritsu {
 			return tensor;
 		}
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override {
-			this->computeActivation(tensor);
-			return tensor;
-		}
-
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			this->build(layer.getShape());
-
-			return *this;
-		}
-
 		void build(const Shape<IndexType> &shape) override { this->shape = shape; }
 
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {

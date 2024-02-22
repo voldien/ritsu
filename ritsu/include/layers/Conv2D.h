@@ -57,21 +57,6 @@ namespace Ritsu {
 			return tensor;
 		}
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override {
-			this->computeConv2D(tensor, tensor);
-			return tensor;
-		}
-
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			this->build(layer.getShape());
-
-			return *this;
-		}
-
 		void build(const Shape<IndexType> &shape) override {
 			this->initbias(shape);
 			this->initKernels(shape);

@@ -32,15 +32,7 @@ namespace Ritsu {
 			this->inputs = layers;
 		}
 
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			this->build(layer.getShape());
-
-			return *this;
-		}
+	
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}

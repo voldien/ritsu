@@ -14,7 +14,7 @@ TEST_P(DenseOutShape, Setup) {
 	Dense *dense;
 	ASSERT_NO_THROW(dense = new Dense(denseUnit));
 
-	Layer<float> *output;
+	Layer<float> *output = nullptr;
 	ASSERT_NO_THROW(output = &(*dense)(input));
 
 	ASSERT_EQ(output->getShape(), expected);

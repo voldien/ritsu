@@ -31,23 +31,20 @@ namespace Ritsu {
 			this->size = size;
 		}
 
-		Tensor<float> operator<<(const Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> operator<<(const Tensor<float> &tensor) override {
+			Tensor result;
+			this->computeMaxPooling2D(tensor, result);
+			return result;
+		}
 
-		Tensor<float> &operator<<(Tensor<float> &tensor) override { return tensor; }
+		Tensor<float> &operator<<(Tensor<float> &tensor) override {
+			Tensor result;
+			this->computeMaxPooling2D(tensor, result);
+			tensor = result;
+			return tensor;
+		}
 
 		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
-
-		Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
-
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			this->build(layer.getShape());
-
-			return *this;
-		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
@@ -56,7 +53,7 @@ namespace Ritsu {
 		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 	  private:
-		void computeMaxPooling2D(const Tensor<float> &tensor, const Tensor<float> &output) {
+		void computeMaxPooling2D(const Tensor<float> &tensor, Tensor<float> &output) {
 
 			const size_t width = 0;
 			const size_t height = 0;

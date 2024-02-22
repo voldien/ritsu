@@ -1,3 +1,4 @@
+#include "RitsuDef.h"
 #include <Tensor.h>
 #include <cstdint>
 #include <gtest/gtest.h>
@@ -10,6 +11,8 @@ TYPED_TEST_SUITE_P(TensorType);
 TYPED_TEST_P(TensorType, DefaultConstructor) {
 	ASSERT_NO_THROW(Tensor<TypeParam> tensor({32, 32, 3}, sizeof(TypeParam)));
 	ASSERT_NO_THROW(Tensor<TypeParam> tensor(Shape<uint32_t>({32, 32, 3}), sizeof(TypeParam)));
+
+	ASSERT_THROW(Tensor<TypeParam> tensor(Shape<unsigned int>{}), RuntimeException);
 }
 
 TYPED_TEST_P(TensorType, DefaultType) {
@@ -202,14 +205,30 @@ TYPED_TEST_P(TensorType, FromArray) {
 		ASSERT_NO_THROW(Tensor<TypeParam>::fromArray({1, 1, 1, 1, 1}));
 	}
 
+	/*	No casting*/
+	{
+		const Tensor<TypeParam> fromArray = std::move(Tensor<TypeParam>::fromArray({0, 1, 2, 3, 4, 5, 6, 7, 8, 9}));
+
+		/*	*/
+		ASSERT_EQ(fromArray.getNrElements(), 10);
+		ASSERT_EQ(fromArray.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({10}));
+
+		/*	*/
+		for (size_t i = 0; i < fromArray.getNrElements(); i++) {
+			ASSERT_EQ(fromArray.getValue(i), i);
+		}
+	}
+
 	{
 		const size_t value = rand() % 100;
 		const Tensor<TypeParam> fromArray =
 			std::move(Tensor<TypeParam>::fromArray({value, value, value, value, value}));
+
 		/*	*/
 		ASSERT_EQ(fromArray.getNrElements(), 5);
 		ASSERT_EQ(fromArray.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({5}));
 
+		/*	*/
 		for (size_t i = 0; i < fromArray.getNrElements(); i++) {
 			ASSERT_EQ(fromArray.getValue(i), value);
 		}
@@ -221,8 +240,8 @@ TYPED_TEST_P(TensorType, SetGetValues) {
 
 	for (size_t i = 0; i < tensor.getNrElements(); i++) {
 		const TypeParam randomValue = static_cast<TypeParam>(rand());
-		tensor.template getValue<TypeParam>(i) = (TypeParam)randomValue;
-		ASSERT_EQ(tensor.template getValue<TypeParam>(i), (TypeParam)randomValue);
+		tensor.template getValue<TypeParam>(i) = static_cast<TypeParam>(randomValue);
+		ASSERT_EQ(tensor.template getValue<TypeParam>(i), static_cast<TypeParam>(randomValue));
 	}
 }
 
@@ -361,17 +380,27 @@ TYPED_TEST_P(TensorType, Append) {
 
 TYPED_TEST_P(TensorType, Cast) {
 
-	Tensor<TypeParam> tensorA(Shape<uint32_t>({3}), sizeof(TypeParam));
-	const Tensor<TypeParam> tensorB(Shape<uint32_t>({3}), sizeof(TypeParam));
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({3}), sizeof(TypeParam));
 
-	Tensor<TypeParam> ref;
-	ASSERT_NO_THROW(tensorA.template cast<int16_t>());
+		Tensor<TypeParam> ref;
+		ASSERT_NO_THROW(tensorA.template cast<int16_t>());
 
-	ASSERT_EQ(tensorA.getElementSize(), sizeof(int16_t));
-	ASSERT_EQ(tensorA.getDatSize(), tensorA.getNrElements() * sizeof(int16_t));
-	ASSERT_EQ(tensorA.getDatSize(), tensorA.getNrElements() * sizeof(int16_t));
+		ASSERT_EQ(tensorA.getElementSize(), sizeof(int16_t));
+		ASSERT_EQ(tensorA.getDatSize(), tensorA.getNrElements() * sizeof(int16_t));
+		ASSERT_EQ(tensorA.getDatSize(), tensorA.getNrElements() * sizeof(int16_t));
+	}
 
-	// ASSERT_NO_THROW(ref = std::move(tensorB.template cast<int16_t>()));
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({3}), sizeof(TypeParam));
+
+		Tensor<TypeParam> ref;
+		ASSERT_NO_THROW(tensorA.template cast<bool>());
+
+		ASSERT_EQ(tensorA.getElementSize(), sizeof(bool));
+		ASSERT_EQ(tensorA.getDatSize(), tensorA.getNrElements() * sizeof(bool));
+		ASSERT_EQ(tensorA.getDatSize(), tensorA.getNrElements() * sizeof(bool));
+	}
 }
 
 TYPED_TEST_P(TensorType, SubSet) {
@@ -411,6 +440,11 @@ TYPED_TEST_P(TensorType, Transpose) {
 
 	{
 		Tensor<TypeParam> tensorA(Shape<uint32_t>({2, 4}));
+		ASSERT_EQ(tensorA.transpose().getShape(), Shape<uint32_t>({4, 2}));
+	}
+
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({2, 4}));
 		ASSERT_EQ(tensorA.transpose().transpose().getShape(), Shape<uint32_t>({2, 4}));
 	}
 }
@@ -418,7 +452,7 @@ TYPED_TEST_P(TensorType, Transpose) {
 TYPED_TEST_P(TensorType, OneShot) {
 
 	{
-		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::fromArray({1, 2, 4, 1, 2, 4, 2, 1, 2, 4, 1});
+		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::fromArray({1, 2, 4, 1, 2, 9, 2, 1, 2, 4, 1});
 		const TypeParam max = tensorA.max() + 1;
 
 		const Tensor<TypeParam> oneshot = Tensor<TypeParam>::oneShot(tensorA);
@@ -427,10 +461,28 @@ TYPED_TEST_P(TensorType, OneShot) {
 	}
 }
 
+TYPED_TEST_P(TensorType, Max) {
+
+	{
+		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::fromArray({1, 2, 4, 1, 2, 9, 2, 1, 2, 4, 1});
+		const TypeParam max = tensorA.max();
+		ASSERT_EQ(static_cast<TypeParam>(9), max);
+	}
+}
+
+TYPED_TEST_P(TensorType, Min) {
+
+	{
+		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::fromArray({1, 2, 4, 1, 2, 9, 2, 1, 2, 4, 1});
+		const TypeParam min = tensorA.min();
+		ASSERT_EQ(static_cast<TypeParam>(1), min);
+	}
+}
+
 REGISTER_TYPED_TEST_SUITE_P(TensorType, DefaultConstructor, DefaultType, PrintNoThrow, AssignMove, DataSize, Addition,
-							Subtract, MultiplyFactor, ElementCount, FromArray, SetGetValues, Log10, Mean, Flatten,
-							Transpose, InnerProduct, Append, Reduce, Reshape, Cast, SubSet, MatrixMultiplication, Equal,
-							NotEqual, OneShot);
+							Subtract, MultiplyFactor, ElementCount, FromArray, SetGetValues, Max, Min, Log10, Mean,
+							Flatten, Transpose, InnerProduct, Append, Reduce, Reshape, Cast, SubSet,
+							MatrixMultiplication, Equal, NotEqual, OneShot);
 
 using TensorPrimitiveDataTypes =
 	::testing::Types<bool, int16_t, uint16_t, int32_t, uint32_t, long, size_t, float, double>;

@@ -32,16 +32,6 @@ namespace Ritsu {
 
 		Tensor<float> &operator<<(Tensor<float> &tensor) override { return tensor; }
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
-
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			return *this;
-		}
-
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
 			this->shape = layers[0]->getShape();
 			/*	Set input layer */
@@ -51,12 +41,8 @@ namespace Ritsu {
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
 			/*	Set input layer */
 			this->outputs = layers;
-
-			// TODO verify flatten
-
-			/*	*/
-			this->build(this->getInputs()[0]->getShape());
 		}
+
 		void build(const Shape<IndexType> &shape) override { /*	Validate */
 		}
 
@@ -73,7 +59,8 @@ namespace Ritsu {
 		void compute(const Tensor<float> &input, Tensor<float> &output) {
 
 			const size_t ndims = 10;
-
+			
+			/*	*/
 			for (size_t i = 0; i < ndims; i++) {
 
 				Tensor<float> subset = input.getSubset(0, 12, Shape<IndexType>({12}));

@@ -28,11 +28,6 @@ namespace Ritsu {
 			this->scale = scale;
 		}
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override {
-			this->computeScale(tensor);
-			return tensor;
-		}
-
 		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			this->computeScale(tensor);
 			return tensor;
@@ -42,16 +37,6 @@ namespace Ritsu {
 			Tensor<float> tmp = tensor;
 			this->computeScale(tmp);
 			return tmp;
-		}
-
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-			/*	*/
-			this->build(this->getInputs()[0]->getShape());
-
-			return *this;
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {

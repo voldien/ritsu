@@ -37,7 +37,7 @@ namespace Ritsu {
 
 		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
+		//Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
 
 		template <class U> auto &operator()(U &layer) {
 

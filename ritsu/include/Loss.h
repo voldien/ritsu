@@ -77,7 +77,7 @@ namespace Ritsu {
 						   Tensor<float> &output_result) {
 
 		/*	(A - B)^2	*/
-		output_result = std::move(evoluated - expected);
+		output_result = evoluated - expected;
 
 		if (output_result.getShape()[0] == 1) {
 			return;
@@ -85,7 +85,7 @@ namespace Ritsu {
 
 		/*	Mean for each batch index.	*/
 		const int batchIndex = -1;
-		output_result = std::move(output_result.mean(batchIndex));
+		output_result = output_result.mean(batchIndex);
 	}
 
 	/**
@@ -94,7 +94,7 @@ namespace Ritsu {
 	static void loss_mse(const Tensor<float> &evoluated, const Tensor<float> &expected, Tensor<float> &output_result) {
 
 		/*	(A - B)^2	*/
-		output_result = std::move(evoluated - expected);
+		output_result = evoluated - expected;
 		output_result = output_result * output_result;
 
 		if (output_result.getShape()[0] == 1) {
@@ -103,7 +103,7 @@ namespace Ritsu {
 
 		/*	Mean for each batch index.	*/
 		const int batchIndex = -1;
-		output_result = std::move(output_result.mean(batchIndex));
+		output_result = output_result.mean(batchIndex);
 	}
 
 	/**
@@ -112,7 +112,7 @@ namespace Ritsu {
 	static void loss_msa(const Tensor<float> &evoluated, const Tensor<float> &expected, Tensor<float> &output_result) {
 
 		/*	(A - B)	*/
-		output_result = std::move(evoluated - expected);
+		output_result = evoluated - expected;
 		output_result = output_result * output_result;
 
 		output_result = Tensor<float>::abs(output_result);
@@ -122,7 +122,7 @@ namespace Ritsu {
 		}
 
 		const int batchIndex = -1;
-		output_result = std::move(output_result.mean(batchIndex));
+		output_result = output_result.mean(batchIndex);
 	}
 
 	/**
@@ -134,7 +134,7 @@ namespace Ritsu {
 		output = std::move(expected * Tensor<float>::log10(evoluated) * -1.0f);
 
 		const int batchIndex = -1;
-		output = std::move(output.mean(batchIndex));
+		output = output.mean(batchIndex);
 	}
 
 	/**
@@ -150,7 +150,7 @@ namespace Ritsu {
 		output = std::move(-expected * A + (1.0f - expected) * A);
 
 		const int batchIndex = -1;
-		output = std::move(output.mean(batchIndex));
+		output = output.mean(batchIndex);
 	}
 
 	// TODO convert to one shot vector.
@@ -191,7 +191,7 @@ namespace Ritsu {
 		/*Tensor<float> A = inputA * log(inputB);*/
 
 		const int batchIndex = -1;
-		output = std::move(output.mean(batchIndex));
+		output = output.mean(batchIndex);
 	}
 
 	static void loss_psnr(const Tensor<float> &inputA, const Tensor<float> &inputB, Tensor<float> &output) {
@@ -203,6 +203,6 @@ namespace Ritsu {
 		// TODO:
 		// output = 20 * std::log10(255.0 / rmse);
 		const int batchIndex = -1;
-		output = std::move(output.mean(batchIndex));
+		output = output.mean(batchIndex);
 	}
-}; // namespace Ritsu
+} // namespace Ritsu

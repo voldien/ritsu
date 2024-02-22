@@ -20,6 +20,16 @@ ELSE()
 	MESSAGE(STATUS "Shared libraries enabled")
 ENDIF(NOT BUILD_SHARED_LIBS)
 
+#
+OPTION(RITSU_WITH_MEM_JEMALLOC "Enable malloc replacement (http://www.canonware.com/jemalloc)" ON)
+MARK_AS_ADVANCED(RITSU_WITH_MEM_JEMALLOC)
+
+# Time profiling
+
+# ASAN
+
+#Vecotorize
+
 # Core library
 ADD_SUBDIRECTORY(${CMAKE_CURRENT_SOURCE_DIR}/ritsu)
 

@@ -36,23 +36,11 @@ namespace Ritsu {
 			this->mode = outputMode;
 		}
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor.flatten(); }
-
 		Tensor<float> &operator<<(Tensor<float> &tensor) override { return tensor.flatten(); }
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 			Tensor<float> tmp = tensor;
 			return tmp.flatten();
-		}
-
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			this->build(this->getShape());
-
-			return *this;
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
@@ -79,7 +67,7 @@ namespace Ritsu {
 				createOneHotEncoding(tensor, output);
 				break;
 			case OutputMode::Count:
-				createOneHotEncoding(tensor, output);
+				createCountEncoding(tensor, output);
 				break;
 			default:
 				// Invalid state.

@@ -29,27 +29,12 @@ namespace Ritsu {
 	  public:
 		Cast(const std::string &name = "cast") : Layer<T>(name){};
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override {
-			tensor = this->createCastTensor(tensor);
-			return tensor;
-		}
-
 		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			tensor = this->createCastTensor(tensor);
 			return tensor;
 		}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override { return this->createCastTensor(tensor); }
-
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			this->build(layer.getShape());
-
-			return *this;
-		}
 
 		void setInputs(const std::vector<Layer<T> *> &layers) override {
 			this->input = layers[0];

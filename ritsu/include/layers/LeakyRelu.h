@@ -45,17 +45,6 @@ namespace Ritsu {
 			return tensor;
 		}
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override {
-			this->computeReluLeakyActivation(tensor);
-			return tensor;
-		}
-
-		template <class U> auto &operator()(U &layer) {
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-			return *this;
-		}
-
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
 			/*	Set input layer */
 			this->outputs = layers;

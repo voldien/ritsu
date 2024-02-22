@@ -69,18 +69,8 @@ namespace Ritsu {
 
 		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
-
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			return *this;
-		}
-
-		Tensor<float> *getTrainableWeights() override { return &this->weight; }
-		Tensor<float> *getVariables() override { return nullptr; }
+		Tensor<float> *getTrainableWeights() noexcept override { return &this->weight; }
+		Tensor<float> *getVariables() noexcept override { return nullptr; }
 
 		void build(const Shape<IndexType> &shape) override {
 

@@ -61,6 +61,7 @@ namespace Ritsu {
 		void setInputs(const std::vector<Layer<float> *> &layers) override { /*	*/
 		}
 
+		
 		Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) override { return tensorLoss; }
 		Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const override { return tensorLoss; }
 
@@ -69,6 +70,5 @@ namespace Ritsu {
 
 		std::vector<Layer<float> *> inputs;
 		std::vector<Layer<float> *> outputs;
-		uint32_t scale;
 	};
 } // namespace Ritsu

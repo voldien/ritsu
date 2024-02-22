@@ -21,7 +21,6 @@ int main(int argc, const char **argv) {
 		/*	*/
 		const unsigned int batchSize = 1;
 		const unsigned int epochs = 128;
-		const size_t dataBufferSize = 5;
 		const float learningRate = 0.0002f;
 		bool useBatchNorm = false;
 
@@ -40,9 +39,8 @@ int main(int argc, const char **argv) {
 				  << std::endl;
 
 		/*	*/
-
-		inputResY = std::move(Tensor<uint8_t>::oneShot(inputResY));
-		inputResTestY = std::move(Tensor<uint8_t>::oneShot(inputResTestY));
+		inputResY = Tensor<uint8_t>::oneShot(inputResY);
+		inputResTestY = Tensor<uint8_t>::oneShot(inputResTestY);
 
 		/*	*/
 		const Tensor<float> inputResYF = inputResY.cast<float>();
@@ -68,11 +66,11 @@ int main(int argc, const char **argv) {
 		Flatten flattenInput("flatten0");
 		Flatten flatten("flatten1");
 
-		Dense fw0(256, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
+		Dense fw0(128, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
 		BatchNormalization BN0;
 		Relu relu0;
 
-		Dense fw1 = Dense(128, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
+		Dense fw1 = Dense(64, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
 		BatchNormalization BN1;
 		Relu relu1;
 
@@ -118,12 +116,13 @@ int main(int argc, const char **argv) {
 			MetricMean lossmetric("loss");
 
 			Loss mse_loss(loss_mse);
-			forwardModel.compile(&optimizer, loss_error, {dynamic_cast<Metric *>(&lossmetric), (Metric *)&accuracy});
+			forwardModel.compile(&optimizer, loss_error,
+								 {dynamic_cast<Metric *>(&lossmetric), dynamic_cast<Metric *>(&accuracy)});
 			std::cout << forwardModel.summary() << std::endl;
 
 			forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize);
 
-			Tensor<float> predict = std::move(forwardModel.predict(inputTestXF));
+			Tensor<float> predict = forwardModel.predict(inputTestXF);
 
 			/*	*/
 			Tensor<float> predict_result = Tensor<float>::equal(predict, inputResTestYF);

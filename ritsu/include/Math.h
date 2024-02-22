@@ -31,8 +31,9 @@ namespace Ritsu {
 		/**
 		 *
 		 */
-//#pragma omp declare simd uniform(value, min, max) notinbranch
-		template <typename T> static inline constexpr  T clamp(const T value, const T min, const T max) noexcept {
+		 //#pragma omp declare simd uniform(value) simdlen(4)
+		//#pragma omp declare simd uniform(value, min, max) notinbranch
+		template <typename T> static inline constexpr T clamp(const T value, const T min, const T max) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return Math::max<T>(min, Math::min<T>(max, value));
@@ -57,8 +58,8 @@ namespace Ritsu {
 		/**
 		 *	Get max value of a and b.
 		 */
-//#pragma omp declare simd uniform(value0, value1) notinbranch
-		template <typename T> static inline constexpr  T max(const T value0, const T value1) noexcept {
+		//#pragma omp declare simd uniform(value0, value1) notinbranch
+		template <typename T> static inline constexpr T max(const T value0, const T value1) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return (static_cast<T>(value0) < static_cast<T>(value1)) ? static_cast<T>(value1) : static_cast<T>(value0);
@@ -67,8 +68,8 @@ namespace Ritsu {
 		/**
 		 *	Get min value of a and b.
 		 */
-//#pragma omp declare simd uniform(value0, value1) notinbranch
-		template <typename T> static inline constexpr  T min(const T value0, const T value1) noexcept {
+		//#pragma omp declare simd uniform(value0, value1) notinbranch
+		template <typename T> static inline constexpr T min(const T value0, const T value1) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return (static_cast<T>(value1) < static_cast<T>(value0)) ? static_cast<T>(value1) : static_cast<T>(value0);
@@ -249,20 +250,20 @@ namespace Ritsu {
 		 * 	and will thus exceed eitehr the start or the end point.
 		 * @return constexpr T
 		 */
-//#pragma omp declare simd uniform(value0, value1, interp)
+		//#pragma omp declare simd uniform(value0, value1, interp)
 		template <typename T> inline constexpr static T lerp(const T value0, const T value1, const T interp) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			return (value0 + (value1 - value0) * interp);
 		}
 
-//#pragma omp declare simd uniform(value0, value1, interp)
+		//#pragma omp declare simd uniform(value0, value1, interp)
 		template <typename T>
 		inline constexpr static T lerpClamped(const T value0, const T value1, const T interp) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			return (value0 + (value1 - value0) * Math::clamp<T>(interp, static_cast<T>(0.0), static_cast<T>(1.0)));
 		}
 
-//#pragma omp declare simd uniform(value, mod)
+		//#pragma omp declare simd uniform(value, mod)
 		template <typename T> inline constexpr static T mod(const T value, const T mod) noexcept {
 			static_assert(std::is_integral<T>::value, "Must be a integer type.");
 			return (value % mod + mod) % mod;
@@ -405,7 +406,7 @@ namespace Ritsu {
 			return {static_cast<T>(::drand48()), static_cast<T>(::drand48())};
 		}
 
-//#pragma omp declare simd uniform(size, alignment) notinbranch simdlen(4)
+		//#pragma omp declare simd uniform(size, alignment) notinbranch simdlen(4)
 		template <typename T> static inline constexpr T align(const T size, const T alignment) noexcept {
 			static_assert(std::is_integral<T>::value, "Must be an integral type.");
 			return size + (alignment - (size % alignment));

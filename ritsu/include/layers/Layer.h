@@ -4,6 +4,7 @@
 #include "../core/Shape.h"
 #include <cstddef>
 #include <cstdint>
+#include <initializer_list>
 #include <omp.h>
 #include <string>
 #include <typeinfo>
@@ -30,25 +31,40 @@ namespace Ritsu {
 		Layer(const std::string &name) noexcept : Object(name) { this->shape = std::move(Shape<IndexType>()); }
 		virtual ~Layer() noexcept {}
 
-		// TODO: varadic
+		/**
+		 * @brief
+		 */
 		virtual Tensor<float> operator<<(const Tensor<float> &tensor) { return tensor; }
 
+		/**
+		 * @brief
+		 */
 		virtual Tensor<float> &operator<<(Tensor<float> &tensor) { return tensor; }
 
+		/**
+		 * @brief
+		 */
 		virtual Tensor<float> operator>>(Tensor<float> &tensor) { return tensor; }
 
+		/**
+		 * @brief
+		 */
 		virtual Tensor<float> &operator()(Tensor<float> &tensor) { return tensor; }
 
-		// TODO: varadic + helper method to extract all of them easily.
-		template <typename U> auto &operator()(const U &layer...) {
-			this->getInputs()[0] = layer;
+		/**
+		 * @brief
+		 */
+		template <class... Arg> auto &operator()(const Arg &... layer) {
+			this->getInputs() = {layer...};
 			return *this;
 		}
 
-		// TODO: varadic
-		template <typename U> auto &operator()(U &layer...) {
-			this->setInputs({&layer});
-			layer.setOutputs({this});
+		/**
+		 * @brief
+		 */
+		template <class... Arg> auto &operator()(Arg &... layer) {
+			std::initializer_list<Layer *> list = {&layer...};
+			this->connectLayers(list);
 			return *this;
 		}
 
@@ -56,7 +72,6 @@ namespace Ritsu {
 
 		virtual void build(const Shape<IndexType> &shape) {}
 
-		// virtual Tensor<float> &operator()(const Tensor<float> &tensor) { return tensor; }
 
 		// Dtype
 		const std::type_info &getDType() const noexcept { return typeid(DType); }
@@ -73,15 +88,13 @@ namespace Ritsu {
 		// output
 		virtual std::vector<Layer<T> *> getOutputs() const { return {}; }
 
-		// trainable.
-		Layer<T> &operator()(Layer<T> &layer) {
-			this->connectLayers(layer);
-			return *this;
-		}
+		virtual void connectLayers(const std::initializer_list<Layer *> &list) {
+			this->setInputs(list);
 
-		virtual void connectLayers(Layer<T> &layer) {
-			this->setInputs({&layer});
-			layer.setOutputs({this});
+			/*	*/
+			for (auto it = list.begin(); it != list.end(); it++) {
+				(*it)->setOutputs({this});
+			}
 		}
 
 		/**
@@ -106,7 +119,6 @@ namespace Ritsu {
 
 		void addInputLayers(const std::vector<Layer<DType> *> &layers) {
 			/*	*/
-
 			this->setInputs(layers);
 		}
 

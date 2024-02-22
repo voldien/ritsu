@@ -16,6 +16,7 @@
 #pragma once
 #include "Object.h"
 #include "Tensor.h"
+#include <cmath>
 #include <string>
 
 namespace Ritsu {
@@ -31,7 +32,7 @@ namespace Ritsu {
 		virtual void update_state(const std::initializer_list<Tensor<float>> args) = 0;
 
 		template <typename... Args> void update_state(Args... args) {
-			return update_state({std::forward<Args>(args)...});
+			return this->update_state({std::forward<Args>(args)...});
 		}
 
 		virtual void reset_state() = 0;
@@ -59,16 +60,17 @@ namespace Ritsu {
 
 			size_t correct = 0;
 			for (size_t i = 0; i < refA->getNrElements(); i++) {
+				
 				/*	*/
 				if (refA->getValue<float>(i) == refB->getValue<float>(i)) {
 					correct++;
 				}
 			}
 
-			this->m_result.getValue<float>(0) = (float)correct / (float)refA->getNrElements();
+			this->m_result.getValue<float>(0) = static_cast<float>(correct) / static_cast<float>(refA->getNrElements());
 		}
 
-		void reset_state() override { m_result = Tensor<float>({1}, sizeof(float)); }
+		void reset_state() override { this->m_result = Tensor<float>({1}); }
 
 		const Tensor<float> &result() const noexcept override { return this->m_result; }
 
@@ -91,6 +93,7 @@ namespace Ritsu {
 			const Tensor<float> *refA = &(*args.begin());
 
 			m_result.getValue<float>(0) = refA->mean();
+			assert(!std::isnan(m_result.getValue<float>(0)));
 		}
 
 		void reset_state() override {

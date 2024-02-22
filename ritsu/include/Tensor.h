@@ -239,25 +239,62 @@ namespace Ritsu {
 
 		// Dtype
 		const std::type_info &getDType() const noexcept { return *this->typeinfo; }
-		const std::type_info *typeinfo;
 
-		// operations of data.
+		auto &operator-=(const Tensor &tensor) {
+			const size_t nrElements = this->getNrElements();
+
+#pragma omp parallel for shared(tensor)
+			for (size_t index = 0; index < nrElements; index++) {
+				this->getValue<DType>(index) = this->getValue<DType>(index) - tensor.getValue<DType>(index);
+			}
+			return *this;
+		}
+
+		auto &operator+=(const Tensor &tensor) {
+			const size_t nrElements = this->getNrElements();
+
+#pragma omp parallel for shared(tensor)
+			for (size_t index = 0; index < nrElements; index++) {
+				this->getValue<DType>(index) = this->getValue<DType>(index) + tensor.getValue<DType>(index);
+			}
+			return *this;
+		}
+
+		auto &operator*=(const Tensor &tensor) {
+			const size_t nrElements = this->getNrElements();
+
+#pragma omp parallel for shared(tensor)
+			for (size_t index = 0; index < nrElements; index++) {
+				this->getValue<DType>(index) = this->getValue<DType>(index) * tensor.getValue<DType>(index);
+			}
+			return *this;
+		}
+
+		/**
+		 * @brief Get the Value object
+		 */
 		template <typename U = DType> inline U getValue(const std::vector<IndexType> &location) const {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			static_assert(!std::is_pointer<U>::value, "Can not be pointer");
 			const size_t index = this->computeShape2Index(location);
-			return Tensor::getValue<U>((IndexType)index);
+			return Tensor::getValue<U>(static_cast<IndexType>(index));
 		}
 
+		/**
+		 * @brief Get the Value object
+		 */
 		template <typename U = DType> inline U &getValue(const std::vector<IndexType> &location) {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			static_assert(!std::is_pointer<U>::value, "Can not be pointer");
 			const size_t index = this->computeShape2Index(location);
-			return Tensor::getValue<U>((IndexType)index);
+			return Tensor::getValue<U>(static_cast<IndexType>(index));
 		}
 
+		/**
+		 * @brief Get the Value object
+		 */
 		template <typename U = DType> inline U &getValue(const IndexType index) noexcept {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
@@ -271,6 +308,9 @@ namespace Ritsu {
 			return *addr;
 		}
 
+		/**
+		 * @brief Get the Value object
+		 */
 		template <typename U = DType> inline U getValue(const IndexType index) const noexcept {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
@@ -284,6 +324,9 @@ namespace Ritsu {
 			return *addr;
 		}
 
+		/**
+		 * @brief Get the Value object
+		 */
 		template <typename U = DType> inline U *getValuePtr(const IndexType index) const noexcept {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
@@ -298,6 +341,7 @@ namespace Ritsu {
 		}
 
 		auto &operator+(const Tensor &tensor) {
+
 			if (verifyShape(*this, tensor)) {
 				/*	*/
 			}
@@ -323,7 +367,7 @@ namespace Ritsu {
 		auto &operator-() noexcept {
 			const size_t nrElements = this->getNrElements();
 
-#pragma omp parallel for simd
+#pragma omp parallel for simd simdlen(4)
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = -this->getValue<DType>(index);
 			}
@@ -521,7 +565,7 @@ namespace Ritsu {
 
 		Tensor &flatten() noexcept {
 			/*	flatten dim.	*/
-			this->shape = {(IndexType)this->getNrElements()};
+			this->shape = {static_cast<IndexType>(this->getNrElements())};
 			return *this;
 		}
 
@@ -549,10 +593,11 @@ namespace Ritsu {
 		void dot(const Tensor &tensorB, Tensor &output) const { Tensor::dot(*this, tensorB, output); }
 
 		static Tensor &dot(const Tensor &tensorA, const Tensor &tensorB, Tensor &output) {
+
 			// TODO: determine type.
 			const IndexType a0 = tensorB.getShape()[0];
 			const IndexType b0 = tensorA.getShape()[0];
-			output = Tensor({b0, a0});
+			output = std::move(Tensor::zero(Shape<IndexType>({b0, a0}))); // TODO: remove zero when prop impl.
 
 			for (size_t i = 0; i < b0; i++) {
 				output.getValue<DType>(i * b0) = Math::dot(tensorB.getValuePtr(a0 * i), tensorA.getValuePtr(0), b0);
@@ -745,7 +790,7 @@ namespace Ritsu {
 				throw RuntimeException("Can not allocate on not owned tensor.");
 			}
 
-			if (total_nr_elements <= 0) {
+			if (shape.getNrDimensions() <= 0 || total_nr_elements <= 0) {
 				throw RuntimeException("Must be greater than 0");
 			}
 
@@ -825,7 +870,7 @@ namespace Ritsu {
 			return *this;
 		}
 
-	  private:
+	  protected:
 		using TensorBuffer = union _buffer_t {
 			uint8_t *data = nullptr; /*	*/
 			DType *ddata;			 /*	*/
@@ -841,9 +886,10 @@ namespace Ritsu {
 			Shape<IndexType> memoryShape;		 /*	*/
 		};
 
-		size_t NrElements = 0;		 /*	Cache value of shape number of elements.*/
-		Shape<IndexType> shape;		 /*	*/
-		InternalBuffer memoryBuffer; /*	*/
+		size_t NrElements = 0;			/*	Cache value of shape number of elements.*/
+		Shape<IndexType> shape;			/*	Shape of tensor.	*/
+		InternalBuffer memoryBuffer;	/*	Internal buffer.	*/
+		const std::type_info *typeinfo; /*	*/
 
 		inline bool ownAllocation() const noexcept { return this->memoryBuffer.uid == this->memoryBuffer.ownerUid; }
 
@@ -902,7 +948,7 @@ namespace Ritsu {
 			const size_t dim_size = tensorA.getShape().getAxisDimensions(axis);
 			for (size_t i = 0; i < dim_size; i++) {
 
-				Tensor subset = tensorA.getSubset({{(IndexType)i}});
+				Tensor subset = tensorA.getSubset({{static_cast<IndexType>(i)}});
 				const DType *data = subset.getRawData<DType>();
 
 				const size_t elements = subset.getNrElements();
@@ -930,8 +976,12 @@ namespace Ritsu {
 			return zeroTensor;
 		}
 
+		/**
+		 * @brief
+		 */
 		static Tensor oneShot(const Shape<IndexType> &shape, size_t value) {
-			Tensor tensor = Tensor::zero(shape); // TODO: improved performance.
+
+			Tensor tensor = std::move(Tensor::zero(shape)); // TODO: improved performance.
 			tensor.getValue(value) = static_cast<DType>(1);
 
 			return tensor;
@@ -940,14 +990,22 @@ namespace Ritsu {
 		static Tensor oneShot(const Tensor &tensor, int axis = -1) {
 
 			Shape<IndexType> newShape = tensor.getShape();
-			/*	Max values*/
+			/*	Max values.	*/
 			const IndexType max = tensor.max();
 
-			newShape[-1] = max + 1;
-			Tensor<DType> oneshot(newShape);
+			const IndexType mm = max + 1;
+			if (newShape.getNrDimensions() > 1) {
+				newShape[-1] = mm;
+			} else {
+				newShape.insert(1, Shape<IndexType>({mm}));
+			}
 
+			Tensor<DType> oneshot = std::move(Tensor::zero(newShape));
+
+			/*	*/
 			for (IndexType i = 0; i < tensor.getShape()[0]; i++) {
-				// tensor.getSubset(0, 1) = 1;
+				const IndexType value = tensor.getValue(i);
+				oneshot.getSubset({{static_cast<IndexType>(i)}}).getValue(static_cast<IndexType>(value)) = 1;
 			}
 
 			/*	Construct.	*/
@@ -1051,19 +1109,19 @@ namespace Ritsu {
 
 		template <typename U> static Tensor fromArray(const std::initializer_list<U> &list) {
 
-			Tensor tensor({(IndexType)list.size()}, sizeof(U));
+			Tensor<DType> tensor({static_cast<IndexType>(list.size())});
 
 			IndexType index = 0;
 			//#pragma omp simd simdlen(4)
 			for (typename std::initializer_list<U>::const_iterator i = list.begin(); i != list.end(); i++) {
-				const U value = *i;
+				const U value = static_cast<U>(*i);
 
-				tensor.getValue<DType>(index++) = static_cast<DType>(value);
+				tensor.template getValue<DType>(index++) = static_cast<DType>(value);
 			}
 
 			return tensor;
 		}
 
 		template <typename U> static Tensor split(Tensor &list) { return Tensor({1}, sizeof(U)); }
-	};
+	}; // namespace Ritsu
 } // namespace Ritsu

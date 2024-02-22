@@ -50,20 +50,7 @@ namespace Ritsu {
 			return tensor;
 		}
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override {
-			this->computeUpSampling(tensor, tensor);
-			return tensor;
-		}
 
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			this->build(layer.getShape());
-
-			return *this;
-		}
 
 		void setOutputs(const std::vector<Layer<T> *> &layers) override {
 			/*	Set input layer */

@@ -37,30 +37,33 @@ namespace Ritsu {
 
 		void update_step(const Tensor<float> &gradient, Tensor<float> &variable) override {
 
-			Tensor<float> tmpGradient = gradient;
+			Tensor<float> gradientUpdate = gradient;
 
 			if (momentum > 0) {
-				const Tensor<float> velocityGradient = momentum * velocity - (gradient * this->getLearningRate());
-				variable = variable + velocityGradient;
+				const Tensor<float> velocityGradient = momentum * velocity - (gradient * momentum);
+
+				gradientUpdate = variable + velocityGradient * this->getLearningRate();
 			} else {
-				Tensor<float> gradientUpdate = this->getLearningRate() + tmpGradient;
+				gradientUpdate = gradientUpdate * (float)this->getLearningRate();
 
 				/*	*/
 				// std::cout << gradientUpdate.getShape() << " " << variable.getShape() << std::flush;
 
 				// TODO: check and validate.
-				assert(gradientUpdate.getShape() == variable.getShape());
-				/*	Verify the shape.	*/
-				if (gradientUpdate.getShape() == variable.getShape()) {
+			}
 
-					variable = variable - gradientUpdate;
-				}
+			assert(gradientUpdate.getShape() == variable.getShape());
+			/*	Verify the shape.	*/
+			if (gradientUpdate.getShape() == variable.getShape()) {
+
+				variable -= gradientUpdate;
 			}
 		}
 
 	  private:
 		T momentum;
-		T velocity;
+		T velocity = .1f;
+		T beta = 0.9;
 	};
 
 } // namespace Ritsu

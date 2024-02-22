@@ -12,6 +12,7 @@ TYPED_TEST_SUITE_P(ShapeType);
 TYPED_TEST_P(ShapeType, DefaultConstructor) { ASSERT_NO_THROW(Ritsu::Shape<TypeParam> shape({32, 32, 3})); }
 
 TYPED_TEST_P(ShapeType, DimIndexOrder) {
+	
 	{
 		Ritsu::Shape<TypeParam> shape({32, 32, 3});
 		ASSERT_EQ(shape[0], 32);
@@ -258,6 +259,20 @@ TYPED_TEST_P(ShapeType, Erase) {
 	}
 }
 
+TYPED_TEST_P(ShapeType, Insert) {
+
+	/*	*/
+	{
+		Shape<TypeParam> shape0({8, 8, 3});
+		Shape<TypeParam> shape1({3});
+		Shape<TypeParam> shape2;
+		// TODO:
+		ASSERT_NO_THROW(shape2 = shape0.insert(0, shape1));
+
+		ASSERT_EQ(shape2, Shape<TypeParam>({3, 8, 8, 3}));
+	}
+}
+
 TYPED_TEST_P(ShapeType, Equality) {
 
 	/*	*/
@@ -337,7 +352,7 @@ TYPED_TEST_P(ShapeType, MemoryIndexOrder) {
 }
 
 REGISTER_TYPED_TEST_SUITE_P(ShapeType, DefaultConstructor, DimIndexOrder, SetGetValues, PrintNoThrow, Flatten, Reshape,
-							SubShape, Reduce, ComputeIndex, Append, Erase, Equality, MemoryIndexOrder);
+							SubShape, Reduce, ComputeIndex, Append, Erase, Insert, Equality, MemoryIndexOrder);
 
 using ShapePrimitiveDataTypes = ::testing::Types<int16_t, uint16_t, int32_t, uint32_t, size_t, ssize_t>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Shape, ShapeType, ShapePrimitiveDataTypes);

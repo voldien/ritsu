@@ -273,6 +273,7 @@ namespace Ritsu {
 
 		Shape<IndexType> &transpose() noexcept {
 
+			/*	*/
 			if (this->getNrDimensions() == 1) {
 				*this = {1, this->getNrElements()};
 
@@ -307,10 +308,10 @@ namespace Ritsu {
 		friend std::ostream &operator<<(std::ostream &stream, const Shape &shape) {
 
 			stream << "[";
-			for (int i = 0; i < shape.dims.size(); i++) {
+			for (size_t i = 0; i < shape.dims.size(); i++) {
 
 				const size_t index = i;
-				const IndexType value = shape.dims[i];
+				const IndexType value = shape.dims[index];
 				stream << value;
 				if (i < shape.dims.size() - 1) {
 					stream << ",";
@@ -372,7 +373,7 @@ namespace Ritsu {
 		}
 
 		Shape<IndexType> &insert(int axis, const Shape<IndexType> &additionalDims) {
-
+			// TODO:fix and detemrine
 			this->dims.insert(std::begin(this->dims) + 1, additionalDims.dims.begin(), additionalDims.dims.end());
 			return *this;
 		}
@@ -405,7 +406,7 @@ namespace Ritsu {
 
 	  public: /*	Static methods.	*/
 		static Shape flatten(const Shape &shape) noexcept {
-			return Shape({(IndexType)Shape::computeNrElements(shape.dims)});
+			return Shape({static_cast<IndexType>(Shape::computeNrElements(shape.dims))});
 		}
 
 		/**

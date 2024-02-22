@@ -19,10 +19,6 @@
 
 namespace Ritsu {
 
-	class ActivactionMath {
-	  public:
-	};
-
 #pragma omp declare simd uniform(value) simdlen(4)
 	template <typename T> inline static T computeSigmoid(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
@@ -93,7 +89,7 @@ namespace Ritsu {
 		return 1.0 - (computeTanh<T>(value) * computeTanh<T>(value));
 	}
 
-#pragma omp declare simd uniform(coeff, value)
+#pragma omp declare simd uniform(coeff, value) simdlen(4)
 	template <typename T> inline static constexpr T computeLinear(const T coeff, const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -139,8 +135,8 @@ namespace Ritsu {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		// TODO:
-		return (beta * computeSigmoid(beta, value)) +
-			   (sigmoid(value, beta) * (1 - (beta * computeSigmoid(value, beta))));
+		const T tmp = computeSigmoid(beta, value);
+		return (beta * tmp) + (tmp * (1 - (beta * tmp)));
 	}
 
 #pragma omp declare simd

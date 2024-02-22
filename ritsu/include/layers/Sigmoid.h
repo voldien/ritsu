@@ -46,19 +46,6 @@ namespace Ritsu {
 			return tensor;
 		}
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override {
-			this->computeActivation(tensor);
-			return tensor;
-		}
-
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			return *this;
-		}
-
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
 			/*	Set input layer */
 			this->outputs = layers;
@@ -91,8 +78,8 @@ namespace Ritsu {
 		void computeSigmoidDerivative(Tensor<float> &tensor) const noexcept {
 			const size_t nrElements = tensor.getNrElements();
 #pragma omp parallel for shared(tensor)
-			for (size_t i = 0; i < tensor.getNrElements(); i++) {
-				tensor.getValue<DType>(i) = computeSigmoidDerivate(tensor.getValue<DType>(i));
+			for (size_t i = 0; i < nrElements; i++) {
+				tensor.getValue<DType>(i) = computeSigmoidDerivate<DType>(tensor.getValue<DType>(i));
 			}
 		}
 

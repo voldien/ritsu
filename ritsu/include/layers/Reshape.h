@@ -28,11 +28,6 @@ namespace Ritsu {
 		Reshape(const Shape<IndexType> &shape, const std::string &name = "reshape")
 			: Layer<float>(name), newShape(shape) {}
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override {
-			tensor.reshape(this->newShape);
-			return tensor;
-		}
-
 		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			tensor.reshape(this->newShape);
 			return tensor;

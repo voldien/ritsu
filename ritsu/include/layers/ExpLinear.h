@@ -23,10 +23,9 @@ namespace Ritsu {
 	 * @brief
 	 *
 	 */
-	// TODO: add coef
 	class ExpLinear : public Activaction {
 	  public:
-		ExpLinear(const DType linear, const std::string &name = "exp-linear") : Activaction(name), linear(linear) {}
+		ExpLinear(const DType linear, const std::string &name = "exp-linear") : Activaction(name), coff(linear) {}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 
@@ -41,11 +40,6 @@ namespace Ritsu {
 		}
 
 		Tensor<float> operator>>(Tensor<float> &tensor) override {
-			this->computeActivation(tensor);
-			return tensor;
-		}
-
-		Tensor<float> &operator()(Tensor<float> &tensor) override {
 			this->computeActivation(tensor);
 			return tensor;
 		}
@@ -78,13 +72,13 @@ namespace Ritsu {
 
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = computeExpLinear(0.1f, tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = computeExpLinear(coff, tensor.getValue<DType>(i));
 			}
 		}
 
 	  private:
 		Layer<DType> *input;
 		std::vector<Layer<DType> *> outputs;
-		DType linear;
+		DType coff;
 	};
 } // namespace Ritsu

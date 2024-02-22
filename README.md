@@ -6,6 +6,11 @@
 logo
 []()
 
+```cpp
+
+
+```
+
 ## Supported Precisions
 
 - **Float**
@@ -63,10 +68,6 @@ logo
 - **Adam** - Adaptive Moment estimation
 
 
-
-## Installation
-
-
 ## Dependencies
 
 In order to compile the program on Linux based machine, the following Debian packages are required.
@@ -74,6 +75,17 @@ In order to compile the program on Linux based machine, the following Debian pac
 ```bash
   sudo apt-get install cmake g++ libgtest-dev googletest libomp-dev
 ```
+
+## Building
+
+### ROCM
+
+### CUDA
+
+### Intel
+
+## Installation
+
 
 ## Testing
 

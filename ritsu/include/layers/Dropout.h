@@ -42,10 +42,10 @@ namespace Ritsu {
 			return tmpOutput;
 		}
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override {
-			this->computeDropout(tensor);
-			return tensor;
-		}
+		//Tensor<float> &operator()(Tensor<float> &tensor) override {
+		//	this->computeDropout(tensor);
+		//	return tensor;
+		//}
 
 		template <class U> auto &operator()(U &layer) {
 

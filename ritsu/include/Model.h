@@ -77,7 +77,7 @@ namespace Ritsu {
 			const size_t batchYIndex = expectedData.getShape()[batch_shape_index];
 
 			/*	*/
-			const size_t nrTrainBatches = std::floor((float)batchXIndex / (float)batch_size);
+			const size_t nrTrainBatches = std::floor(static_cast<float>(batchXIndex) / static_cast<float>(batch_size));
 			const size_t nrValidationBatches = std::floor(nrTrainBatches * validation_split);
 			// TODO verify shape and etc.
 
@@ -117,13 +117,13 @@ namespace Ritsu {
 
 					/*	Extract subset of the data.	*/
 					const Tensor<float> subsetBatchX =
-						std::move(inputData.getSubset({{static_cast<unsigned int>(ibatch * batch_size),
-														static_cast<unsigned int>((ibatch + 1) * batch_size) - 1}}));
+						inputData.getSubset({{static_cast<unsigned int>(ibatch * batch_size),
+											  static_cast<unsigned int>((ibatch + 1) * batch_size) - 1}});
 
 					/*	*/
 					const Tensor<float> subsetExpectedBatch =
-						std::move(expectedData.getSubset({{static_cast<unsigned int>(ibatch * batch_size),
-														   static_cast<unsigned int>((ibatch + 1) * batch_size) - 1}}));
+						expectedData.getSubset({{static_cast<unsigned int>(ibatch * batch_size),
+												 static_cast<unsigned int>((ibatch + 1) * batch_size) - 1}});
 
 					/*	Compute network forward.	*/
 					this->forwardPropgation(subsetBatchX, batchResult, batch_size, &cachedResult);
@@ -177,13 +177,13 @@ namespace Ritsu {
 				for (size_t ibatch = 0; ibatch < nrValidationBatches; ibatch++) {
 
 					/*	Extract subset of the data.	*/
-					const Tensor<float> subsetBatchX = std::move(
+					const Tensor<float> subsetBatchX =
 						inputData.getSubset(ibatch * batch_size * batchDataElementSize,
-											(ibatch + 1) * batch_size * batchDataElementSize, batchDataShape));
+											(ibatch + 1) * batch_size * batchDataElementSize, batchDataShape);
 
-					const Tensor<float> subsetExpecetedBatch = std::move(expectedData.getSubset(
+					const Tensor<float> subsetExpecetedBatch = expectedData.getSubset(
 						ibatch * batch_size * batchExpectedElementSize,
-						(ibatch + 1) * batch_size * batchExpectedElementSize, batchExpectedShape));
+						(ibatch + 1) * batch_size * batchExpectedElementSize, batchExpectedShape);
 
 					/*	Compute network forward.	*/
 					this->forwardPropgation(subsetBatchX, batchResult, batch_size);
@@ -302,15 +302,13 @@ namespace Ritsu {
 			/*	*/
 		}
 
-		virtual Tensor<float> computeLoss(const Tensor<float> &inputData, Tensor<float> &result) { return {}; }
-
 	  protected:
 		// TODO add support for multiple input data and result data..
 		void forwardPropgation(const Tensor<float> &inputData, Tensor<float> &result, size_t batchSize,
 							   std::map<std::string, Tensor<float>> *cacheResult = nullptr) {
 
 			const size_t batchIndex = inputData.getShape()[0];
-			// Layer<T> *current = this->inputs[0];
+
 
 			/*	*/
 			Tensor<float> layerResult = inputData;
@@ -325,13 +323,13 @@ namespace Ritsu {
 
 				/*	Compute each batch element.	*/
 				for (size_t i = 0; i < batchSize; i++) {
-					Tensor<float> batch = std::move(layerResult.getSubset({{(IndexType)i}}));
+					Tensor<float> batch = layerResult.getSubset({{static_cast<IndexType>(i)}});
 					batch.reduce();
 
-					Tensor<float> resultSubset = std::move(batchTmp.getSubset({(IndexType)i}));
+					Tensor<float> resultSubset = batchTmp.getSubset({static_cast<IndexType>(i)});
 
 					/*	Perform layer on data.	*/
-					resultSubset.assign((*current) << ((const Tensor<float> &)batch));
+					resultSubset.assign((*current) << (const_cast<const Tensor<float> &>(batch)));
 				}
 				/*	Override the layer result with the batch.	*/
 				layerResult = std::move(batchTmp);
@@ -357,16 +355,13 @@ namespace Ritsu {
 
 		void backPropagation(const Tensor<float> &error, std::map<std::string, Tensor<float>> &cacheResult) {
 
-			// Loss function compute differences.
-			Layer<T> *current = nullptr;
-
 			Tensor<float> differental_error = error;
 
 			Tensor<float> &layerResult = cacheResult[(*this->forwardSequence.rbegin())->getName()];
 
 			/*	*/
 			for (auto it = this->forwardSequence.rbegin(); it != this->forwardSequence.rend(); it++) {
-				//	std::cout << differental_error << std::endl << std::endl;
+				// std::cout << differental_error << std::endl << std::endl;
 				Layer<T> *current = (*it);
 
 				/*	*/
@@ -398,7 +393,7 @@ namespace Ritsu {
 				while (this->layers.find(newName) != this->layers.end()) {
 
 					newName = name + "_" + (*it)->getDType().name();
-					newName += (char)('0' + (char)index);
+					newName += static_cast<char>('0' + static_cast<char>(index));
 				}
 
 				(*it)->setName(newName);
@@ -414,6 +409,11 @@ namespace Ritsu {
 			this->noneTrainableWeightSizeInBytes = 0;
 
 			while (current != nullptr) {
+
+				/*	*/
+				if (current->getInputs().size() > 0) {
+					current->build(current->getInputs()[0]->getShape());
+				}
 
 				forwardSequence.push_back(current);
 
@@ -474,7 +474,9 @@ namespace Ritsu {
 
 		/*	*/
 		std::vector<Metric *> metrics;
-		std::map<std::string, Object> batchCache;
+		/*	TODO: impl	*/
+		std::map<std::string, Object *> batchCache;
+		std::map<std::string, Object *> backPropagationCache;
 
 	  private: /*	Internal data.	*/
 		std::list<Layer<DType> *> forwardSequence;

@@ -44,10 +44,10 @@ namespace Ritsu {
 			return tensor;
 		}
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override {
-			this->computeActivation(tensor);
-			return tensor;
-		}
+		//Tensor<float> &operator()(Tensor<float> &tensor) override {
+		//	this->computeActivation(tensor);
+		//	return tensor;
+		//}
 
 		template <class U> auto &operator()(U &layer) {
 

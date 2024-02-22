@@ -39,15 +39,8 @@ namespace Ritsu {
 
 		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
+		//Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
 
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			return *this;
-		}
 
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
 

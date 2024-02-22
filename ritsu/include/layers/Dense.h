@@ -70,19 +70,6 @@ namespace Ritsu {
 
 		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
 
-		Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
-
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			/*	*/
-			this->build(layer.getShape());
-
-			return *this;
-		}
-
 		Tensor<float> *getTrainableWeights() noexcept override { return &this->weight; }
 		Tensor<float> *getVariables() noexcept override { return &this->bias; }
 
@@ -106,24 +93,20 @@ namespace Ritsu {
 		}
 
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
-
 			/*	Set input layer */
 			this->outputs = layers;
-
-			/*	*/
-			Layer<DType> *layer = this->getInputs()[0];
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
 
+			assert(layers.size() == 1);
+
 			// TODO verify flatten
-			Layer<DType> *inputLayer = layers[0];
-			if (inputLayer->getShape().getNrDimensions() == 1) {
+			if (layers.size() == 1) {
+				
 			}
 
-			this->input = inputLayer;
-
-			assert(layers.size() == 1);
+			this->input = layers[0];
 		}
 
 		// input
@@ -157,7 +140,7 @@ namespace Ritsu {
 			Tensor<float> tmp = error;
 			tmp.transpose();
 			Tensor<float> tmpWeight = weight;
-			///	result = (tmp.transpose() % this->weight);
+
 			tmp.dot(tmpWeight.transpose(), result);
 		}
 
