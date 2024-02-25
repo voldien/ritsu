@@ -140,8 +140,8 @@ namespace Ritsu {
 	}
 
 #pragma omp declare simd
-	template <typename T> Tensor<T> &softMax(Tensor<T> &tensor, const int axis = -1) {
-		// TODO: check if subarray exists.
+	template <typename T> Tensor<T> &softMax(Tensor<T> &tensor, const int axis = -1) noexcept {
+
 		/*	Iterate through each all elements.    */
 		T Inversesum = 0;
 		const size_t nrElements = tensor.getNrElements();

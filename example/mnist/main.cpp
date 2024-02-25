@@ -21,7 +21,7 @@ int main(int argc, const char **argv) {
 		/*	*/
 		const unsigned int batchSize = 1;
 		const unsigned int epochs = 128;
-		const float learningRate = 0.0002f;
+		const float learningRate = 0.0008f;
 		bool useBatchNorm = false;
 
 		/*	*/
@@ -66,11 +66,11 @@ int main(int argc, const char **argv) {
 		Flatten flattenInput("flatten0");
 		Flatten flatten("flatten1");
 
-		Dense fw0(128, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
+		Dense fw0(64, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
 		BatchNormalization BN0;
 		Relu relu0;
 
-		Dense fw1 = Dense(64, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
+		Dense fw1 = Dense(32, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
 		BatchNormalization BN1;
 		Relu relu1;
 
@@ -83,9 +83,6 @@ int main(int argc, const char **argv) {
 
 		/*	*/
 		{
-			// Layer<float> *lay = &cast2Float(input0node);
-
-			// lay = &normalizedLayer(*lay);
 			Layer<float> *lay = &normalizedLayer(input0node);
 			lay = &flattenInput(*lay);
 
@@ -122,6 +119,8 @@ int main(int argc, const char **argv) {
 
 			forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize);
 
+			forwardModel.saveWeight("mnist_forward_network_model.weight");
+
 			Tensor<float> predict = forwardModel.predict(inputTestXF);
 
 			/*	*/
@@ -131,8 +130,10 @@ int main(int argc, const char **argv) {
 			// TODO Accuracy.
 			std::cout << "Predict " << predict << std::endl;
 		}
+
 	} catch (std::exception &ex) {
 		std::cerr << ex.what() << std::endl;
+		return EXIT_FAILURE;
 	}
 
 	return EXIT_SUCCESS;

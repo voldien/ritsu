@@ -38,32 +38,36 @@ namespace Ritsu {
 		// const size_t DTypeSize = sizeof(DType);
 
 	  public:
-		using LossFunction = void (*)(const Tensor<float> &evoluated, const Tensor<float> &expected,
+		using LossFunction = void (*)(const Tensor<float> &evoluated_true, const Tensor<float> &expected_pred,
 									  Tensor<float> &output_result);
 
 		Loss() : Object("loss") {}
 		//	template <typename T>
 		Loss(LossFunction lambda, const std::string &name = "loss") noexcept : Object(name) {
 			this->loss_function = lambda;
+			/*	Cache buffer.	*/ // TODO:
 		}
 
-		virtual Tensor<float> computeLoss(const Tensor<float> &inputX0, const Tensor<float> &inputX1) {
+		// virtual Tensor<float> &computeLoss(const Tensor<float> &inputX0_true, const Tensor<float> &inputX1_pred)  =
+		// 0;
+
+		virtual Tensor<float> computeLoss(const Tensor<float> &inputX0_true, const Tensor<float> &inputX1_pred) const {
 
 			Tensor<float> batchLossResult;
 
 			/*	*/
-			if (!Tensor<float>::verifyShape(inputX0, inputX1)) {
-				std::cerr << "Loss - Bad Shape " << inputX0.getShape() << " not equal " << inputX1.getShape()
+			if (!Tensor<float>::verifyShape(inputX0_true, inputX1_pred)) {
+				std::cerr << "Loss - Bad Shape " << inputX0_true.getShape() << " not equal " << inputX1_pred.getShape()
 						  << std::endl;
 			}
 
-			this->loss_function(inputX0, inputX1, batchLossResult);
+			this->loss_function(inputX0_true, inputX1_pred, batchLossResult);
 
 			return batchLossResult;
 		}
 
-		virtual Tensor<float> operator()(const Tensor<float> &inputX0, const Tensor<float> &inputX1) {
-			return this->computeLoss(inputX0, inputX1);
+		virtual Tensor<float> operator()(const Tensor<float> &inputX0_true, const Tensor<float> &inputX1_pred) {
+			return this->computeLoss(inputX0_true, inputX1_pred);
 		}
 
 	  private:
@@ -91,15 +95,12 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
-	static void loss_mse(const Tensor<float> &evoluated, const Tensor<float> &expected, Tensor<float> &output_result) {
+	static void loss_mse(const Tensor<float> &evoluated_true, const Tensor<float> &expected_pred,
+						 Tensor<float> &output_result) {
 
 		/*	(A - B)^2	*/
-		output_result = evoluated - expected;
+		output_result = evoluated_true - expected_pred;
 		output_result = output_result * output_result;
-
-		if (output_result.getShape()[0] == 1) {
-			return;
-		}
 
 		/*	Mean for each batch index.	*/
 		const int batchIndex = -1;
@@ -115,12 +116,10 @@ namespace Ritsu {
 		output_result = evoluated - expected;
 		output_result = output_result * output_result;
 
+		/*	*/
 		output_result = Tensor<float>::abs(output_result);
 
-		if (output_result.getShape()[0] == 1) {
-			return;
-		}
-
+		/*	*/
 		const int batchIndex = -1;
 		output_result = output_result.mean(batchIndex);
 	}
@@ -182,27 +181,5 @@ namespace Ritsu {
 		}
 
 		return loss_cross_catagorial_entropy(evoluated, expected_one_shot, output);
-	}
-
-	/**
-	 * @brief
-	 */
-	static void loss_ssim(const Tensor<float> &inputA, const Tensor<float> &inputB, Tensor<float> &output) {
-		/*Tensor<float> A = inputA * log(inputB);*/
-
-		const int batchIndex = -1;
-		output = output.mean(batchIndex);
-	}
-
-	static void loss_psnr(const Tensor<float> &inputA, const Tensor<float> &inputB, Tensor<float> &output) {
-
-		Tensor<float> &diff = (inputA - inputB).flatten();
-
-		float rmse = std::sqrt(Tensor<float>::mean<float>(diff.pow(2.0f)));
-
-		// TODO:
-		// output = 20 * std::log10(255.0 / rmse);
-		const int batchIndex = -1;
-		output = output.mean(batchIndex);
 	}
 } // namespace Ritsu

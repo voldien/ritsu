@@ -130,7 +130,7 @@ namespace Ritsu {
 
 					/*	Compute the loss/cost.	*/
 					Tensor<float> loss_error =
-						std::move(this->lossFunction.computeLoss(batchResult, subsetExpectedBatch));
+						std::move(this->lossFunction.computeLoss(subsetExpectedBatch, batchResult));
 
 					/*	Apply metric update.	*/
 					for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
@@ -187,15 +187,13 @@ namespace Ritsu {
 
 					/*	Compute network forward.	*/
 					this->forwardPropgation(subsetBatchX, batchResult, batch_size);
-					const DType validationCost = 0;
-					const DType validationAccuracy = 0;
 					/*	*/
 				}
 
 				/*	Update history, using all metrics.	*/
 				for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
 					/*	*/
-					this->history[this->metrics[m_index]->getName()].append(
+					this->history[this->metrics[m_index]->getName()].concatenate(
 						this->metrics[m_index]->result().template getValue<float>(0));
 				}
 
@@ -245,9 +243,12 @@ namespace Ritsu {
 		virtual std::string summary() const {
 			std::stringstream _summary;
 
-			Layer<T> *current = nullptr;
-
-			/*	*/
+			// TODO: add support for aligned summary.
+			size_t maxSpaceForTab = 0;
+			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
+				const Layer<T> *current = (*it);
+				maxSpaceForTab = Math::max<size_t>(current->getName().size(), maxSpaceForTab);
+			}
 
 			/*	List all layers.	*/
 			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
@@ -265,7 +266,8 @@ namespace Ritsu {
 					}
 					_summary << current->getInputs()[i]->getName() << " ";
 					if (i == current->getInputs().size() - 1) {
-						_summary << "]";
+						_summary << "]"
+								 << " " << current->getDType().name();
 					}
 				}
 
@@ -275,10 +277,10 @@ namespace Ritsu {
 			/*	Summary of number of parameters and size.	*/
 			_summary << "number of weights: " << std::to_string(this->nr_weights) << std::endl;
 			_summary << "Trainable in Bytes: "
-					 << std::to_string(static_cast<int>(this->trainableWeightSizeInBytes / 1024.0f)) << " KB"
+					 << std::to_string(static_cast<size_t>(this->trainableWeightSizeInBytes / 1024.0f)) << " KB"
 					 << std::endl;
 			_summary << "None-Trainable in Bytes: "
-					 << std::to_string(static_cast<int>(this->noneTrainableWeightSizeInBytes / 1024.0f)) << " KB";
+					 << std::to_string(static_cast<size_t>(this->noneTrainableWeightSizeInBytes / 1024.0f)) << " KB";
 			return _summary.str();
 		}
 
@@ -308,7 +310,6 @@ namespace Ritsu {
 							   std::map<std::string, Tensor<float>> *cacheResult = nullptr) {
 
 			const size_t batchIndex = inputData.getShape()[0];
-
 
 			/*	*/
 			Tensor<float> layerResult = inputData;

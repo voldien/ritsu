@@ -63,8 +63,8 @@ logo
 
 ## Optimizer
 
-- **SGD** -- Stochastic Gradient Descent
-- **Ada**
+- **SGD** - Stochastic Gradient Descent
+- **Ada** - 
 - **Adam** - Adaptive Moment estimation
 
 

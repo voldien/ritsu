@@ -28,7 +28,7 @@ namespace Ritsu {
 			this->shape = input;
 		}
 
-		void setInputs(const std::vector<Layer<DType> *> &layers) override {
+		void setInputs([[maybe_unused]] const std::vector<Layer<DType> *> &layers) override {
 			/*	No input layer connection, since input layer.	*/
 		}
 

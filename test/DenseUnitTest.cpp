@@ -16,6 +16,7 @@ TEST_P(DenseOutShape, Setup) {
 
 	Layer<float> *output = nullptr;
 	ASSERT_NO_THROW(output = &(*dense)(input));
+	output->build(input.getShape());
 
 	ASSERT_EQ(output->getShape(), expected);
 	ASSERT_STREQ(output->getName().c_str(), "dense");
@@ -29,7 +30,7 @@ TEST_P(DenseOutShape, SetupInvalidShapeThrow) {
 	Input input({1, 1, xUnit});
 	Dense dense = Dense(denseUnit);
 
-	Layer<float> *output;
+	Layer<float> *output = nullptr;
 	ASSERT_THROW(output = &(dense(input)), RuntimeException);
 }
 
@@ -49,7 +50,7 @@ TEST_P(DenseParameterTest, WeightSize) {
 	ASSERT_NO_THROW(dense = new Dense(denseUnit));
 
 	Layer<float> &output = (*dense)(input);
-	dense->build(dense->getShape());
+	dense->build(input.getShape());
 
 	EXPECT_EQ(dense->getTrainableWeights()->getShape(), expectedWeightShape);
 	EXPECT_EQ(dense->getVariables()->getShape(), Ritsu::Shape<uint32_t>({denseUnit}));
@@ -74,15 +75,12 @@ TEST_P(DenseComputeTest, ResultShape) {
 	Tensor<float> inputData({xUnit});
 
 	Layer<float> &output = dense(input); /*	Build the weight.	*/
+	dense.build(input.getShape());
+	/*	*/
+	//const Tensor<float> result0 = dense << inputData;
 
 	/*	*/
-	// Tensor<float> result0 = dense(inputData);
-	// Tensor<float> result1 = dense << inputData;
-
-	// EXPECT_EQ(result0.getShape(), result1.getShape());
-
-	/*	*/
-	// EXPECT_EQ(result0.getShape(), expected);
+	//EXPECT_EQ(result0.getShape(), expected);
 }
 
 INSTANTIATE_TEST_SUITE_P(Dense, DenseComputeTest,

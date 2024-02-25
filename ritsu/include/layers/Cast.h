@@ -16,7 +16,6 @@
 #pragma once
 #include "Layer.h"
 #include "Tensor.h"
-#include <cstdint>
 
 namespace Ritsu {
 
@@ -55,22 +54,19 @@ namespace Ritsu {
 		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
 		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
-	  protected:
-		// TODO: Fix refrence
+		const std::type_info &getFromCastType() const noexcept { return typeid(A); }
+		const std::type_info &getToCastType() const noexcept { return typeid(T); }
 
-		static Tensor<float> createCastTensor(const Tensor<float> &tensor) {
+	  protected: /*	*/
+		static inline Tensor<float> createCastTensor(const Tensor<float> &tensor) {
 			Tensor<float> castTensor(tensor.getShape(), sizeof(T));
 
 			return createCastTensorRef(castTensor);
 		}
 
-		static Tensor<float> &createCastTensorRef(Tensor<float> &tensor) {
+		static inline Tensor<float> &createCastTensorRef(Tensor<float> &tensor) {
 			/*	*/
-#pragma omp parallel for simd shared(tensor)
-			for (size_t i = 0; i < tensor.getNrElements(); i++) {
-				tensor.getValue<T>(i) = static_cast<T>(tensor.getValue<A>(i));
-			}
-
+			tensor = reinterpret_cast<Tensor<float> &&>(std::move(tensor.cast<T>()));
 			return tensor;
 		}
 

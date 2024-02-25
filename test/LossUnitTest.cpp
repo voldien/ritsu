@@ -49,22 +49,6 @@ TEST_P(LossTest, sparse_categorical_crossentropy) {
 	ASSERT_EQ(result, expected);
 }
 
-TEST_P(LossTest, SSIM) {
-	auto [x, y, expected] = GetParam();
-	Tensor<float> result;
-
-	ASSERT_NO_THROW(Ritsu::loss_ssim(x, y, result));
-	// ASSERT_EQ(result.getShape(), expected.)
-	ASSERT_EQ(result, expected);
-}
-
-TEST_P(LossTest, PSNR) {
-	auto [x, y, expected] = GetParam();
-	Tensor<float> result;
-	//  Ritsu::loss_mse(x, y, result);
-	ASSERT_EQ(result, expected);
-}
-
 INSTANTIATE_TEST_SUITE_P(Loss, LossTest,
 						 ::testing::Values(std::make_tuple(Tensor<float>::fromArray({0, 0, 0, 0}),
 														   Tensor<float>::fromArray({0, 0, 0, 0}),

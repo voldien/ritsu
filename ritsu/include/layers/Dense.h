@@ -50,21 +50,13 @@ namespace Ritsu {
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 
 			Tensor<float> output({this->units}, DTypeSize);
-
-			/*	Verify shape.	*/
-
 			this->compute(tensor, output);
-
 			return output;
 		}
 
 		Tensor<float> &operator<<(Tensor<float> &tensor) override {
-
-			/*	Verify shape.	*/
-
 			Tensor<float> inputCopy = tensor;
 			this->compute(inputCopy, tensor);
-
 			return tensor;
 		}
 
@@ -75,14 +67,12 @@ namespace Ritsu {
 
 		void build(const Shape<IndexType> &shape) override {
 
-			/*	Validate */
-
-			/*	*/
+			/*	TODO: Validate */
 			const Shape<IndexType> weightShape =
 				Shape<IndexType>({static_cast<IndexType>(this->units), static_cast<IndexType>(shape[0])});
-			this->weight = Tensor<float>(weightShape);
+			this->weight = Tensor<DType>(weightShape);
 
-			/*	*/
+			/*	Construct the init values for the weight and bias.	*/
 			this->initweight();
 			this->initbias();
 
@@ -93,7 +83,6 @@ namespace Ritsu {
 		}
 
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
-			/*	Set input layer */
 			this->outputs = layers;
 		}
 
@@ -103,7 +92,6 @@ namespace Ritsu {
 
 			// TODO verify flatten
 			if (layers.size() == 1) {
-				
 			}
 
 			this->input = layers[0];
@@ -146,7 +134,8 @@ namespace Ritsu {
 
 		void initweight() noexcept {
 			// TODO improve
-			RandomNormal<DType> random(0.0, 1.0);
+			RandomNormal<DType> random(0.0, 2.0);
+
 #pragma omp parallel for simd shared(weight)
 			for (size_t i = 0; i < this->weight.getNrElements(); i++) {
 				this->weight.getValue<DType>(i) = random.rand();
@@ -155,7 +144,7 @@ namespace Ritsu {
 
 		void initbias() noexcept {
 			// TODO improve
-			RandomNormal<DType> random(0.0, 1.0);
+			RandomNormal<DType> random(0.0, 2.0);
 
 #pragma omp parallel for simd shared(bias)
 			for (size_t i = 0; i < this->bias.getNrElements(); i++) {
@@ -164,9 +153,9 @@ namespace Ritsu {
 		}
 
 	  private:
-		Tensor<float> bias;
+		Tensor<DType> bias;
 		uint32_t units;
-		Tensor<float> weight;
+		Tensor<DType> weight;
 	};
 
 } // namespace Ritsu

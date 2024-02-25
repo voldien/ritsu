@@ -73,12 +73,12 @@ int main(int argc, const char **argv) {
 	Reshape reshape(reshapeShape);
 
 	/*	Process to 14.	*/
-	Conv2D conv_0(32, {1, 1}, {1, 1}, "same");
+	Conv2D conv_0(32, {1, 1}, {1, 1}, ConvPadding::Same);
 	LeakyRelu leaky_0(0.2f);
 	UpSampling2D<float> upscale_0(2);
 
 	/*	Process to 28.	*/
-	Conv2D conv_1(32, {1, 1}, {1, 1}, "same");
+	Conv2D conv_1(32, {1, 1}, {1, 1}, ConvPadding::Same);
 	LeakyRelu leaky_1(0.2f);
 	UpSampling2D<float> upscale_1(2);
 
@@ -103,10 +103,10 @@ int main(int argc, const char **argv) {
 
 		//	discriminatorModel.fit(epochs, inputDataX, inputResY, batchSize);
 
-		//Tensor<float> predict = std::move(discriminatorModel.predict(inputTestX));
+		// Tensor<float> predict = std::move(discriminatorModel.predict(inputTestX));
 		// TODO Compare.
 		// TODO Accuracy.
-		//std::cout << "Predict " << predict << std::endl;
+		// std::cout << "Predict " << predict << std::endl;
 	}
 
 	return EXIT_SUCCESS;

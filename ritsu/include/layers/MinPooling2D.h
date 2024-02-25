@@ -15,6 +15,7 @@
  */
 #pragma once
 #include "Layer.h"
+#include "Tensor.h"
 #include <array>
 #include <cstdint>
 
@@ -37,18 +38,6 @@ namespace Ritsu {
 
 		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
 
-		//Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
-
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			this->build(layer.getShape());
-
-			return *this;
-		}
-
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
 
@@ -56,10 +45,13 @@ namespace Ritsu {
 		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 	  private:
-		void computeMaxPooling2D(const Tensor<float> &tensor, const Tensor<float> &output) {
+		void computeMinPooling2D(const Tensor<float> &tensor, Tensor<float> &output) {
 
-			const size_t width = 0;
-			const size_t height = 0;
+			const IndexType width = tensor.getShape()[-3];
+			const IndexType height = tensor.getShape()[-2];
+			const IndexType channel = tensor.getShape()[-1];
+
+			output = Tensor<float>(Shape<IndexType>({width, height, 3}));
 
 			// Verify shape
 
@@ -69,6 +61,7 @@ namespace Ritsu {
 					DType maxValue = static_cast<DType>(-999999999);
 					for (size_t Sy = 0; Sy < this->size[0]; Sy++) {
 						for (size_t Sx = 0; Sx < this->size[1]; Sx++) {
+							
 						}
 					}
 				}

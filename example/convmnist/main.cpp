@@ -1,3 +1,4 @@
+#include "layers/Conv2D.h"
 #include "layers/Regularization.h"
 #include "mnist_dataset.h"
 #include <Ritsu.h>
@@ -54,15 +55,15 @@ int main(int argc, const char **argv) {
 		Input input0node(dataShape, "input");
 		Rescaling normalizedLayer(1.0f / 255.0f);
 
-		Conv2D conv2D_0(32, {3, 3}, {2, 2}, "same");
+		Conv2D conv2D_0(32, {3, 3}, {2, 2}, ConvPadding::Same);
 		Relu relu_0;
 		BatchNormalization BatchNormalization_0;
 
-		Conv2D conv2D_1(64, {3, 3}, {2, 2}, "same");
+		Conv2D conv2D_1(64, {3, 3}, {2, 2}, ConvPadding::Same);
 		Relu relu_1;
 		BatchNormalization BatchNormalization_1;
 
-		Conv2D conv2D_2(128, {3, 3}, {2, 2}, "same");
+		Conv2D conv2D_2(128, {3, 3}, {2, 2}, ConvPadding::Same);
 		Relu relu_2;
 		BatchNormalization BatchNormalization_2;
 

@@ -15,7 +15,6 @@
  */
 #pragma once
 #include "Layer.h"
-#include <cstdarg>
 
 namespace Ritsu {
 

@@ -30,7 +30,6 @@ namespace Ritsu {
 		~SoftMax() override {}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
-			// compute(tensor);
 			Tensor<DType> tmp = tensor;
 			softMax<DType>(tmp);
 			return tmp;
@@ -43,10 +42,15 @@ namespace Ritsu {
 
 		void build(const Shape<IndexType> &shape) override { this->shape = shape; }
 
-		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
-		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
+		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }
+		void setOutputs(const std::vector<Layer<DType> *> &layers) override { this->outputs = layers; }
 
 		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
 		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
+
+	  private:
+		/*	*/
+		Layer<DType> *input;
+		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

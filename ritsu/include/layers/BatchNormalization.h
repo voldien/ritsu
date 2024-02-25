@@ -16,6 +16,7 @@
 #pragma once
 #include "../Math.h"
 #include "Layer.h"
+#include "Tensor.h"
 #include "core/Shape.h"
 
 namespace Ritsu {
@@ -44,6 +45,8 @@ namespace Ritsu {
 		}
 
 		void build(const Shape<IndexType> &shape) override { /*	Validate */
+			// TODO: fix
+			this->beta = Tensor<DType>(shape);
 		}
 
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
@@ -59,7 +62,7 @@ namespace Ritsu {
 		void compute(const Tensor<float> &input, Tensor<float> &output) {
 
 			const size_t ndims = 10;
-			
+
 			/*	*/
 			for (size_t i = 0; i < ndims; i++) {
 
@@ -69,7 +72,8 @@ namespace Ritsu {
 				(Math::variance<DType>(subset.getRawData<DType>(), subset.getNrElements(), mean) + 0.00001f);
 			}
 
-			/*	*/
+			/*	*///TOOD:fix
+			output = input;
 		}
 
 	  private:

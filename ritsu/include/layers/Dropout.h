@@ -26,9 +26,8 @@ namespace Ritsu {
 	class Dropout : public Layer<float> {
 
 	  public:
-		Dropout(const DType perc, const size_t seed = 0, const std::string &name = "dropout")
-			: Layer(name), perc(perc) {
-			this->random = new RandomBernoulli<DType>(perc);
+		Dropout(const DType perc, const size_t seed = 0, const std::string &name = "dropout") : Layer(name) {
+			this->random = new RandomBernoulli<DType>(perc, seed);
 		}
 
 		Tensor<float> &operator<<(Tensor<float> &tensor) override {
@@ -40,19 +39,6 @@ namespace Ritsu {
 			Tensor<float> tmpOutput = tensor;
 			this->computeDropout(tmpOutput);
 			return tmpOutput;
-		}
-
-		//Tensor<float> &operator()(Tensor<float> &tensor) override {
-		//	this->computeDropout(tensor);
-		//	return tensor;
-		//}
-
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			return *this;
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
@@ -81,7 +67,6 @@ namespace Ritsu {
 		}
 
 		/*	*/
-		DType perc;
 		Random<DType> *random;
 		Layer<DType> *input;
 		std::vector<Layer<DType> *> outputs;

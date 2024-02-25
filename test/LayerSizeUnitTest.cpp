@@ -31,6 +31,7 @@ TEST_P(LayerUniformShapeSizeTest, RescalingLayerShapeSize) {
 	Ritsu::Input input(expected);
 	Ritsu::Rescaling rescalling(1);
 	rescalling(input);
+	rescalling.build(input.getShape());
 
 	EXPECT_EQ(rescalling.getShape(), expected);
 }
@@ -42,6 +43,7 @@ TEST_P(LayerUniformShapeSizeTest, ReluLayerShapeSize) {
 	Ritsu::Input input(expected);
 	Ritsu::Relu relu;
 	relu(input);
+	relu.build(input.getShape());
 
 	EXPECT_EQ(relu.getShape(), expected);
 }
@@ -52,6 +54,7 @@ TEST_P(LayerUniformShapeSizeTest, LeakyReluLayerShapeSize) {
 	Ritsu::Input input(expected);
 	Ritsu::LeakyRelu leakyRelu(0.2f);
 	leakyRelu(input);
+	leakyRelu.build(input.getShape());
 
 	EXPECT_EQ(leakyRelu.getShape(), expected);
 }
@@ -63,6 +66,7 @@ TEST_P(LayerUniformShapeSizeTest, SigmoidLayerShapeSize) {
 	Ritsu::Input input(expected);
 	Ritsu::Sigmoid sigmoid;
 	sigmoid(input);
+	sigmoid.build(input.getShape());
 
 	EXPECT_EQ(sigmoid.getShape(), expected);
 }
@@ -74,6 +78,7 @@ TEST_P(LayerUniformShapeSizeTest, SoftMaxLayerShapeSize) {
 	Ritsu::Input input(expected);
 	Ritsu::SoftMax softmax;
 	softmax(input);
+	softmax.build(input.getShape());
 
 	EXPECT_EQ(softmax.getShape(), expected);
 }
@@ -85,6 +90,7 @@ TEST_P(LayerUniformShapeSizeTest, SwishLayerShapeSize) {
 	Ritsu::Input input(expected);
 	Ritsu::Swish swish;
 	swish(input);
+	swish.build(input.getShape());
 
 	EXPECT_EQ(swish.getShape(), expected);
 }
@@ -96,6 +102,7 @@ TEST_P(LayerUniformShapeSizeTest, TahnLayerShapeSize) {
 	Ritsu::Input input(expected);
 	Ritsu::Tanh tanh;
 	tanh(input);
+	tanh.build(input.getShape());
 
 	EXPECT_EQ(tanh.getShape(), expected);
 }
@@ -107,6 +114,7 @@ TEST_P(LayerUniformShapeSizeTest, BatchNormalizeSize) {
 	Ritsu::Input input(expected);
 	Ritsu::BatchNormalization batchNormalize;
 	batchNormalize(input);
+	batchNormalize.build(input.getShape());
 
 	EXPECT_EQ(batchNormalize.getShape(), expected);
 }
@@ -118,6 +126,7 @@ TEST_P(LayerUniformShapeSizeTest, GaussianNoiseSize) {
 	Ritsu::Input input(expected);
 	Ritsu::GuassianNoise guassianNoise(0.2f, 0.0f);
 	guassianNoise(input);
+	guassianNoise.build(input.getShape());
 
 	EXPECT_EQ(guassianNoise.getShape(), expected);
 }
@@ -129,6 +138,7 @@ TEST_P(LayerUniformShapeSizeTest, RegularizationSize) {
 	Ritsu::Input input(expected);
 	Ritsu::Regularization regularization;
 	regularization(input);
+	regularization.build(input.getShape());
 
 	EXPECT_EQ(regularization.getShape(), expected);
 }
@@ -141,7 +151,7 @@ TEST_P(LayerUniformShapeSizeTest, Add) {
 	Ritsu::Input input1(expected);
 
 	Ritsu::Add add;
-	//add(input0, input1);
+	add(input0, input1);
 
 	EXPECT_EQ(add.getShape(), expected);
 }
@@ -181,8 +191,9 @@ TEST_P(LayerUniformShapeSizeTest, Cast) {
 
 	Ritsu::Input input0(expected);
 
-	Ritsu::Cast<float, int> cast;
-	// cast(input0);
+	Ritsu::Cast<int, float> cast;
+	cast(input0);
+	cast.build(input0.getShape());
 
 	EXPECT_EQ(cast.getShape(), expected);
 }
@@ -194,6 +205,7 @@ TEST_P(LayerUniformShapeSizeTest, Dropout) {
 
 	Ritsu::Dropout dropout(0.2f);
 	dropout(input0);
+	dropout.build(input0.getShape());
 
 	EXPECT_EQ(dropout.getShape(), expected);
 }
@@ -208,6 +220,7 @@ TEST_P(LayerFlattenShapeSizeTest, FlattenSize) {
 	Ritsu::Input input(x);
 	Ritsu::Flatten flatten;
 	flatten(input);
+	flatten.build(input.getShape());
 
 	EXPECT_EQ(flatten.getShape(), expected);
 }
@@ -228,6 +241,7 @@ TEST_P(LayerDown2DScaleShapeSizeTest, MaxPooling2D) {
 	Ritsu::Input input(x);
 	Ritsu::MaxPooling2D maxPooling2D(stride);
 	maxPooling2D(input);
+	maxPooling2D.build(input.getShape());
 
 	EXPECT_EQ(maxPooling2D.getShape(), expected);
 }
@@ -239,6 +253,7 @@ TEST_P(LayerDown2DScaleShapeSizeTest, MinPooling2D) {
 	Ritsu::Input input(x);
 	Ritsu::MinPooling2D minPooling2D(stride);
 	minPooling2D(input);
+	minPooling2D.build(input.getShape());
 
 	EXPECT_EQ(minPooling2D.getShape(), expected);
 }
@@ -250,6 +265,7 @@ TEST_P(LayerDown2DScaleShapeSizeTest, AveragePooling2D) {
 	Ritsu::Input input(x);
 	Ritsu::AveragePooling2D averagePooling2D(stride);
 	averagePooling2D(input);
+	averagePooling2D.build(input.getShape());
 
 	EXPECT_EQ(averagePooling2D.getShape(), expected);
 }
@@ -259,8 +275,9 @@ TEST_P(LayerDown2DScaleShapeSizeTest, Conv2D) {
 	auto [stride, x, expected] = GetParam();
 
 	Ritsu::Input input(x);
-	Ritsu::Conv2D conv2D(64, {2, 2}, stride, "");
+	Ritsu::Conv2D conv2D(64, {2, 2}, stride, ConvPadding::Same);
 	conv2D(input);
+	conv2D.build(input.getShape());
 
 	EXPECT_EQ(conv2D.getShape(), expected);
 }
@@ -283,13 +300,20 @@ TEST_P(LayerUp2DScaleShapeSizeTest, UpSampling2D) {
 
 	Ritsu::UpSampling2D<float> upscale(2, UpSampling2D<float>::Interpolation::NEAREST);
 
+	Ritsu::Input input(x);
+	upscale(input);
+	upscale.build(input.getShape());
+
 	EXPECT_EQ(upscale.getShape(), expected);
 }
 
 TEST_P(LayerUp2DScaleShapeSizeTest, Conv2DTranspose) {
 	auto [stride, x, expected] = GetParam();
 
+	Ritsu::Input input(x);
 	Ritsu::Conv2DTranspose conv2DTranspose(64, {2, 2});
+	conv2DTranspose(input);
+	conv2DTranspose.build(input.getShape());
 
 	EXPECT_EQ(conv2DTranspose.getShape(), expected);
 }
@@ -308,9 +332,10 @@ TEST_P(LayerConcatenateShapeSizeTest, Concatenate) {
 	Ritsu::Input input0(x);
 	Ritsu::Input input1(x);
 
-	// Ritsu::Concatenate cat({&input0, &input1});
+	Ritsu::Concatenate cat({}, "");
+	cat(input0, input1);
 
-	// EXPECT_EQ(cat.getShape(), expected);
+	EXPECT_EQ(cat.getShape(), expected);
 }
 
 // TODO: add one more argument, from to, expected
@@ -323,6 +348,7 @@ TEST_P(LayerReshapeShapeSizeTest, Reshape) {
 
 	Reshape reshape(x);
 	reshape(input0);
+	reshape.build(input0.getShape());
 
 	EXPECT_EQ(reshape.getShape(), expected);
 }

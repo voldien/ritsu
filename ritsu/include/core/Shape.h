@@ -103,7 +103,7 @@ namespace Ritsu {
 			const IndexType minDim = Math::min(shape.getNrDimensions(), this->getNrDimensions());
 
 			/*	Check all elements equal.	*/
-			for (size_t i = 0; i < minDim; i++) {
+			for (IndexType i = 0; i < minDim; i++) {
 				if (shape.dims[i] == this->dims[i]) {
 					continue;
 				}
@@ -136,7 +136,7 @@ namespace Ritsu {
 		bool operator==(const std::initializer_list<IndexType> &list) const noexcept {
 
 			/*	If not same number dims => not the same.	*/
-			if (list.size() != this->getNrDimensions()) {
+			if (list.size() != static_cast<size_t>(this->getNrDimensions())) {
 				return false;
 			}
 
@@ -232,7 +232,7 @@ namespace Ritsu {
 		 */
 		Shape<IndexType> &reduce() noexcept {
 
-			for (size_t i = 0; i < this->getNrDimensions(); i++) {
+			for (IndexType i = 0; i < this->getNrDimensions(); i++) {
 
 				if (this->dims[i] == 1 || this->dims[i] == 0) {
 					this->dims.erase(std::next(this->dims.begin(), i));
@@ -374,7 +374,7 @@ namespace Ritsu {
 
 		Shape<IndexType> &insert(int axis, const Shape<IndexType> &additionalDims) {
 			// TODO:fix and detemrine
-			this->dims.insert(std::begin(this->dims) + 1, additionalDims.dims.begin(), additionalDims.dims.end());
+			this->dims.insert(std::begin(this->dims) + axis, additionalDims.dims.begin(), additionalDims.dims.end());
 			return *this;
 		}
 
@@ -434,7 +434,7 @@ namespace Ritsu {
 			}
 
 			const unsigned int axisMod = Math::mod<int32_t>(axis, shapeB.getNrDimensions());
-			for (size_t i = 0; i < shapeB.getNrDimensions(); i++) {
+			for (IndexType i = 0; i < shapeB.getNrDimensions(); i++) {
 				if (axisMod == i) {
 					continue;
 				}
@@ -450,7 +450,7 @@ namespace Ritsu {
 		static size_t computeIndex(const std::vector<U> &dim, const Shape<IndexType> &shape) noexcept {
 			size_t totalSize = 0;
 
-			for (long i = 0; i < shape.getNrDimensions(); i++) {
+			for (IndexType i = 0; i < shape.getNrDimensions(); i++) {
 				long depth = 1;
 				if (i > 0) {
 					depth = Math::product(&shape.dims.data()[i], i);
@@ -490,6 +490,7 @@ namespace Ritsu {
 			return 1;
 		}
 
+		// TODO: add init list as constexpr
 		template <typename U> static inline U computeNrElements(const std::vector<U> &dims) noexcept {
 			static_assert(std::is_integral<U>::value, "Type must be a integral type.");
 			return Math::product(dims);

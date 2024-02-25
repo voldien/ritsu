@@ -29,11 +29,17 @@ namespace Ritsu {
 	  public:
 		Time() : Object("time") {}
 
+		/**
+		 * @brief
+		 */
 		void start() noexcept {
 			this->start_timestamp = steady_clock::now();
 			this->ticks = steady_clock::now();
 		}
 
+		/**
+		 * @brief
+		 */
 		template <typename T> T getElapsed() const noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			duration<T> time_span = duration_cast<duration<T>>(steady_clock::now() - start_timestamp);
@@ -41,6 +47,9 @@ namespace Ritsu {
 			return time_span.count();
 		}
 
+		/**
+		 * @brief
+		 */
 		template <typename T> T deltaTime() const noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 			duration<T> time_span = duration_cast<duration<T>>(steady_clock::now() - ticks);
@@ -48,6 +57,19 @@ namespace Ritsu {
 			return static_cast<T>(delta_data.count());
 		}
 
+		/**
+		 * @brief
+		 */
+		template <typename T> T deltaTimeNow() const noexcept {
+			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
+			duration<T> time_span = duration_cast<duration<T>>(steady_clock::now() - ticks);
+
+			return static_cast<T>(time_span.count());
+		}
+
+		/**
+		 * @brief
+		 */
 		void update() noexcept {
 
 			auto now = steady_clock::now();
@@ -55,6 +77,9 @@ namespace Ritsu {
 			this->ticks = now;
 		}
 
+		/**
+		 * @brief
+		 */
 		size_t getTimeResolution() const noexcept {
 			return static_cast<size_t>(1.0 / static_cast<double>(std::chrono::high_resolution_clock::period::num) /
 									   static_cast<double>(std::chrono::high_resolution_clock::period::den));

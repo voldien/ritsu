@@ -31,7 +31,7 @@ namespace Ritsu {
 		/**
 		 *
 		 */
-		 //#pragma omp declare simd uniform(value) simdlen(4)
+		//#pragma omp declare simd uniform(value) simdlen(4)
 		//#pragma omp declare simd uniform(value, min, max) notinbranch
 		template <typename T> static inline constexpr T clamp(const T value, const T min, const T max) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
@@ -93,10 +93,10 @@ namespace Ritsu {
 						  "Type Must Support addition operation.");
 			T sum = 0;
 			T value;
-			size_t i;
-#pragma omp simd reduction(+ : sum) private(value) simdlen(4) linear(i : 1)
-			for (i = 0; i < nrElements; i++) {
-				value = list[i];
+			size_t index;
+#pragma omp simd reduction(+ : sum) private(value) simdlen(4) linear(index : 1)
+			for (index = 0; index < nrElements; index++) {
+				value = list[index];
 				sum += value;
 			}
 			return sum;
@@ -112,11 +112,11 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T product_combined = 1;
-			size_t i;
+			size_t index;
 
-#pragma omp simd reduction(* : product_combined) simdlen(4) linear(i : 1)
-			for (i = 0; i < nrElements; i++) {
-				product_combined *= list[i];
+#pragma omp simd reduction(* : product_combined) simdlen(4) linear(index : 1)
+			for (index = 0; index < nrElements; index++) {
+				product_combined *= list[index];
 			}
 			return product_combined;
 		}
@@ -125,10 +125,10 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
-			size_t i;
-#pragma omp simd reduction(+ : sum) simdlen(4) linear(i : 1)
-			for (i = 0; i < nrElements; i++) {
-				sum += listA[i] * listB[i];
+			size_t index;
+#pragma omp simd reduction(+ : sum) simdlen(4) linear(index : 1)
+			for (index = 0; index < nrElements; index++) {
+				sum += listA[index] * listB[index];
 			}
 			return sum;
 		}
@@ -138,10 +138,10 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			/*	*/
-			size_t i;
-#pragma omp simd simdlen(4) linear(i : 1)
-			for (i = 0; i < nrElements; i++) {
-				list[i] = static_cast<T>(std::pow(list[i], exponent));
+			size_t index;
+#pragma omp simd simdlen(4) linear(index : 1)
+			for (index = 0; index < nrElements; index++) {
+				list[index] = static_cast<T>(std::pow(list[index], exponent));
 			}
 		}
 
@@ -165,10 +165,10 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
-			size_t i;
-#pragma omp simd reduction(+ : sum) simdlen(4) linear(i : 1)
-			for (i = 0; i < nrElements; i++) {
-				sum += (list[i] - mean) * (list[i] - mean);
+			size_t index;
+#pragma omp simd reduction(+ : sum) simdlen(4) linear(index : 1)
+			for (index = 0; index < nrElements; index++) {
+				sum += (list[index] - mean) * (list[index] - mean);
 			}
 
 			return (static_cast<T>(1) / static_cast<T>((nrElements - 1))) * sum;

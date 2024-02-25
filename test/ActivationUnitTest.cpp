@@ -1,4 +1,5 @@
 #include "Activations.h"
+#include "Tensor.h"
 #include <Ritsu.h>
 #include <gtest/gtest.h>
 #include <tuple>
@@ -151,9 +152,11 @@ INSTANTIATE_TEST_SUITE_P(ActivationSwish, SwishActivationFunctionTest,
 class SoftMaxActivationFunctionTest : public ::testing::TestWithParam<std::tuple<Tensor<float>, Tensor<float>>> {};
 
 TEST_P(SoftMaxActivationFunctionTest, Softmax) {
+
 	auto [input, expected] = GetParam();
 
-	const Tensor<float> result = softMax<float>(input);
+	Tensor<float> copy = input.copy();
+	const Tensor<float> result = softMax<float>(copy);
 
 	ASSERT_EQ(result.getShape(), expected.getShape());
 	for (size_t i = 0; i < result.getNrElements(); i++) {

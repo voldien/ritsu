@@ -14,22 +14,21 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
-#include "Layer.h"
+#include "Conv2D.h"
 #include <cstdint>
 #include <ctime>
 #include <vector>
 
 namespace Ritsu {
 
-	enum class ConvPadding { Same, Valid };
 	class Conv2DTranspose : public Layer<float> {
 
 		//  kernel_initializer='glorot_uniform',
 		//    bias_initializer='zeros',
 
 	  public:
-		Conv2DTranspose(const size_t filters, const std::vector<uint32_t> kernel_size,
-						const std::vector<uint32_t> strides = {1, 1}, const std::string &padding = "valid",
+		Conv2DTranspose(const size_t filters, const std::array<uint32_t, 2> &kernel_size,
+						const std::array<uint32_t, 2> &stride = {1, 1}, const ConvPadding padding = ConvPadding::Valid,
 						const std::string name = "conv2Dtranspose")
 			: Layer<float>(name) {}
 
@@ -39,6 +38,10 @@ namespace Ritsu {
 		Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) override { return tensorLoss; }
 		Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const override { return tensorLoss; }
 
+	  protected:
+		size_t getNrFilters() const noexcept { return this->filters; }
+
 	  private:
+		size_t filters;
 	};
 } // namespace Ritsu

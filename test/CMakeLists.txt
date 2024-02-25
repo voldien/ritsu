@@ -37,3 +37,8 @@ ADD_EXECUTABLE(ritsu-unit-test-nomp ${SOURCE_FILES} ${HEADER_FILES})
 TARGET_LINK_LIBRARIES(ritsu-unit-test-nomp ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} ritsu-no-opm pthread )
 TARGET_INCLUDE_DIRECTORIES(ritsu-unit-test-nomp PRIVATE ${GTEST_INCLUDE_DIRS} ${CMAKE_CURRENT_SOURCE_DIR}/ )
 ADD_DEPENDENCIES(ritsu-unit-test-nomp ritsu)
+
+INSTALL(TARGETS ritsu-unit-test-nomp DESTINATION bin)
+ADD_TEST(NAME assert-functionality-nomp
+		COMMAND ritsu-unit-test-nomp
+		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})

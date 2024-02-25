@@ -32,6 +32,10 @@ namespace Ritsu {
 			this->size = size;
 		}
 
+		Tensor<float> operator<<(const Tensor<float> &tensor) override { return tensor; }
+
+		Tensor<float> &operator<<(Tensor<float> &tensor) override { return tensor; }
+
 		void build(const Shape<IndexType> &shape) override {
 
 			this->shape = shape;
@@ -43,32 +47,24 @@ namespace Ritsu {
 			assert(this->getShape().getNrDimensions() == 3);
 		}
 
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			this->build(layer.getShape());
-
-			return *this;
-		}
-
 		void setOutputs(const std::vector<Layer<float> *> &layers) override {
 			/*	Set input layer */
 			this->outputs = layers;
 		}
 
 		void setInputs(const std::vector<Layer<float> *> &layers) override { /*	*/
+
+			this->input = layers[0];
 		}
 
-		
 		Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) override { return tensorLoss; }
 		Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const override { return tensorLoss; }
 
 	  private:
 		std::array<uint32_t, 2> size;
 
-		std::vector<Layer<float> *> inputs;
-		std::vector<Layer<float> *> outputs;
+		/*	*/
+		Layer<DType> *input;
+		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

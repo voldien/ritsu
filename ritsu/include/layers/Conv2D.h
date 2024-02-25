@@ -22,6 +22,7 @@
 
 namespace Ritsu {
 
+	enum class ConvPadding { Same, Valid };
 	/**
 	 * @brief
 	 *
@@ -32,16 +33,16 @@ namespace Ritsu {
 		//    bias_initializer='zeros',
 
 	  public:
-		Conv2D(const uint32_t filters, const std::vector<uint32_t> &kernel_size, const std::array<uint32_t, 2> &stride,
-			   const std::string &padding, bool useBias = true,
-			   const Initializer<DType> &kernel_init = RandomNormalInitializer<DType>(),
+		Conv2D(const uint32_t filters, const std::array<uint32_t, 2> &kernel_size,
+			   const std::array<uint32_t, 2> &stride, const ConvPadding padding = ConvPadding::Valid,
+			   bool useBias = true, const Initializer<DType> &kernel_init = RandomNormalInitializer<DType>(),
 			   const Initializer<DType> &bias_init = RandomNormalInitializer<DType>(),
 			   const std::string &name = "Conv2D")
 			: Layer<float>(name) {
 
 			this->filters = filters;
 			this->stride = stride;
-			this->kernel = kernel_size;
+			this->kernel = Shape<IndexType>({kernel_size[0], kernel_size[1]});
 		}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
@@ -62,8 +63,8 @@ namespace Ritsu {
 			this->initKernels(shape);
 		}
 
-		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
-		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
+		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }
+		void setOutputs(const std::vector<Layer<DType> *> &layers) override { this->outputs = layers; }
 
 		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
 		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
@@ -81,7 +82,7 @@ namespace Ritsu {
 
 				for (size_t x = 0; x < 1; x++) {
 					for (size_t y = 0; y < 1; y++) {
-						_kernelWeight.getValue<float>(nrFilters * this->kernel.getNrElements());
+						this->_kernelWeight.getValue<float>(nrFilters * this->kernel.getNrElements());
 					}
 				}
 			}
@@ -89,17 +90,16 @@ namespace Ritsu {
 
 		void initKernels(const Shape<IndexType> &shape) noexcept {}
 
-		void initbias(const Shape<IndexType> &shape) noexcept {
-			// std::srand(std::time(NULL));
-			// for (int i = 0; i < bias.size(); i++) {
-			//	bias[i] = static_cast<double>(std::rand()) / RAND_MAX * 10.0f;
-			//}
-		}
+		void initbias(const Shape<IndexType> &shape) noexcept {}
 
 	  protected:
 		size_t getNrFilters() const noexcept { return this->filters; }
 
 	  private:
+		/*	*/
+		Layer<DType> *input;
+		std::vector<Layer<DType> *> outputs;
+
 		size_t filters;
 		std::vector<DType> bias;
 		Tensor<float> _bias;
