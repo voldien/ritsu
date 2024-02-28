@@ -38,7 +38,7 @@ namespace Ritsu {
 	template <typename T> inline static constexpr T relu(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
-		return std::max<T>(0, value);
+		return Math::max<T>(0, value);
 	}
 
 #pragma omp declare simd uniform(value) simdlen(4)
@@ -146,7 +146,7 @@ namespace Ritsu {
 		T Inversesum = 0;
 		const size_t nrElements = tensor.getNrElements();
 
-#pragma omp parallel for simd reduction(+ : Inversesum)
+#pragma omp for simd
 		for (size_t i = 0; i < nrElements; i++) {
 			Inversesum += static_cast<T>(std::exp(tensor.template getValue<T>(i)));
 		}

@@ -19,7 +19,7 @@ ADD_TEST(NAME assert-functionality
 		COMMAND ritsu-unit-test 
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND TARGET ritsu-rocm  )
+IF (TARGET ritsu-rocm)
 
 	ADD_EXECUTABLE(ritsu-unit-test-rocm ${SOURCE_FILES} ${HEADER_FILES})
 	TARGET_LINK_LIBRARIES(ritsu-unit-test-rocm ${GTEST_LIBRARIES} ${GTEST_MAIN_LIBRARIES} ritsu-rocm )

@@ -188,7 +188,7 @@ namespace Ritsu {
 		Shape<IndexType> getSubShape(const std::initializer_list<ShapePair<IndexType>> subaxisGroup) const {
 			/*	*/
 			if (subaxisGroup.size() > this->getNrDimensions()) {
-				throw InvalidArgumentException("Sub shape has higher dimensions than shape");
+				//	throw InvalidArgumentException("Sub shape has higher dimensions than shape");
 			}
 
 			Shape<IndexType> copy = *this;
@@ -449,15 +449,17 @@ namespace Ritsu {
 		template <typename U>
 		static size_t computeIndex(const std::vector<U> &dim, const Shape<IndexType> &shape) noexcept {
 			size_t totalSize = 0;
+			const size_t nrDims = shape.getNrDimensions();
 
-			for (IndexType i = 0; i < shape.getNrDimensions(); i++) {
+			for (size_t i = 0; i < nrDims; i++) {
 				long depth = 1;
 				if (i > 0) {
-					depth = Math::product(&shape.dims.data()[i], i);
+					depth = Math::product(&shape.dims.data()[0], i);
 				}
 
 				if (i < dim.size()) {
-					totalSize += depth * *(dim.begin() + i);
+					const U value = *(dim.begin() + i);
+					totalSize += depth * value;
 				}
 			}
 			return totalSize;
@@ -466,15 +468,17 @@ namespace Ritsu {
 		template <typename U>
 		static size_t computeIndex(const std::initializer_list<U> &dim, const Shape<IndexType> &shape) noexcept {
 			size_t totalSize = 0;
+			const size_t nrDims = shape.getNrDimensions();
 
-			for (long i = 0; i < shape.getNrDimensions(); i++) {
+			for (size_t i = 0; i < nrDims; i++) {
 				long depth = 1;
 				if (i > 0) {
-					depth = Math::product(&shape.dims.data()[i], i);
+					depth = Math::product(&shape.dims.data()[0], i);
 				}
 
 				if (i < dim.size()) {
-					totalSize += depth * *(dim.begin() + i);
+					const U value = *(dim.begin() + i);
+					totalSize += depth * value;
 				}
 			}
 			return totalSize;

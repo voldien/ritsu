@@ -19,9 +19,9 @@ int main(int argc, const char **argv) {
 
 	try {
 		/*	*/
-		const unsigned int batchSize = 1;
+		const unsigned int batchSize = 10;
 		const unsigned int epochs = 128;
-		const float learningRate = 0.0008f;
+		const float learningRate = 0.003f;
 		bool useBatchNorm = false;
 
 		/*	*/
@@ -113,7 +113,7 @@ int main(int argc, const char **argv) {
 			MetricMean lossmetric("loss");
 
 			Loss mse_loss(loss_mse);
-			forwardModel.compile(&optimizer, loss_error,
+			forwardModel.compile(&optimizer, loss_mse,
 								 {dynamic_cast<Metric *>(&lossmetric), dynamic_cast<Metric *>(&accuracy)});
 			std::cout << forwardModel.summary() << std::endl;
 

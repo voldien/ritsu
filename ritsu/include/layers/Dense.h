@@ -82,9 +82,7 @@ namespace Ritsu {
 			assert(this->weight.getShape()[-2] == this->units);
 		}
 
-		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
-			this->outputs = layers;
-		}
+		void setOutputs(const std::vector<Layer<DType> *> &layers) override { this->outputs = layers; }
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
 
@@ -119,12 +117,13 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> outputs;
 
 	  protected:
-		// operator
-		inline void compute(const Tensor<float> &inputTesnor, Tensor<float> &output) const {
+		inline void compute(const Tensor<float> &inputTesnor, Tensor<float> &output) const noexcept {
+			/**/
 			output = (this->weight % inputTesnor) + this->bias;
 		}
 
-		inline void computeDerivative(const Tensor<float> &error, Tensor<float> &result) const {
+		inline void computeDerivative(const Tensor<float> &error, Tensor<float> &result) const noexcept {
+
 			Tensor<float> tmp = error;
 			tmp.transpose();
 			Tensor<float> tmpWeight = weight;
@@ -134,7 +133,7 @@ namespace Ritsu {
 
 		void initweight() noexcept {
 			// TODO improve
-			RandomNormal<DType> random(0.0, 2.0);
+			RandomUniform<DType> random(0.0, 1.0);
 
 #pragma omp parallel for simd shared(weight)
 			for (size_t i = 0; i < this->weight.getNrElements(); i++) {
@@ -144,7 +143,7 @@ namespace Ritsu {
 
 		void initbias() noexcept {
 			// TODO improve
-			RandomNormal<DType> random(0.0, 2.0);
+			RandomUniform<DType> random(0.0, 1.0);
 
 #pragma omp parallel for simd shared(bias)
 			for (size_t i = 0; i < this->bias.getNrElements(); i++) {

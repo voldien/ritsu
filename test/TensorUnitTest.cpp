@@ -279,18 +279,18 @@ TYPED_TEST_P(TensorTest, Mean) {
 	{
 		Tensor<TypeParam> tensor({32, 10}, sizeof(TypeParam));
 
-		ASSERT_NO_THROW(Tensor<TypeParam>::template mean<TypeParam>(tensor, -1));
+		ASSERT_NO_THROW(Tensor<TypeParam>::mean(tensor, -1));
 
-		const Tensor<TypeParam> result = Tensor<TypeParam>::template mean<TypeParam>(tensor, -1);
+		const Tensor<TypeParam> result = Tensor<TypeParam>::mean(tensor, -1);
 		ASSERT_EQ(result.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({10}));
 	}
 
 	{
 		Tensor<TypeParam> tensor({32, 10, 10}, sizeof(TypeParam));
 
-		ASSERT_NO_THROW(Tensor<TypeParam>::template mean<TypeParam>(tensor, -1));
+		ASSERT_NO_THROW(Tensor<TypeParam>::mean(tensor, -1));
 
-		const Tensor<TypeParam> result = Tensor<TypeParam>::template mean<TypeParam>(tensor, -1);
+		const Tensor<TypeParam> result = Tensor<TypeParam>::mean(tensor, -1);
 		ASSERT_EQ(result.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({10}));
 	}
 
@@ -339,7 +339,7 @@ TYPED_TEST_P(TensorTest, InnerProduct) {
 		tensorA.assignInitValue(1);
 		tensorB.assignInitValue(1);
 
-		ASSERT_EQ(tensorA.dot(tensorB), (8 * 8 * 3) * 1);
+		ASSERT_EQ(tensorA.dot(tensorB), static_cast<TypeParam>((8 * 8 * 3) * 1));
 	}
 }
 

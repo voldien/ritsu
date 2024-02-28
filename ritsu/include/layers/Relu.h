@@ -17,6 +17,7 @@
 #include "Activaction.h"
 #include "Tensor.h"
 #include "layers/Layer.h"
+#include <cassert>
 #include <cmath>
 
 namespace Ritsu {
@@ -45,8 +46,6 @@ namespace Ritsu {
 			return tensor;
 		}
 
-
-
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
 			/*	Set input layer */
 			this->outputs = layers;
@@ -74,10 +73,11 @@ namespace Ritsu {
 	  protected:
 		void computeReluActivation(Tensor<float> &tensor) {
 
-			const size_t nrElements = tensor.getNrElements();
+			const IndexType nrElements = tensor.getNrElements();
 #pragma omp parallel for shared(tensor)
-			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = relu(tensor.getValue<DType>(i));
+			for (IndexType i = 0; i < nrElements; i++) {
+				const DType value = relu<DType>(tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = value;
 			}
 		}
 

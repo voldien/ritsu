@@ -33,7 +33,6 @@
 #include <string>
 #include <typeinfo>
 #include <utility>
-#include <valarray>
 #include <vector>
 
 namespace Ritsu {
@@ -401,7 +400,7 @@ namespace Ritsu {
 		}
 
 		Tensor operator-(const Tensor &tensor) const noexcept {
-			Tensor tmp = *this;
+			Tensor tmp = Tensor(tensor.getShape());
 			size_t nrElements = this->getNrElements();
 
 #pragma omp parallel for shared(tensor)
@@ -513,6 +512,8 @@ namespace Ritsu {
 
 		Tensor &assign(const Tensor &other) {
 			/*	Transfer data.	*/
+			assert(other.getShape().getNrElements() == this->getShape().getNrElements());
+
 			const size_t dataSizeInBytes = other.getDatSize();
 			std::memcpy(this->memoryBuffer.buffer.data, other.memoryBuffer.buffer.data, dataSizeInBytes);
 
@@ -623,7 +624,7 @@ namespace Ritsu {
 		 * @brief
 		 *
 		 */
-		inline Tensor mean(int axis) noexcept { return Tensor::mean<DType>(*this, axis); }
+		inline Tensor mean(int axis) noexcept { return Tensor::mean(*this, axis); }
 
 		DType min() const noexcept {
 			DType minValue = std::numeric_limits<DType>::max();
@@ -812,7 +813,6 @@ namespace Ritsu {
 			}
 
 			/*	*/
-			const void *prevBuf = this->memoryBuffer.buffer.data;
 			this->memoryBuffer.buffer.data =
 				static_cast<uint8_t *>(realloc(this->memoryBuffer.buffer.data, nrBytesAllocateAligned));
 
@@ -828,7 +828,7 @@ namespace Ritsu {
 			this->memoryBuffer.memoryShape = shape;
 		}
 
-		friend std::ostream &operator<<(std::ostream &stream, Tensor &tensor) noexcept {
+		friend std::ostream &operator<<(std::ostream &stream, const Tensor &tensor) noexcept {
 
 			const IndexType number_elements = tensor.getNrElements();
 
@@ -945,24 +945,35 @@ namespace Ritsu {
 			return static_cast<U>(Math::mean<DType>(tensorA.getRawData<DType>(), tensorA.getNrElements()));
 		}
 
-		template <typename U> static Tensor mean(const Tensor &tensorA, int axis) noexcept {
+		static Tensor mean(const Tensor &tensorA, int axis) noexcept {
 
 			/*	*/
 			if (tensorA.getNrElements() == 0) {
 				return {};
 			}
 
-			Tensor result({tensorA.getShape().getAxisDimensions(axis)});
+			IndexType dim;
+			size_t dim_size;
+			if (tensorA.getShape().getNrDimensions() == 1) {
+				dim = 1;
+				dim_size = 1;
+			} else {
+				dim = tensorA.getShape().getAxisDimensions(axis);
+				dim_size = tensorA.getShape().getAxisDimensions(axis);
+			}
+
+			Tensor result({dim});
 
 			/*	*/
-			const size_t dim_size = tensorA.getShape().getAxisDimensions(axis);
 			for (size_t i = 0; i < dim_size; i++) {
+				const Tensor subset = tensorA.getSubset(
+					{{static_cast<IndexType>(i)},
+					 {0, tensorA.getShape()[0] - 1} /*TODO:remove*/}); // TODO:fix a unit test to make it work.
 
-				Tensor subset = tensorA.getSubset({{static_cast<IndexType>(i)}});
 				const DType *data = subset.getRawData<DType>();
 
 				const size_t elements = subset.getNrElements();
-				const DType meanResult = static_cast<U>(Math::mean<DType>(data, elements));
+				const DType meanResult = Math::mean<DType>(data, elements);
 				result.getValue(i) = meanResult; // TODO:
 			}
 
@@ -1006,11 +1017,11 @@ namespace Ritsu {
 			/*	Max values.	*/
 			const IndexType max = tensor.max();
 
-			const IndexType mm = max + 1;
+			const IndexType maxInclusive = max + 1;
 			if (newShape.getNrDimensions() > 1) {
-				newShape[-1] = mm;
+				newShape[-1] = maxInclusive;
 			} else {
-				newShape.insert(1, Shape<IndexType>({mm}));
+				newShape.insert(1, Shape<IndexType>({maxInclusive}));
 			}
 
 			Tensor<DType> oneshot = std::move(Tensor::zero(newShape));

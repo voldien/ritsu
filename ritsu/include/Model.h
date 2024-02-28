@@ -17,6 +17,7 @@
 #include "Loss.h"
 #include "Metric.h"
 #include "Object.h"
+#include "RitsuDebug.h"
 #include "Tensor.h"
 #include "core/Shape.h"
 #include "core/Time.h"
@@ -131,6 +132,8 @@ namespace Ritsu {
 					/*	Compute the loss/cost.	*/
 					Tensor<float> loss_error =
 						std::move(this->lossFunction.computeLoss(subsetExpectedBatch, batchResult));
+
+					std::cout << std::endl << std::endl << loss_error << std::endl << std::endl;
 
 					/*	Apply metric update.	*/
 					for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
@@ -324,16 +327,23 @@ namespace Ritsu {
 
 				/*	Compute each batch element.	*/
 				for (size_t i = 0; i < batchSize; i++) {
-					Tensor<float> batch = layerResult.getSubset({{static_cast<IndexType>(i)}});
-					batch.reduce();
+					/*	*/
+					Tensor<float> prevBatch = layerResult.getSubset({{static_cast<IndexType>(i)}});
+					prevBatch.reduce();
 
+					// std::cerr << prevBatch << std::endl << std::endl;
 					Tensor<float> resultSubset = batchTmp.getSubset({static_cast<IndexType>(i)});
 
 					/*	Perform layer on data.	*/
-					resultSubset.assign((*current) << (const_cast<const Tensor<float> &>(batch)));
+					resultSubset.assign((*current) << (const_cast<const Tensor<float> &>(prevBatch)));
 				}
 				/*	Override the layer result with the batch.	*/
+
 				layerResult = std::move(batchTmp);
+
+				// debug_layer<float>(std::cerr, current) << std::endl << std::endl;
+
+				// std::cerr << layerResult << std::endl << std::endl;
 
 				/*	validate result shape. */
 				const auto shape =
@@ -428,7 +438,6 @@ namespace Ritsu {
 						current->getTrainableWeights()->getNrElements() * current->DTypeSize;
 				}
 				if (current->getVariables() != nullptr) {
-					// this->nr_weights += current->getVariables()->getNrElements();
 					this->noneTrainableWeightSizeInBytes +=
 						current->getVariables()->getNrElements() * current->DTypeSize;
 				}

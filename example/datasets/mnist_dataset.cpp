@@ -9,7 +9,7 @@
 
 using namespace Ritsu;
 
-template <typename T> static inline constexpr T swap_endian(const T value) {
+template <typename T> static inline constexpr T swap_endian(const T value) noexcept {
 	// Swap endian (big to little) or (little to big)
 
 	/*	*/
@@ -109,8 +109,8 @@ static void load_label_dataset(std::ifstream &stream, Ritsu::Tensor<uint8_t> &da
 
 void RitsuDataSet::loadMNIST(const std::string &imagePath, const std::string &labelPath,
 							 const std::string &imageTestPath, const std::string &labelTestPath,
-							 Ritsu::Tensor<uint8_t> &dataX, Ritsu::Tensor<uint8_t> &dataY, Ritsu::Tensor<uint8_t> &testX,
-							 Ritsu::Tensor<uint8_t> &testY) {
+							 Ritsu::Tensor<uint8_t> &dataX, Ritsu::Tensor<uint8_t> &dataY,
+							 Ritsu::Tensor<uint8_t> &testX, Ritsu::Tensor<uint8_t> &testY) {
 
 	/*	*/
 	std::ifstream imageTrainStream(imagePath, std::ios::in | std::ios::binary);

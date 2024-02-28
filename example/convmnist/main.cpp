@@ -68,8 +68,8 @@ int main(int argc, const char **argv) {
 		BatchNormalization BatchNormalization_2;
 
 		Flatten flatten0("flatten0");
-		Dense output(1);
-
+		Dense output(output_size);
+		
 		Sigmoid sigmoid;
 		Regularization regularization(0.1f, 0.2f);
 

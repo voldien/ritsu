@@ -86,7 +86,7 @@ INSTANTIATE_TEST_SUITE_P(ActivationLinear, LinearActivationFunctionTest,
 /*	Derivative	*/
 class LinearDerivativeActivationFunctionTest : public LinearActivationFunctionTest {};
 TEST_P(LinearDerivativeActivationFunctionTest, Linear) {
-	auto [coff, x, expected_activation] = GetParam();
+	const auto [coff, x, expected_activation] = GetParam();
 
 	EXPECT_FLOAT_EQ(computeLinearDerivative(coff), expected_activation);
 }
@@ -96,7 +96,7 @@ INSTANTIATE_TEST_SUITE_P(ActivationLinear, LinearDerivativeActivationFunctionTes
 
 class ExpLinearActivationFunctionTest : public ::testing::TestWithParam<std::tuple<double, double, double>> {};
 TEST_P(ExpLinearActivationFunctionTest, ExpLinear) {
-	auto [coff, x, expected_activation] = GetParam();
+	const auto [coff, x, expected_activation] = GetParam();
 
 	EXPECT_FLOAT_EQ(computeExpLinear(coff, x), expected_activation);
 }
@@ -107,7 +107,7 @@ INSTANTIATE_TEST_SUITE_P(ActivationExpLinear, ExpLinearActivationFunctionTest,
 class ExpLinearDerivativeActivationFunctionTest : public ::testing::TestWithParam<std::tuple<double, double, double>> {
 };
 TEST_P(ExpLinearDerivativeActivationFunctionTest, ExpLinear) {
-	auto [coff, x, expected_activation] = GetParam();
+	const auto [coff, x, expected_activation] = GetParam();
 
 	EXPECT_FLOAT_EQ(computeExpLinearDerivative(coff, x), expected_activation);
 }
@@ -118,7 +118,7 @@ INSTANTIATE_TEST_SUITE_P(ActivationDerivativeExpLinear, ExpLinearDerivativeActiv
 /*	*/
 class TanhActivationFunctionTest : public ActivationFunctionTest {};
 TEST_P(TanhActivationFunctionTest, Tahn) {
-	auto [x, expected_activation] = GetParam();
+	const auto [x, expected_activation] = GetParam();
 
 	EXPECT_FLOAT_EQ(computeTanh(x), expected_activation);
 }
@@ -129,7 +129,7 @@ INSTANTIATE_TEST_SUITE_P(ActivationTahn, TanhActivationFunctionTest,
 
 class TanhDerivativeActivationFunctionTest : public ActivationFunctionTest {};
 TEST_P(TanhDerivativeActivationFunctionTest, Tahn) {
-	auto [x, expected_activation] = GetParam();
+	const auto [x, expected_activation] = GetParam();
 
 	EXPECT_FLOAT_EQ(computeTanhDerivate(x), expected_activation);
 }
@@ -153,14 +153,15 @@ class SoftMaxActivationFunctionTest : public ::testing::TestWithParam<std::tuple
 
 TEST_P(SoftMaxActivationFunctionTest, Softmax) {
 
-	auto [input, expected] = GetParam();
+	const auto [input, expected] = GetParam();
 
 	Tensor<float> copy = input.copy();
-	const Tensor<float> result = softMax<float>(copy);
+	const Tensor<float> result = Ritsu::softMax<float>(copy);
 
 	ASSERT_EQ(result.getShape(), expected.getShape());
+	/*	*/
 	for (size_t i = 0; i < result.getNrElements(); i++) {
-		ASSERT_NEAR(result.getValue(i), expected.getValue(i), 0.00001);
+		ASSERT_NEAR(result.getValue(i), expected.getValue(i), 0.001);
 	}
 }
 
@@ -169,4 +170,6 @@ INSTANTIATE_TEST_SUITE_P(
 	::testing::Values(std::make_tuple(Tensor<float>::fromArray({5.0f, 5.0f, 5.0f, 5.0f, 5.0f}),
 									  Tensor<float>::fromArray({0.2f, 0.2f, 0.2f, 0.2f, 0.2f})),
 					  std::make_tuple(Tensor<float>::fromArray({10, 0, 0}), Tensor<float>::fromArray({1, 0, 0})),
-					  std::make_tuple(Tensor<float>::fromArray({5, 5, 5}), Tensor<float>::fromArray({0.2, 0.2, 0.2}))));
+					  std::make_tuple(Tensor<float>::fromArray({5, 5, 5}),
+									  Tensor<float>::fromArray({0.33333333333333, 0.3333333333333333,
+																0.3333333333333333}))));

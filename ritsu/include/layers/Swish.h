@@ -44,25 +44,15 @@ namespace Ritsu {
 			return tensor;
 		}
 
-		//Tensor<float> &operator()(Tensor<float> &tensor) override {
-		//	this->computeActivation(tensor);
-		//	return tensor;
-		//}
-
-		template <class U> auto &operator()(U &layer) {
-
-			this->setInputs({&layer});
-			layer.setOutputs({this});
-
-			return *this;
-		}
-
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
 			/*	Set input layer */
 			this->outputs = layers;
 		}
 
-		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }
+		void setInputs(const std::vector<Layer<DType> *> &layers) override {
+			this->shape = layers[0]->getShape();
+			this->input = layers[0];
+		}
 
 		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
 		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }

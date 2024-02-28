@@ -12,7 +12,7 @@ TYPED_TEST_SUITE_P(ShapeType);
 TYPED_TEST_P(ShapeType, DefaultConstructor) { ASSERT_NO_THROW(Ritsu::Shape<TypeParam> shape({32, 32, 3})); }
 
 TYPED_TEST_P(ShapeType, DimIndexOrder) {
-	
+
 	{
 		Ritsu::Shape<TypeParam> shape({32, 32, 3});
 		ASSERT_EQ(shape[0], 32);
@@ -319,7 +319,7 @@ TYPED_TEST_P(ShapeType, ComputeIndex) {
 		Ritsu::Shape<TypeParam> shape({32, 32, 3});
 
 		ASSERT_EQ(Ritsu::Shape<TypeParam>::computeIndex({0}, shape), 0);
-		ASSERT_EQ(Ritsu::Shape<TypeParam>::computeIndex({10}, shape), 10);
+		ASSERT_EQ(Ritsu::Shape<TypeParam>::computeIndex({1}, shape), 1);
 
 		ASSERT_EQ(Ritsu::Shape<TypeParam>::computeIndex({16, 16, 0}, shape), 32 * 16 + 16);
 	}

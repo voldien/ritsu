@@ -33,22 +33,22 @@ namespace Ritsu {
 
 		Initializer() {}
 
-		virtual Tensor<float> get(const Shape<unsigned int> &shape) = 0;
+		virtual Tensor<DType> get(const Shape<unsigned int> &shape) = 0;
 
-		Tensor<float> &operator()(const Shape<unsigned int> &shape) { return this->get(shape); }
+		Tensor<DType> &operator()(const Shape<unsigned int> &shape) { return this->get(shape); }
 	};
 
 	template <typename T> class RandomNormalInitializer : public Initializer<T> {
 	  public:
 		RandomNormalInitializer(T mean = 0.0, T stddev = 1.0, int seed = 0) : random(RandomNormal<T>(mean, stddev)) {}
 
-		Tensor<float> get(const Shape<unsigned int> &shape) override {
+		Tensor<T> get(const Shape<unsigned int> &shape) override {
 
-			Tensor<float> tensor(shape, sizeof(T));
+			Tensor<T> tensor(shape);
 
 #pragma omp parallel for simd shared(tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
-				tensor.getValue<T>(i) = this->random.rand();
+				tensor.getValue(i) = this->random.rand();
 			}
 
 			return tensor;
@@ -62,12 +62,13 @@ namespace Ritsu {
 	  public:
 		ZeroInitializer() {}
 
-		Tensor<float> get(const Shape<unsigned int> &shape) override {
+		Tensor<T> get(const Shape<unsigned int> &shape) override {
 
-			Tensor<float> tensor(shape, sizeof(T));
+			Tensor<T> tensor(shape);
+
 #pragma omp parallel for simd shared(tensor)
 			for (size_t i = 0; i < tensor.getNrElements(); i++) {
-				tensor.getValue<T>(i) = 0;
+				tensor.getValue(i) = 0;
 			}
 
 			return tensor;
