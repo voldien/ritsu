@@ -497,10 +497,26 @@ TYPED_TEST_P(TensorTest, Min) {
 	}
 }
 
+TYPED_TEST_P(TensorTest, AXPY) {
+
+	/*	*/
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({12, 12, 1}));
+		Tensor<TypeParam> tensorB(Shape<uint32_t>({12, 12, 1}));
+
+		tensorA.assignInitValue(static_cast<TypeParam>(-1));
+		tensorB.assignInitValue(static_cast<TypeParam>(1));
+
+		const TypeParam value = static_cast<TypeParam>(rand() % 100);
+
+		ASSERT_NO_THROW(const Tensor<TypeParam> result = (tensorA * value) + tensorB);
+	}
+}
+
 REGISTER_TYPED_TEST_SUITE_P(TensorTest, DefaultConstructor, DefaultType, PrintNoThrow, AssignMove, DataSize, Addition,
 							Subtract, MultiplyFactor, ElementCount, FromArray, SetGetValues, Max, Min, Log10, Mean,
 							Flatten, Transpose, InnerProduct, Append, Reduce, Reshape, Cast, SubSet,
-							MatrixMultiplication, Equal, NotEqual, OneShot);
+							MatrixMultiplication, Equal, NotEqual, OneShot, AXPY);
 
 using TensorPrimitiveDataTypes =
 	::testing::Types<bool, int16_t, uint16_t, int32_t, uint32_t, long, size_t, float, double>;

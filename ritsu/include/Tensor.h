@@ -25,6 +25,7 @@
 #include <initializer_list>
 #include <iostream>
 #include <istream>
+#include <jemalloc/jemalloc.h>
 #include <limits>
 #include <memory>
 #include <omp.h>
@@ -99,7 +100,7 @@ namespace Ritsu {
 			const size_t offsetMemory = offsetShape.getNrElements() * parent.getElementSize();
 			this->memoryBuffer.buffer.data = &parent.memoryBuffer.buffer.data[offsetMemory];
 
-			this->memoryBuffer.ownerUid = reinterpret_cast<size_t>(parent.memoryBuffer.ownerUid);
+			this->memoryBuffer.ownerUid = reinterpret_cast<size_t>(&parent.memoryBuffer);
 			this->memoryBuffer.uid = reinterpret_cast<size_t>(this);
 			/*	*/
 			this->memoryBuffer.allocationSize = newShape.getNrElements() * parent.getElementSize();
@@ -1029,7 +1030,8 @@ namespace Ritsu {
 			/*	*/
 			for (IndexType i = 0; i < tensor.getShape()[0]; i++) {
 				const IndexType value = tensor.getValue(i);
-				oneshot.getSubset({{static_cast<IndexType>(i)}}).getValue(static_cast<IndexType>(value)) = 1;
+				Tensor<DType> ref = oneshot.getSubset({{static_cast<IndexType>(i)}});
+				ref.getValue(static_cast<IndexType>(value)) = static_cast<IndexType>(1);
 			}
 
 			/*	Construct.	*/
@@ -1082,28 +1084,28 @@ namespace Ritsu {
 				throw NotImplementedException("Not supported");
 			}
 
-			const size_t A_row = tensorALeft.getShape()[0];
-			const size_t A_col = tensorALeft.getShape().getNrDimensions() > 1 ? tensorALeft.getShape()[1] : 1;
+			const IndexType A_row = tensorALeft.getShape()[0];
+			const IndexType A_col = tensorALeft.getShape().getNrDimensions() > 1 ? tensorALeft.getShape()[1] : 1;
 
-			const size_t B_col = tensorBRight.getShape().getNrDimensions() > 1 ? tensorBRight.getShape()[1] : 1;
-			const size_t B_row = tensorBRight.getShape()[0];
+			const IndexType B_col = tensorBRight.getShape().getNrDimensions() > 1 ? tensorBRight.getShape()[1] : 1;
+			const IndexType B_row = tensorBRight.getShape()[0];
 
-			const size_t output_row = output.getShape()[0];
-			const size_t output_col = output.getShape().getNrDimensions() > 1 ? output.getShape()[1] : 1;
+			const IndexType output_row = output.getShape()[0];
+			const IndexType output_col = output.getShape().getNrDimensions() > 1 ? output.getShape()[1] : 1;
 
 #pragma omp parallel for collapse(2) shared(tensorALeft, tensorBRight, output)
-			for (size_t a_row = 0; a_row < A_row; a_row++) {
+			for (IndexType a_row = 0; a_row < A_row; a_row++) {
 
-				for (size_t b_col = 0; b_col < B_col; b_col++) {
+				for (IndexType b_col = 0; b_col < B_col; b_col++) {
 
-					const size_t indexOutput = a_row * output_col + b_col;
+					const IndexType indexOutput = a_row * output_col + b_col;
 
 					DType sum = 0;
 #pragma omp simd reduction(+ : sum) simdlen(4)
-					for (size_t i = 0; i < B_row; i++) {
+					for (IndexType i = 0; i < B_row; i++) {
 
-						const size_t indexA = a_row * A_row + i;
-						const size_t indexB = i * B_col + b_col;
+						const IndexType indexA = a_row * A_row + i;
+						const IndexType indexB = i * B_col + b_col;
 
 						assert(indexA < tensorALeft.getNrElements());
 						assert(indexB < tensorBRight.getNrElements());
@@ -1146,7 +1148,5 @@ namespace Ritsu {
 
 			return tensor;
 		}
-
-		template <typename U> static Tensor split(Tensor &list) { return Tensor({1}, sizeof(U)); }
 	};
 } // namespace Ritsu

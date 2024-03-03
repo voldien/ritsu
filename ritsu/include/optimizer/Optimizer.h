@@ -22,8 +22,6 @@ namespace Ritsu {
 
 	/**
 	 * @brief
-	 *
-	 * @tparam T
 	 */
 	template <typename T> class Optimizer : public Object {
 	  public:

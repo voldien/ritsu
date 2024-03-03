@@ -15,6 +15,9 @@ TARGET_COMPILE_FEATURES(ritsu PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_s
 	cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
 	cxx_generic_lambdas cxx_override cxx_noexcept cxx_aggregate_default_initializers)
 TARGET_LINK_LIBRARIES(ritsu PRIVATE m pthread PUBLIC OpenMP::OpenMP_CXX)
+IF(RITSU_WITH_MEM_JEMALLOC)
+	TARGET_LINK_LIBRARIES(ritsu PRIVATE ${JEMALLOC_LIBRARIES})
+ENDIF()
 
 TARGET_INCLUDE_DIRECTORIES(ritsu PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -31,6 +34,9 @@ TARGET_COMPILE_FEATURES(ritsu-no-opm PUBLIC cxx_constexpr cxx_alias_templates cx
 	cxx_generic_lambdas cxx_override cxx_noexcept cxx_aggregate_default_initializers)
 
 TARGET_LINK_LIBRARIES(ritsu-no-opm PRIVATE m)
+IF(RITSU_WITH_MEM_JEMALLOC)
+	TARGET_LINK_LIBRARIES(ritsu-no-opm PRIVATE ${JEMALLOC_LIBRARIES})
+ENDIF()
 
 TARGET_INCLUDE_DIRECTORIES(ritsu-no-opm PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -59,6 +65,7 @@ IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND HIP_FOUND)
 ENDIF()
 
 IF(CUDAToolkit_FOUND)
+	#CMAKE_CUDA_COMPILER
 
 	ADD_LIBRARY(ritsu-nv ${SOURCE_FILES} ${HEADER_FILES})
 	

@@ -19,6 +19,11 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief 
+	 * 
+	 * @tparam T 
+	 */
 	template <typename T> class Adam : public Optimizer<T> {
 	  public:
 		Adam(const T learningRate, const T beta_1, const T beta_2, const std::string &name = "adam")

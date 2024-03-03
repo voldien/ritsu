@@ -30,8 +30,8 @@ TEST_P(DenseOutShape, SetupInvalidShapeThrow) {
 	Input input({1, 1, xUnit});
 	Dense dense = Dense(denseUnit);
 
-	Layer<float> *output = nullptr;
-	ASSERT_THROW(output = &(dense(input)), RuntimeException);
+	Layer<float> *output = &(dense(input));
+	ASSERT_THROW(output->build(input.getShape()), RuntimeException);
 }
 
 INSTANTIATE_TEST_SUITE_P(Dense, DenseOutShape,
@@ -52,16 +52,16 @@ TEST_P(DenseParameterTest, WeightSize) {
 	Layer<float> &output = (*dense)(input);
 	dense->build(input.getShape());
 
-	EXPECT_EQ(dense->getTrainableWeights()->getShape(), expectedWeightShape);
-	EXPECT_EQ(dense->getVariables()->getShape(), Ritsu::Shape<uint32_t>({denseUnit}));
+	ASSERT_EQ(dense->getTrainableWeights()->getShape(), expectedWeightShape);
+	ASSERT_EQ(dense->getVariables()->getShape(), Ritsu::Shape<uint32_t>({denseUnit}));
 
 	ASSERT_NO_THROW(delete dense);
 }
 
 INSTANTIATE_TEST_SUITE_P(Dense, DenseParameterTest,
-						 ::testing::Values(std::make_tuple(16, 32, Ritsu::Shape<uint32_t>({16, 32})),
+						 ::testing::Values(std::make_tuple(16, 32, Ritsu::Shape<uint32_t>({32, 16})),
 										   std::make_tuple(32, 32, Ritsu::Shape<uint32_t>({32, 32})),
-										   std::make_tuple(1024, 10, Ritsu::Shape<uint32_t>({1024, 10}))));
+										   std::make_tuple(1024, 10, Ritsu::Shape<uint32_t>({10, 1024}))));
 
 class DenseComputeTest : public ::testing::TestWithParam<std::tuple<uint32_t, uint32_t, Ritsu::Shape<uint32_t>>> {};
 
@@ -72,15 +72,16 @@ TEST_P(DenseComputeTest, ResultShape) {
 	Input input({xUnit});
 	Dense dense(denseUnit);
 
-	Tensor<float> inputData({xUnit});
+	Tensor<float> inputData({xUnit, 1});
 
 	Layer<float> &output = dense(input); /*	Build the weight.	*/
-	dense.build(input.getShape());
-	/*	*/
-	//const Tensor<float> result0 = dense << inputData;
+	output.build(dense.getInputs()[0]->getShape());
 
 	/*	*/
-	//EXPECT_EQ(result0.getShape(), expected);
+	//	const Tensor<float> result0 = dense << inputData;
+
+	/*	*/
+	// ASSERT_EQ(result0.getShape(), expected);
 }
 
 INSTANTIATE_TEST_SUITE_P(Dense, DenseComputeTest,
@@ -88,21 +89,25 @@ INSTANTIATE_TEST_SUITE_P(Dense, DenseComputeTest,
 										   std::make_tuple(32, 32, Ritsu::Shape<uint32_t>({32, 32})),
 										   std::make_tuple(1024, 10, Ritsu::Shape<uint32_t>({1024, 10}))));
 
-class DenseTest : public ::testing::TestWithParam<std::tuple<uint32_t, uint32_t, Ritsu::Shape<uint32_t>>> {};
+class DenseShapeTest : public ::testing::TestWithParam<std::tuple<uint32_t, uint32_t, Ritsu::Shape<uint32_t>>> {};
 
-TEST_P(DenseTest, ComputeDerivativeResult) {
+TEST_P(DenseShapeTest, ComputeDerivativeResult) {
 	auto [xUnit, denseUnit, expected] = GetParam();
 
-	Input input({xUnit, 1});
+	Input input({xUnit});
 	Dense dense(denseUnit);
 
 	const Tensor<float> inputData({xUnit, 1});
 
 	Layer<float> &output = dense(input);
+	output.build(dense.getInputs()[0]->getShape());
+
 	Tensor<float> result = dense.compute_derivative(inputData);
 
-	EXPECT_EQ(result.getShape(), expected);
+	ASSERT_EQ(result.getShape(), dense.getTrainableWeights()->getShape());
 }
 
-INSTANTIATE_TEST_SUITE_P(Dense, DenseTest,
-						 ::testing::Values(std::make_tuple(16, 32, Ritsu::Shape<uint32_t>({16 * 32}))));
+INSTANTIATE_TEST_SUITE_P(Dense, DenseShapeTest,
+						 ::testing::Values(std::make_tuple(16, 32, Ritsu::Shape<uint32_t>({16, 32})),
+										   std::make_tuple(32, 32, Ritsu::Shape<uint32_t>({32, 32})),
+										   std::make_tuple(1024, 10, Ritsu::Shape<uint32_t>({1024, 10}))));

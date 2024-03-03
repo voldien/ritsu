@@ -39,7 +39,10 @@ namespace Ritsu {
 			return tmp;
 		}
 
-		void build(const Shape<IndexType> &shape) override {}
+		void build(const Shape<IndexType> &shape) override {
+			/*	*///TODO: verify
+			this->shape = newShape;
+		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
 

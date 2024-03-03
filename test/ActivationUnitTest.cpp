@@ -142,12 +142,13 @@ class SwishActivationFunctionTest : public ActivationFunctionTest {};
 TEST_P(SwishActivationFunctionTest, Swish) {
 	auto [x, expected_activation] = GetParam();
 
-	const auto clampedValue = computeSwish(x, 1.0);
+	const auto act = computeSwish(x, 1.0);
 	//
-	EXPECT_FLOAT_EQ(clampedValue, expected_activation);
+	EXPECT_FLOAT_EQ(act, expected_activation);
 }
 INSTANTIATE_TEST_SUITE_P(ActivationSwish, SwishActivationFunctionTest,
-						 ::testing::Values(std::make_tuple(5, 4), std::make_tuple(1, 3), std::make_tuple(-1000, 3)));
+						 ::testing::Values(std::make_tuple(5, 4.9665356), std::make_tuple(1, 0.7310586),
+										   std::make_tuple(-1000, -0)));
 
 class SoftMaxActivationFunctionTest : public ::testing::TestWithParam<std::tuple<Tensor<float>, Tensor<float>>> {};
 

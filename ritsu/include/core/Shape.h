@@ -494,7 +494,9 @@ namespace Ritsu {
 			return 1;
 		}
 
-		// TODO: add init list as constexpr
+		/**
+		 * @brief
+		 */
 		template <typename U> static inline U computeNrElements(const std::vector<U> &dims) noexcept {
 			static_assert(std::is_integral<U>::value, "Type must be a integral type.");
 			return Math::product(dims);

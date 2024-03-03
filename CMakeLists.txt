@@ -20,9 +20,17 @@ ELSE()
 	MESSAGE(STATUS "Shared libraries enabled")
 ENDIF(NOT BUILD_SHARED_LIBS)
 
+LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
+
+
 #
 OPTION(RITSU_WITH_MEM_JEMALLOC "Enable malloc replacement (http://www.canonware.com/jemalloc)" ON)
 MARK_AS_ADVANCED(RITSU_WITH_MEM_JEMALLOC)
+
+IF(RITSU_WITH_MEM_JEMALLOC)
+	FIND_PACKAGE(JeMalloc)
+ENDIF()
+
 
 # Time profiling
 

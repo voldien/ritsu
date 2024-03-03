@@ -162,6 +162,7 @@ TEST_P(LayerUniformShapeSizeTest, Subtract) {
 	Ritsu::Input input0(expected);
 	Ritsu::Input input1(expected);
 	Ritsu::Subtract subtract;
+	subtract(input0, input1);
 
 	EXPECT_EQ(subtract.getShape(), expected);
 }
@@ -171,6 +172,7 @@ TEST_P(LayerUniformShapeSizeTest, Multiply) {
 	Ritsu::Input input0(expected);
 	Ritsu::Input input1(expected);
 	Ritsu::Multiply<float> multiply;
+	multiply(input0, input1);
 
 	EXPECT_EQ(multiply.getShape(), expected);
 }
@@ -182,6 +184,7 @@ TEST_P(LayerUniformShapeSizeTest, Divide) {
 	Ritsu::Input input1(expected);
 
 	Ritsu::Divide divide;
+	divide(input0, input1);
 
 	EXPECT_EQ(divide.getShape(), expected);
 }
@@ -346,7 +349,7 @@ TEST_P(LayerReshapeShapeSizeTest, Reshape) {
 
 	Ritsu::Input input0(x);
 
-	Reshape reshape(x);
+	Reshape reshape(expected);
 	reshape(input0);
 	reshape.build(input0.getShape());
 

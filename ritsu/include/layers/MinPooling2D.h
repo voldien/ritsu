@@ -61,7 +61,6 @@ namespace Ritsu {
 					DType maxValue = static_cast<DType>(-999999999);
 					for (size_t Sy = 0; Sy < this->size[0]; Sy++) {
 						for (size_t Sx = 0; Sx < this->size[1]; Sx++) {
-							
 						}
 					}
 				}

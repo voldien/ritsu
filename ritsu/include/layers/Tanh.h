@@ -22,7 +22,6 @@ namespace Ritsu {
 
 	/**
 	 * @brief
-	 *
 	 */
 	class Tanh : public Activaction {
 	  public:

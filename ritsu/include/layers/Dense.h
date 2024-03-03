@@ -17,6 +17,7 @@
 #include "../Random.h"
 #include "../core/Initializers.h"
 #include "Layer.h"
+#include "RitsuDef.h"
 #include "Tensor.h"
 #include <cassert>
 #include <cstddef>
@@ -67,6 +68,9 @@ namespace Ritsu {
 
 		void build(const Shape<IndexType> &shape) override {
 
+			if (shape.getNrDimensions() > 1) {
+				throw InvalidArgumentException("Invalid");
+			}
 			/*	TODO: Validate */
 			const Shape<IndexType> weightShape =
 				Shape<IndexType>({static_cast<IndexType>(this->units), static_cast<IndexType>(shape[0])});
