@@ -33,6 +33,8 @@ namespace Ritsu {
 			return tmp.flatten();
 		}
 
+		void build(const Shape<IndexType> &buildShape) override { this->shape = buildShape.flatten(); }
+
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
 			this->input = layers[0];
 

@@ -25,6 +25,10 @@ namespace Ritsu {
 	template <typename T> class Ada : public Optimizer<T> {
 	  public:
 		Ada(const T learningRate, T beta, const std::string &name = "ada") : Optimizer<T>(learningRate, name) {}
+
+		void update_step(const Tensor<float> &gradient, Tensor<float> &variable) {}
+
+		void apply_gradients(const Tensor<float> &gradient, Tensor<float> &variable) {}
 	};
 
 } // namespace Ritsu

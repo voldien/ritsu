@@ -15,6 +15,7 @@
  */
 #pragma once
 #include "Loss.h"
+#include "Math.h"
 #include "Metric.h"
 #include "Object.h"
 #include "RitsuDebug.h"
@@ -78,7 +79,12 @@ namespace Ritsu {
 			const size_t batchYIndex = expectedData.getShape()[batch_shape_index];
 
 			/*	*/
-			const size_t nrTrainBatches = std::floor(static_cast<float>(batchXIndex) / static_cast<float>(batch_size));
+			size_t nrTrainBatches = std::floor(static_cast<float>(batchXIndex) / static_cast<float>(batch_size));
+			const size_t nrTrainExpectedBatches =
+				std::floor(static_cast<float>(batchYIndex) / static_cast<float>(batch_size));
+
+			nrTrainBatches = Math::min<size_t>(nrTrainBatches, nrTrainExpectedBatches);
+
 			const size_t nrValidationBatches = std::floor(nrTrainBatches * validation_split);
 			// TODO verify shape and etc.
 
@@ -129,16 +135,18 @@ namespace Ritsu {
 					/*	Compute network forward.	*/
 					this->forwardPropgation(subsetBatchX, batchResult, batch_size, &cachedResult);
 
+					/*	Apply metric update.	*/
+
 					/*	Compute the loss/cost.	*/
 					Tensor<float> loss_error =
 						std::move(this->lossFunction.computeLoss(subsetExpectedBatch, batchResult));
 
-					std::cout << std::endl << std::endl << loss_error << std::endl << std::endl;
-
-					/*	Apply metric update.	*/
+					this->lossmetric.update_state({&loss_error});
 					for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
-						this->metrics[m_index]->update_state(loss_error, batchResult);
+						this->metrics[m_index]->update_state(subsetExpectedBatch, batchResult);
 					}
+
+					std::cout << std::endl << std::endl << loss_error << std::endl << std::endl;
 
 					/*	*/
 					this->backPropagation(loss_error, cachedResult);
@@ -165,6 +173,7 @@ namespace Ritsu {
 								  << nrTrainBatches // << " " << nrBatchPerSecond << "batch/Sec"
 								  << " ETA: " << std::chrono::duration_cast<std::chrono::minutes>(p).count()
 								  << " - lr: " << this->optimizer->getLearningRate();
+						std::cout << " loss: " << this->lossmetric.result().getValue(0);
 
 						for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
 							std::cout << " - " << this->metrics[m_index]->getName() << ": "
@@ -239,6 +248,13 @@ namespace Ritsu {
 			for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
 				this->history[this->metrics[m_index]->getName()] = Tensor<float>({1});
 			}
+
+			/*	*/
+			std::vector<Tensor<float> *> tensors;
+			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
+				//(*it)->
+			}
+			// this->optimizer->build(tensors);
 		}
 
 		Layer<DType> *getLayer(const std::string &name) { return this->layers[name]; }
@@ -372,8 +388,11 @@ namespace Ritsu {
 
 			/*	*/
 			for (auto it = this->forwardSequence.rbegin(); it != this->forwardSequence.rend(); it++) {
-				// std::cout << differental_error << std::endl << std::endl;
+
 				Layer<T> *current = (*it);
+
+				// std::cout << differental_error << std::endl << std::endl;
+				// std::cout << current->getName() << std::endl << std::endl;
 
 				/*	*/
 				differental_error = current->compute_derivative(static_cast<const Tensor<float> &>(layerResult));
@@ -381,7 +400,8 @@ namespace Ritsu {
 				/*	Only apply if */
 				Tensor<float> *train_variables = current->getTrainableWeights();
 				if (train_variables) {
-					this->optimizer->update_step(differental_error, *train_variables);
+					this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(differental_error),
+												 reinterpret_cast<Tensor<T> &>(*train_variables));
 				}
 
 				/*	*/
@@ -484,6 +504,7 @@ namespace Ritsu {
 
 		/*	*/
 		std::vector<Metric *> metrics;
+		MetricMean lossmetric;
 		/*	TODO: impl	*/
 		std::map<std::string, Object *> batchCache;
 		std::map<std::string, Object *> backPropagationCache;

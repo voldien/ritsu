@@ -70,7 +70,7 @@ namespace Ritsu {
 
 		const Shape<IndexType> &getShape() const { return this->shape; }
 
-		virtual void build([[maybe_unused]] const Shape<IndexType> &shape) {}
+		virtual void build([[maybe_unused]] const Shape<IndexType> &buildShape) = 0;
 
 		// Dtype
 		const std::type_info &getDType() const noexcept { return typeid(DType); }

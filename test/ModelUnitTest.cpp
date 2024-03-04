@@ -48,7 +48,7 @@ TEST_P(ModelTest, Compile) {
 
 	Loss mse_loss(sparse_categorical_crossentropy);
 	forwardModel->compile(&optimizer, sparse_categorical_crossentropy,
-						  {dynamic_cast<Metric *>(&lossmetric), (Metric *)&accuracy});
+						  {dynamic_cast<Metric *>(&lossmetric), dynamic_cast<Metric *>(&accuracy)});
 
 	ASSERT_NO_THROW(delete forwardModel);
 }

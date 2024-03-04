@@ -58,6 +58,8 @@ namespace Ritsu {
 			this->shape = this->input->getShape();
 		}
 
+		void build(const Shape<IndexType> &buildShape) override { this->shape = buildShape; }
+
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 

@@ -33,14 +33,13 @@ namespace Ritsu {
 
 	  public:
 		Dense(uint32_t units, bool use_bias = true,
-			  const Initializer<DType> &weight_init = RandomNormalInitializer<DType>(),
-			  const Initializer<DType> &bias_init = RandomNormalInitializer<DType>(), const std::string &name = "dense")
+			  const Initializer<DType> &weight_init = RandomUniformInitializer<DType>(),
+			  const Initializer<DType> &bias_init = RandomUniformInitializer<DType>(),
+			  const std::string &name = "dense")
 			: Layer(name) {
 
 			/*	*/
 			this->units = units;
-			/*	*/
-			this->shape = {this->units};
 
 			/*	*/
 			if (use_bias) {
@@ -66,23 +65,26 @@ namespace Ritsu {
 		Tensor<float> *getTrainableWeights() noexcept override { return &this->weight; }
 		Tensor<float> *getVariables() noexcept override { return &this->bias; }
 
-		void build(const Shape<IndexType> &shape) override {
+		void build(const Shape<IndexType> &buildShape) override {
 
-			if (shape.getNrDimensions() > 1) {
-				throw InvalidArgumentException("Invalid");
+			if (buildShape.getNrDimensions() > 1) {
+				throw InvalidArgumentException("Invalid Shape");
 			}
+
 			/*	TODO: Validate */
 			const Shape<IndexType> weightShape =
-				Shape<IndexType>({static_cast<IndexType>(this->units), static_cast<IndexType>(shape[0])});
+				Shape<IndexType>({static_cast<IndexType>(this->units), static_cast<IndexType>(buildShape[0])});
 			this->weight = Tensor<DType>(weightShape);
 
+			/*	*/
+			this->shape = {this->units};
 			/*	Construct the init values for the weight and bias.	*/
 			this->initweight();
 			this->initbias();
 
-			/*	*/
+			/*	Validate.	*/
 			assert(this->weight.getShape().getNrDimensions() == 2);
-			assert(this->weight.getShape()[-1] == shape[0]);
+			assert(this->weight.getShape()[-1] == buildShape[0]);
 			assert(this->weight.getShape()[-2] == this->units);
 		}
 
@@ -91,9 +93,10 @@ namespace Ritsu {
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
 
 			assert(layers.size() == 1);
-
 			// TODO verify flatten
-			if (layers.size() == 1) {
+			if (layers.size() > 1) {
+				/*	*/
+				throw InvalidArgumentException("");
 			}
 
 			this->input = layers[0];
@@ -122,22 +125,23 @@ namespace Ritsu {
 
 	  protected:
 		inline void compute(const Tensor<float> &inputTesnor, Tensor<float> &output) const noexcept {
-			/**/
+			/*	*/
 			output = (this->weight % inputTesnor) + this->bias;
 		}
 
 		inline void computeDerivative(const Tensor<float> &error, Tensor<float> &result) const noexcept {
 
 			Tensor<float> tmp = error;
-			tmp.transpose();
+			// tmp.transpose();
 			Tensor<float> tmpWeight = weight;
 
-			tmp.dot(tmpWeight.transpose(), result);
+			/*	*/
+			tmp.dot(tmpWeight, result);
 		}
 
 		void initweight() noexcept {
 			// TODO improve
-			RandomUniform<DType> random(0.0, 1.0);
+			RandomUniform<DType> random(0.0, 2.0);
 
 #pragma omp parallel for simd shared(weight)
 			for (size_t i = 0; i < this->weight.getNrElements(); i++) {
@@ -147,7 +151,7 @@ namespace Ritsu {
 
 		void initbias() noexcept {
 			// TODO improve
-			RandomUniform<DType> random(0.0, 1.0);
+			RandomUniform<DType> random(-1.0, 1.0);
 
 #pragma omp parallel for simd shared(bias)
 			for (size_t i = 0; i < this->bias.getNrElements(); i++) {
@@ -159,6 +163,8 @@ namespace Ritsu {
 		Tensor<DType> bias;
 		uint32_t units;
 		Tensor<DType> weight;
+		// Initializer<DType> &weight_init;
+		// Initializer<DType> &bias_init;
 	};
 
 } // namespace Ritsu

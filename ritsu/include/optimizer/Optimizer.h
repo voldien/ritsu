@@ -16,6 +16,7 @@
 #pragma once
 #include "../Tensor.h"
 #include "Object.h"
+#include <initializer_list>
 #include <string>
 
 namespace Ritsu {
@@ -26,8 +27,9 @@ namespace Ritsu {
 	template <typename T> class Optimizer : public Object {
 	  public:
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
-					  "Must be a decimal type(float/double/half) or integer.");
+					  "Must be a decimal type(T/double/half) or integer.");
 		using DType = T;
+		const unsigned int DTypeSize = sizeof(DType);
 
 	  public:
 		Optimizer(const T learningRate, const std::string &name) noexcept : Object(name) {
@@ -51,12 +53,14 @@ namespace Ritsu {
 		/**
 		 * @brief
 		 *
-		 * @param loss
+		 * @param gradient
 		 * @param variable
-		 * @param output_gradient
 		 */
-		virtual void gradient(const Tensor<float> &loss, const Tensor<float> &variable,
-							  Tensor<float> &output_gradient) {}
+		template <typename... Args> void update_step(const Tensor<T> &gradient, Args &... args) {
+			// this->update_step(gradient, {&args...});
+		}
+
+		virtual void update_step(const Tensor<T> &gradient, Tensor<T> &variable) = 0;
 
 		/**
 		 * @brief
@@ -64,19 +68,13 @@ namespace Ritsu {
 		 * @param gradient
 		 * @param variable
 		 */
-		virtual void update_step(const Tensor<float> &gradient, Tensor<float> &variable) {}
+		virtual void apply_gradients(const Tensor<T> &gradient, Tensor<T> &variable) = 0;
 
-		/**
-		 * @brief
-		 *
-		 * @param gradient
-		 * @param variable
-		 */
-		virtual void apply(Tensor<float> &gradient, Tensor<float> &variable) {}
+		template <typename... Args> void build(Args &... args) { this->build({&args...}); }
+		virtual void build(std::initializer_list<const Tensor<void> &> &list) {}
 
 	  private:
 		T learningRate;
-		std::string name;
 	};
 
 } // namespace Ritsu

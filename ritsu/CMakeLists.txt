@@ -45,7 +45,7 @@ TARGET_INCLUDE_DIRECTORIES(ritsu-no-opm PUBLIC
 
 # Only supported on clang
 IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND HIP_FOUND)
-
+	MESSAGE(STATUS "HIP found:")
 	ADD_LIBRARY(ritsu-rocm ${SOURCE_FILES} ${HEADER_FILES})
 	TARGET_COMPILE_FEATURES(ritsu-rocm PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
 		cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
@@ -60,11 +60,12 @@ IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND HIP_FOUND)
 	)
 
 	#TODO: add argument for arch.
-	TARGET_COMPILE_OPTIONS(ritsu-rocm PUBLIC -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa  -Xopenmp-target=amdgcn-amd-amdhsa -offload-arch=gfx1100)
+	TARGET_COMPILE_OPTIONS(ritsu-rocm PUBLIC -target x86_64-pc-linux-gnu -fopenmp -fopenmp-targets=amdgcn-amd-amdhsa -Xopenmp-target=amdgcn-amd-amdhsa -offload-arch=gfx1100)
 
 ENDIF()
 
 IF(CUDAToolkit_FOUND)
+	MESSAGE(STATUS "CUDA found:")
 	#CMAKE_CUDA_COMPILER
 
 	ADD_LIBRARY(ritsu-nv ${SOURCE_FILES} ${HEADER_FILES})

@@ -22,7 +22,6 @@ ENDIF(NOT BUILD_SHARED_LIBS)
 
 LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
-
 #
 OPTION(RITSU_WITH_MEM_JEMALLOC "Enable malloc replacement (http://www.canonware.com/jemalloc)" ON)
 MARK_AS_ADVANCED(RITSU_WITH_MEM_JEMALLOC)
@@ -30,6 +29,17 @@ MARK_AS_ADVANCED(RITSU_WITH_MEM_JEMALLOC)
 IF(RITSU_WITH_MEM_JEMALLOC)
 	FIND_PACKAGE(JeMalloc)
 ENDIF()
+
+######################################
+#  All cmake build options.
+######################################
+OPTION(RITSU_BUILD_WITH_ASAN "Enable AddressSanitizer." OFF )
+OPTION(RITSU_BUILD_WITH_UBSAN "Enable Undefined Behavior sanitizer." OFF )
+OPTION(RITSU_BUILD_WITH_TSAN "Enable Thread sanitizer" OFF)
+
+OPTION(RITSU_BUILD_WITH_COVERAGE "Enable Code coverage report analysis." OFF)
+OPTION(RITSU_BUILD_WITH_PROFILER "Enable Code Profiling." OFF)
+
 
 
 # Time profiling

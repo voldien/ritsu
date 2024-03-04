@@ -21,7 +21,6 @@ namespace Ritsu {
 
 	/**
 	 * @brief
-	 *
 	 */
 	class Reshape : public Layer<float> {
 	  public:
@@ -63,8 +62,8 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
-		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
+		Tensor<DType> compute_derivative(const Tensor<DType> &tensor) override { return tensor; }
+		Tensor<DType> &compute_derivative(Tensor<DType> &tensor) const override { return tensor; }
 
 	  private:
 		Layer<DType> *input;

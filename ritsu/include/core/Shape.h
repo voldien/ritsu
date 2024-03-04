@@ -373,7 +373,6 @@ namespace Ritsu {
 		}
 
 		Shape<IndexType> &insert(int axis, const Shape<IndexType> &additionalDims) {
-			// TODO:fix and detemrine
 			this->dims.insert(std::begin(this->dims) + axis, additionalDims.dims.begin(), additionalDims.dims.end());
 			return *this;
 		}

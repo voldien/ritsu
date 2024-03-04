@@ -21,7 +21,7 @@ int main(int argc, const char **argv) {
 		/*	*/
 		const unsigned int batchSize = 10;
 		const unsigned int epochs = 128;
-		const float learningRate = 0.003f;
+		const float learningRate = 0.0001f;
 		bool useBatchNorm = false;
 
 		/*	*/
@@ -66,18 +66,18 @@ int main(int argc, const char **argv) {
 		Flatten flattenInput("flatten0");
 		Flatten flatten("flatten1");
 
-		Dense fw0(64, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
+		Dense fw0(128, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
 		BatchNormalization BN0;
 		Relu relu0;
 
-		Dense fw1 = Dense(32, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
+		Dense fw1 = Dense(64, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
 		BatchNormalization BN1;
 		Relu relu1;
 
 		Dense fw2 =
 			Dense(output_size, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer2");
 
-		Regularization regulation(0.001f, 0.000f);
+		Regularization regulation(0.00005f, 0.000f);
 
 		Sigmoid outputAct;
 
@@ -107,14 +107,12 @@ int main(int argc, const char **argv) {
 
 			Model<float> forwardModel({&input0node}, {&output});
 
-			SGD<float> optimizer(learningRate, 0.0);
+			SGD<float> optimizer(learningRate, 0.8);
+			Adam<float> ADamoptimizer(learningRate);
 
 			MetricAccuracy accuracy;
-			MetricMean lossmetric("loss");
 
-			Loss mse_loss(loss_mse);
-			forwardModel.compile(&optimizer, loss_mse,
-								 {dynamic_cast<Metric *>(&lossmetric), dynamic_cast<Metric *>(&accuracy)});
+			forwardModel.compile(&optimizer, loss_msa, {dynamic_cast<Metric *>(&accuracy)});
 			std::cout << forwardModel.summary() << std::endl;
 
 			forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize);

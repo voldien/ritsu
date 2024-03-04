@@ -14,6 +14,7 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
+#include "Object.h"
 #include "RitsuDef.h"
 #include "core/Shape.h"
 #include <algorithm>
@@ -25,7 +26,7 @@
 #include <initializer_list>
 #include <iostream>
 #include <istream>
-#include <jemalloc/jemalloc.h>
+//#include <jemalloc/jemalloc.h>
 #include <limits>
 #include <memory>
 #include <omp.h>
@@ -96,7 +97,7 @@ namespace Ritsu {
 
 		Tensor(const Shape<IndexType> &newShape, const Shape<IndexType> &offsetShape, const Tensor &parent) {
 
-			/*	*/ // TODO: fix offset
+			/*	*/
 			const size_t offsetMemory = offsetShape.getNrElements() * parent.getElementSize();
 			this->memoryBuffer.buffer.data = &parent.memoryBuffer.buffer.data[offsetMemory];
 
@@ -186,7 +187,7 @@ namespace Ritsu {
 			this->memoryBuffer.element_size = other.memoryBuffer.element_size;
 			this->memoryBuffer.memoryShape = std::move(other.memoryBuffer.memoryShape);
 
-			// TODO: fix own.
+			/*	*/
 			this->memoryBuffer.ownerUid = other.memoryBuffer.ownerUid;
 			this->memoryBuffer.uid = other.memoryBuffer.uid;
 
@@ -500,12 +501,22 @@ namespace Ritsu {
 			return matrixMultiply(tensorA, tensorB);
 		}
 
-		template <typename U> auto &operator/(const Tensor &tensor) {
+		auto &operator/(const Tensor &tensor) {
 			const size_t nrElements = this->getNrElements();
 
 #pragma omp parallel for shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = this->getValue<DType>(index) / tensor.getValue<DType>(index);
+			}
+
+			return *this;
+		}
+
+		auto &operator/(const DType &value) {
+			const size_t nrElements = this->getNrElements();
+
+			for (size_t index = 0; index < nrElements; index++) {
+				this->getValue<DType>(index) = this->getValue<DType>(index) / value;
 			}
 
 			return *this;
@@ -602,10 +613,15 @@ namespace Ritsu {
 			const IndexType a0 = tensorB.getShape()[0];
 			const IndexType b0 = tensorA.getShape()[0];
 
-			output = std::move(Tensor::zero(Shape<IndexType>({b0, a0}))); // TODO: remove zero when prop impl.
+			// output = std::move(Tensor::zero(Shape<IndexType>({b0, a0}))); // TODO: remove zero when prop impl.
+			output = matrixMultiply(tensorA, tensorB, output);
+			return output;
 
-			for (size_t i = 0; i < b0; i++) {
-				output.getValue<DType>(i * b0) = Math::dot(tensorB.getValuePtr(a0 * i), tensorA.getValuePtr(0), b0);
+			for (IndexType i = 0; i < b0; i++) {
+				for (IndexType j = 0; j < a0; j++) {
+					const DType value = tensorA.getValue(j) * tensorB.getValue(i);
+					output.getValue<DType>(i * b0 + j) = value;
+				}
 			}
 
 			return output;
@@ -613,6 +629,15 @@ namespace Ritsu {
 
 		Tensor &pow(const DType value) noexcept {
 			Math::pow(value, this->getRawData<DType>(), this->getNrElements());
+			return *this;
+		}
+
+		Tensor &sqrt() noexcept {
+			const IndexType nrElements = this->getNrElements();
+
+			for (size_t index = 0; index < nrElements; index++) {
+				this->getValue<DType>(index) = static_cast<DType>(std::sqrt(this->getValue<DType>(index)));
+			}
 			return *this;
 		}
 
@@ -871,6 +896,8 @@ namespace Ritsu {
 		inline IndexType getInternalDatSize() const noexcept { return this->memoryBuffer.allocationSize; }
 		inline uint32_t getElementSize() const noexcept { return this->memoryBuffer.element_size; }
 
+		size_t getUID() const noexcept { return reinterpret_cast<size_t>(this->memoryBuffer.buffer.ddata); }
+
 		static bool verifyShape(const Tensor &tensorA, const Tensor &tensorB) noexcept {
 			/*	*/
 			return tensorA.getShape() == tensorB.getShape();
@@ -1070,7 +1097,8 @@ namespace Ritsu {
 		static constexpr bool isMatrixOperationSupported(const Shape<IndexType> &shapeA,
 														 const Shape<IndexType> &shapeB) noexcept {
 			const IndexType A_col = shapeA.getNrDimensions() > 1 ? shapeA[1] : 1;
-			return A_col == shapeB[0];
+			const IndexType B_row = shapeB[0];
+			return A_col == B_row;
 		}
 
 		static Tensor matrixMultiply(const Tensor &tensorALeft, const Tensor &tensorBRight, Tensor &output) {
@@ -1093,19 +1121,22 @@ namespace Ritsu {
 			const IndexType output_row = output.getShape()[0];
 			const IndexType output_col = output.getShape().getNrDimensions() > 1 ? output.getShape()[1] : 1;
 
+			assert(A_col == B_row);
+			const IndexType K = A_col;
+
 #pragma omp parallel for collapse(2) shared(tensorALeft, tensorBRight, output)
-			for (IndexType a_row = 0; a_row < A_row; a_row++) {
+			for (IndexType a_row_index = 0; a_row_index < A_row; a_row_index++) {
 
-				for (IndexType b_col = 0; b_col < B_col; b_col++) {
+				for (IndexType b_col_index = 0; b_col_index < B_col; b_col_index++) {
 
-					const IndexType indexOutput = a_row * output_col + b_col;
+					const IndexType indexOutput = a_row_index * output_col + b_col_index;
 
 					DType sum = 0;
 #pragma omp simd reduction(+ : sum) simdlen(4)
-					for (IndexType i = 0; i < B_row; i++) {
+					for (IndexType k = 0; k < K; k++) {
 
-						const IndexType indexA = a_row * A_row + i;
-						const IndexType indexB = i * B_col + b_col;
+						const IndexType indexA = k * A_row + a_row_index;
+						const IndexType indexB = b_col_index * K + k;
 
 						assert(indexA < tensorALeft.getNrElements());
 						assert(indexB < tensorBRight.getNrElements());

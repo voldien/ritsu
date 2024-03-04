@@ -39,8 +39,9 @@ namespace Ritsu {
 
 		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
 
-		//Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
+		// Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
 
+		void build(const Shape<IndexType> &buildShape) override { this->shape = buildShape; }
 
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
 
@@ -50,7 +51,7 @@ namespace Ritsu {
 			// TODO verify flatten
 
 			/*	*/
-			this->build(this->getInputs()[0]->getShape());
+			//this->build(this->getInputs()[0]->getShape());
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {

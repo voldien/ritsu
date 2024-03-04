@@ -23,6 +23,12 @@ namespace Ritsu {
 	template <typename T> inline static T computeSigmoid(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
+		if (value > 10000) {
+			return 1;
+		}
+		if (value < -10000) {
+			return 0;
+		}
 		return static_cast<T>(1) / (std::exp(-value) + static_cast<T>(1));
 	}
 
@@ -127,16 +133,16 @@ namespace Ritsu {
 	template <typename T> inline static constexpr T computeSwish(const T value, const T beta) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
-		return value * computeSigmoid<T>(value * beta);
+		return value * computeSigmoid<T>(beta * value);
 	}
 
 #pragma omp declare simd uniform(value, beta) simdlen(4)
 	template <typename T> inline static constexpr T computeSwishDerivative(const T value, const T beta) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
-		// TODO:
-		const T tmp = computeSigmoid(beta, value);
-		return (beta * tmp) + (tmp * (1 - (beta * tmp)));
+		const T fvalue = computeSwish(value, beta);
+		const T sigValue = computeSigmoid(value);
+		return fvalue + sigValue * (beta - fvalue);
 	}
 
 #pragma omp declare simd

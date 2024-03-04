@@ -17,6 +17,7 @@
 #include "Optimizer.h"
 #include <cassert>
 #include <functional>
+#include <map>
 
 namespace Ritsu {
 
@@ -30,38 +31,47 @@ namespace Ritsu {
 			this->momentum = momentum;
 		}
 
-		void gradient(const Tensor<float> &loss, const Tensor<float> &variable,
-					  Tensor<float> &output_gradient) override {}
+		void update_step(const Tensor<T> &gradient, Tensor<T> &variable) override {
 
-		void update_step(const Tensor<float> &gradient, Tensor<float> &variable) override {
+			Tensor<T> gradientUpdate = gradient;
 
-			Tensor<float> gradientUpdate = gradient;
+			if (this->momentum > 0) {
 
-			if (momentum > 0) {
-				const Tensor<float> velocityGradient = momentum * velocity - (gradient * momentum);
+				const size_t uid = variable.getUID();
+				if (velocities.find(uid) == velocities.end()) {
+					velocities[uid] = Tensor<T>::zero(variable.getShape());
+				}
 
-				gradientUpdate = variable + velocityGradient * this->getLearningRate();
+				velocities[uid] = (velocities[uid] * this->momentum) - (gradient * (1.0f - this->momentum));
+
+				gradientUpdate = variable - (velocities[uid] * this->getLearningRate());
+
+				this->apply_gradients(gradientUpdate, variable);
+
 			} else {
-				gradientUpdate = gradientUpdate * (float)this->getLearningRate();
+				gradientUpdate = gradientUpdate * this->getLearningRate();
 
-				/*	*/
-				// std::cout << gradientUpdate.getShape() << " " << variable.getShape() << std::flush;
-
-				// TODO: check and validate.
-			}
-
-			assert(gradientUpdate.getShape() == variable.getShape());
-			/*	Verify the shape.	*/
-			if (gradientUpdate.getShape() == variable.getShape()) {
-
-				variable -= gradientUpdate;
+				this->apply_gradients(gradientUpdate, variable);
 			}
 		}
 
+		void apply_gradients(const Tensor<T> &gradient, Tensor<T> &variable) override {
+			assert(gradient.getShape() == variable.getShape());
+
+			if (gradient.getShape() == variable.getShape()) {
+				if (this->momentum > 0) {
+					variable = gradient;
+				} else {
+					variable -= gradient;
+				}
+			}
+		}
+
+		void build(std::initializer_list<const Tensor<void> &> &list) override {}
+
 	  private:
 		T momentum;
-		T velocity = .1f;
-		T beta = 0.9;
+		std::map<size_t, Tensor<T>> velocities;
 	};
 
 } // namespace Ritsu

@@ -389,11 +389,9 @@ namespace Ritsu {
 		}
 
 		template <typename T, typename U> static constexpr inline T gamma(const T value, const U gamma) noexcept {
-
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-			// TODO add support for using vector components.
+			
 			const T exponent = static_cast<T>(1) / gamma;
-
 			return static_cast<T>(std::pow(value, exponent));
 		}
 

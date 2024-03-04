@@ -59,7 +59,6 @@ logo
 - **SSIM** - Structural similarity
 - **CrossEntropy** - 
 - **CatagorialCrossEntropy** - 
-- **PNNR**
 
 ## Optimizer
 
@@ -73,7 +72,7 @@ logo
 In order to compile the program on Linux based machine, the following Debian packages are required.
 
 ```bash
-  sudo apt-get install cmake g++ libgtest-dev googletest libomp-dev
+  sudo apt-get install cmake g++ libgtest-dev googletest libomp-dev libjemalloc-dev
 ```
 
 ## Building

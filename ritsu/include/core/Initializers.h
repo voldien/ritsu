@@ -58,6 +58,26 @@ namespace Ritsu {
 		RandomNormal<T> random;
 	};
 
+	template <typename T> class RandomUniformInitializer : public Initializer<T> {
+	  public:
+		RandomUniformInitializer(T min = 0.0, T max = 1.0, int seed = 0) : random(RandomUniform<T>(min, max, seed)) {}
+
+		Tensor<T> get(const Shape<unsigned int> &shape) override {
+
+			Tensor<T> tensor(shape);
+
+#pragma omp parallel for simd shared(tensor)
+			for (size_t i = 0; i < tensor.getNrElements(); i++) {
+				tensor.getValue(i) = this->random.rand();
+			}
+
+			return tensor;
+		}
+
+	  private:
+		RandomUniform<T> random;
+	};
+
 	template <typename T> class ZeroInitializer : public Initializer<T> {
 	  public:
 		ZeroInitializer() {}
