@@ -50,8 +50,6 @@ namespace Ritsu {
 			return tensor;
 		}
 
-
-
 		void setOutputs(const std::vector<Layer<T> *> &layers) override {
 			/*	Set input layer */
 			this->outputs = layers;
@@ -62,8 +60,8 @@ namespace Ritsu {
 		void build(const Shape<typename Layer<T>::IndexType> &shape) override {
 
 			this->shape = shape;
-			this->shape[0] /= 2;
-			this->shape[1] /= 2;
+			this->shape[-2] *= scale;
+			this->shape[-3] *= scale;
 
 			/*	*/
 			assert(this->getShape().getNrDimensions() == 3);

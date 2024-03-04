@@ -111,18 +111,18 @@ INSTANTIATE_TEST_SUITE_P(Math, GuassianDistributionTest,
 TEST(Math, Distrubtion) {
 	/*	Guassian distribution.	*/
 	// TODO add
-	const float theta = 0.7f;
+	const float mean = 0.0f;
 	const int num_guass = 30;
 	const int num_total_guass = num_guass * 2 + 1;
 	/*	*/
 	std::vector<float> guassian(num_total_guass);
-	Math::guassian(guassian, num_guass, theta, 0.1f);
+	Math::guassian(guassian, num_guass, mean, 1.0f);
 	/*	*/
 	ASSERT_EQ(guassian.size(), num_total_guass);
 	float sum = Math::sum(guassian);
-	ASSERT_NEAR(sum, 1.0f, 0.5f);
+	ASSERT_NEAR(sum, 1.0f, 0.0005f);
 
-	Math::guassian(guassian, num_guass, theta, 0.1f);
+	Math::guassian(guassian, num_guass, mean, 0.1f);
 }
 
 class AlignmentTest : public ::testing::TestWithParam<std::tuple<size_t, size_t, size_t>> {};

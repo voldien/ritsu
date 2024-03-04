@@ -31,19 +31,22 @@ namespace Ritsu {
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 			Tensor<DType> tmp = tensor;
-			softMax<DType>(tmp);
+			Ritsu::softMax<DType>(tmp);
 			return tmp;
 		}
 
 		Tensor<float> operator>>(Tensor<float> &tensor) override {
-			softMax<DType>(tensor);
+			Ritsu::softMax<DType>(tensor);
 			return tensor;
 		}
 
-		void build(const Shape<IndexType> &shape) override { this->shape = shape; }
+		void build(const Shape<IndexType> &buildShape) override { this->shape = buildShape; }
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override { this->outputs = layers; }
+
+		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
+		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
 		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }

@@ -54,6 +54,9 @@ namespace Ritsu {
 		}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override { this->outputs = layers; }
 
+		std::vector<Layer<DType> *> getInputs() const override { return inputs; }
+		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
+
 		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
 		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 

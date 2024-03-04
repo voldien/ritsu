@@ -608,22 +608,7 @@ namespace Ritsu {
 		void dot(const Tensor &tensorB, Tensor &output) const { Tensor::dot(*this, tensorB, output); }
 
 		static Tensor &dot(const Tensor &tensorA, const Tensor &tensorB, Tensor &output) {
-
-			// TODO: determine type.
-			const IndexType a0 = tensorB.getShape()[0];
-			const IndexType b0 = tensorA.getShape()[0];
-
-			// output = std::move(Tensor::zero(Shape<IndexType>({b0, a0}))); // TODO: remove zero when prop impl.
-			output = matrixMultiply(tensorA, tensorB, output);
-			return output;
-
-			for (IndexType i = 0; i < b0; i++) {
-				for (IndexType j = 0; j < a0; j++) {
-					const DType value = tensorA.getValue(j) * tensorB.getValue(i);
-					output.getValue<DType>(i * b0 + j) = value;
-				}
-			}
-
+			output = Tensor::matrixMultiply(tensorA, tensorB, output);
 			return output;
 		}
 
@@ -876,7 +861,7 @@ namespace Ritsu {
 		/**
 		 *
 		 */
-		template <typename U> inline constexpr const U *getRawData() const noexcept {
+		template <typename U = DType> inline constexpr const U *getRawData() const noexcept {
 			static_assert(!std::is_pointer<U>::value, "Can not be pointer");
 			return reinterpret_cast<const U *>(this->memoryBuffer.buffer.data);
 		}
@@ -884,7 +869,7 @@ namespace Ritsu {
 		/**
 		 *
 		 */
-		template <typename U> inline constexpr U *getRawData() noexcept {
+		template <typename U = DType> inline constexpr U *getRawData() noexcept {
 			static_assert(!std::is_pointer<U>::value, "Can not be pointer");
 			return reinterpret_cast<U *>(this->memoryBuffer.buffer.data);
 		}

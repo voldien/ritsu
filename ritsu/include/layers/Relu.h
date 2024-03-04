@@ -78,7 +78,7 @@ namespace Ritsu {
 			const IndexType nrElements = tensor.getNrElements();
 #pragma omp parallel for shared(tensor)
 			for (IndexType i = 0; i < nrElements; i++) {
-				const DType value = relu<DType>(tensor.getValue<DType>(i));
+				const DType value = Ritsu::relu<DType>(tensor.getValue<DType>(i));
 				tensor.getValue<DType>(i) = value;
 			}
 		}
@@ -87,7 +87,7 @@ namespace Ritsu {
 			const size_t nrElements = tensor.getNrElements();
 #pragma omp parallel for shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = reluDeriviate(tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = Ritsu::reluDeriviate(tensor.getValue<DType>(i));
 			}
 		}
 

@@ -138,6 +138,9 @@ namespace Ritsu {
 					/*	Apply metric update.	*/
 
 					/*	Compute the loss/cost.	*/
+					std::cout << std::endl << std::endl;
+					std::cout << subsetExpectedBatch << std::endl << std::endl;
+					std::cout << batchResult << std::endl << std::endl;
 					Tensor<float> loss_error =
 						std::move(this->lossFunction.computeLoss(subsetExpectedBatch, batchResult));
 
@@ -391,17 +394,19 @@ namespace Ritsu {
 
 				Layer<T> *current = (*it);
 
-				// std::cout << differental_error << std::endl << std::endl;
-				// std::cout << current->getName() << std::endl << std::endl;
-
 				/*	*/
 				differental_error = current->compute_derivative(static_cast<const Tensor<float> &>(layerResult));
 
 				/*	Only apply if */
 				Tensor<float> *train_variables = current->getTrainableWeights();
+				Tensor<float> *_variables = current->getVariables();
 				if (train_variables) {
 					this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(differental_error),
 												 reinterpret_cast<Tensor<T> &>(*train_variables));
+
+					this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(layerResult - *_variables),
+												 reinterpret_cast<Tensor<T> &>(*_variables));
+				//	*_variables = layerResult - *_variables;
 				}
 
 				/*	*/

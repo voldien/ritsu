@@ -21,6 +21,9 @@
 
 namespace Ritsu {
 
+	/**
+	 * @brief
+	 */
 	class Conv2DTranspose : public Layer<float> {
 
 		//  kernel_initializer='glorot_uniform',
@@ -30,12 +33,21 @@ namespace Ritsu {
 		Conv2DTranspose(const size_t filters, const std::array<uint32_t, 2> &kernel_size,
 						const std::array<uint32_t, 2> &stride = {1, 1}, const ConvPadding padding = ConvPadding::Valid,
 						const std::string name = "conv2Dtranspose")
-			: Layer<float>(name) {}
+			: Layer<float>(name), stride(stride) {}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
 
-		void build(const Shape<IndexType> &buildShape) override { this->shape = buildShape; }
+		void build(const Shape<IndexType> &buildShape) override {
+			this->shape = buildShape;
+
+			/*	*/
+			this->shape[-2] *= stride[0];
+			this->shape[-3] *= stride[1];
+
+			/*	*/
+			assert(this->getShape().getNrDimensions() == 3);
+		}
 
 		Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) override { return tensorLoss; }
 		Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const override { return tensorLoss; }
@@ -45,5 +57,6 @@ namespace Ritsu {
 
 	  private:
 		size_t filters;
+		std::array<uint32_t, 2> stride;
 	};
 } // namespace Ritsu

@@ -41,7 +41,15 @@ namespace Ritsu {
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
 
-		void build(const Shape<IndexType> &buildShape) override { this->shape = buildShape; }
+		void build(const Shape<IndexType> &buildShape) override {
+			this->shape = buildShape;
+
+			this->shape[-2] /= size[0];
+			this->shape[-3] /= size[1];
+
+			/*	*/
+			assert(this->getShape().getNrDimensions() == 3);
+		}
 
 		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
 		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }

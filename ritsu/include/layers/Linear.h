@@ -65,7 +65,7 @@ namespace Ritsu {
 
 #pragma omp parallel for simd shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = computeLinear(this->linear, tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = Ritsu::computeLinear(this->linear, tensor.getValue<DType>(i));
 			}
 		}
 
@@ -75,7 +75,7 @@ namespace Ritsu {
 
 #pragma omp parallel for shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = computeLinearDerivative(this->linear);
+				tensor.getValue<DType>(i) = Ritsu::computeLinearDerivative(this->linear);
 			}
 		}
 

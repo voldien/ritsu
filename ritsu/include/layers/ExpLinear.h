@@ -64,7 +64,7 @@ namespace Ritsu {
 
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = computeExpLinear(coff, tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = Ritsu::computeExpLinear(coff, tensor.getValue<DType>(i));
 			}
 		}
 

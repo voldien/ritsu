@@ -43,7 +43,6 @@ namespace Ritsu {
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
 			this->input = layers[0];
-
 			this->shape = this->input->getShape();
 		}
 

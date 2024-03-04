@@ -69,7 +69,7 @@ namespace Ritsu {
 
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = computeSwish(tensor.getValue<DType>(i), 0.1f);
+				tensor.getValue<DType>(i) = Ritsu::computeSwish(tensor.getValue<DType>(i), 0.1f);
 			}
 		}
 

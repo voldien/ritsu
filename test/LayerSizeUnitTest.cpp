@@ -21,7 +21,7 @@ TEST_P(LayerUniformShapeSizeTest, InputSize) {
 
 	Ritsu::Input input(expected);
 
-	EXPECT_EQ(input.getShape(), expected);
+	ASSERT_EQ(input.getShape(), expected);
 }
 
 /*	*/
@@ -33,7 +33,7 @@ TEST_P(LayerUniformShapeSizeTest, RescalingLayerShapeSize) {
 	rescalling(input);
 	rescalling.build(input.getShape());
 
-	EXPECT_EQ(rescalling.getShape(), expected);
+	ASSERT_EQ(rescalling.getShape(), expected);
 }
 /*	*/
 
@@ -45,7 +45,7 @@ TEST_P(LayerUniformShapeSizeTest, ReluLayerShapeSize) {
 	relu(input);
 	relu.build(input.getShape());
 
-	EXPECT_EQ(relu.getShape(), expected);
+	ASSERT_EQ(relu.getShape(), expected);
 }
 
 TEST_P(LayerUniformShapeSizeTest, LeakyReluLayerShapeSize) {
@@ -56,7 +56,7 @@ TEST_P(LayerUniformShapeSizeTest, LeakyReluLayerShapeSize) {
 	leakyRelu(input);
 	leakyRelu.build(input.getShape());
 
-	EXPECT_EQ(leakyRelu.getShape(), expected);
+	ASSERT_EQ(leakyRelu.getShape(), expected);
 }
 /*	*/
 
@@ -68,7 +68,7 @@ TEST_P(LayerUniformShapeSizeTest, SigmoidLayerShapeSize) {
 	sigmoid(input);
 	sigmoid.build(input.getShape());
 
-	EXPECT_EQ(sigmoid.getShape(), expected);
+	ASSERT_EQ(sigmoid.getShape(), expected);
 }
 /*	*/
 
@@ -80,7 +80,7 @@ TEST_P(LayerUniformShapeSizeTest, SoftMaxLayerShapeSize) {
 	softmax(input);
 	softmax.build(input.getShape());
 
-	EXPECT_EQ(softmax.getShape(), expected);
+	ASSERT_EQ(softmax.getShape(), expected);
 }
 /*	*/
 
@@ -92,7 +92,7 @@ TEST_P(LayerUniformShapeSizeTest, SwishLayerShapeSize) {
 	swish(input);
 	swish.build(input.getShape());
 
-	EXPECT_EQ(swish.getShape(), expected);
+	ASSERT_EQ(swish.getShape(), expected);
 }
 /*	*/
 
@@ -104,7 +104,7 @@ TEST_P(LayerUniformShapeSizeTest, TahnLayerShapeSize) {
 	tanh(input);
 	tanh.build(input.getShape());
 
-	EXPECT_EQ(tanh.getShape(), expected);
+	ASSERT_EQ(tanh.getShape(), expected);
 }
 /*	*/
 
@@ -116,7 +116,7 @@ TEST_P(LayerUniformShapeSizeTest, BatchNormalizeSize) {
 	batchNormalize(input);
 	batchNormalize.build(input.getShape());
 
-	EXPECT_EQ(batchNormalize.getShape(), expected);
+	ASSERT_EQ(batchNormalize.getShape(), expected);
 }
 /*	*/
 
@@ -128,7 +128,7 @@ TEST_P(LayerUniformShapeSizeTest, GaussianNoiseSize) {
 	guassianNoise(input);
 	guassianNoise.build(input.getShape());
 
-	EXPECT_EQ(guassianNoise.getShape(), expected);
+	ASSERT_EQ(guassianNoise.getShape(), expected);
 }
 /*	*/
 
@@ -140,7 +140,7 @@ TEST_P(LayerUniformShapeSizeTest, RegularizationSize) {
 	regularization(input);
 	regularization.build(input.getShape());
 
-	EXPECT_EQ(regularization.getShape(), expected);
+	ASSERT_EQ(regularization.getShape(), expected);
 }
 /*	*/
 
@@ -153,7 +153,7 @@ TEST_P(LayerUniformShapeSizeTest, Add) {
 	Ritsu::Add add;
 	add(input0, input1);
 
-	EXPECT_EQ(add.getShape(), expected);
+	ASSERT_EQ(add.getShape(), expected);
 }
 
 TEST_P(LayerUniformShapeSizeTest, Subtract) {
@@ -164,7 +164,7 @@ TEST_P(LayerUniformShapeSizeTest, Subtract) {
 	Ritsu::Subtract subtract;
 	subtract(input0, input1);
 
-	EXPECT_EQ(subtract.getShape(), expected);
+	ASSERT_EQ(subtract.getShape(), expected);
 }
 
 TEST_P(LayerUniformShapeSizeTest, Multiply) {
@@ -174,7 +174,7 @@ TEST_P(LayerUniformShapeSizeTest, Multiply) {
 	Ritsu::Multiply<float> multiply;
 	multiply(input0, input1);
 
-	EXPECT_EQ(multiply.getShape(), expected);
+	ASSERT_EQ(multiply.getShape(), expected);
 }
 
 TEST_P(LayerUniformShapeSizeTest, Divide) {
@@ -186,7 +186,7 @@ TEST_P(LayerUniformShapeSizeTest, Divide) {
 	Ritsu::Divide divide;
 	divide(input0, input1);
 
-	EXPECT_EQ(divide.getShape(), expected);
+	ASSERT_EQ(divide.getShape(), expected);
 }
 
 TEST_P(LayerUniformShapeSizeTest, Cast) {
@@ -198,7 +198,7 @@ TEST_P(LayerUniformShapeSizeTest, Cast) {
 	cast(input0);
 	cast.build(input0.getShape());
 
-	EXPECT_EQ(cast.getShape(), expected);
+	ASSERT_EQ(cast.getShape(), expected);
 }
 
 TEST_P(LayerUniformShapeSizeTest, Dropout) {
@@ -210,7 +210,7 @@ TEST_P(LayerUniformShapeSizeTest, Dropout) {
 	dropout(input0);
 	dropout.build(input0.getShape());
 
-	EXPECT_EQ(dropout.getShape(), expected);
+	ASSERT_EQ(dropout.getShape(), expected);
 }
 
 /*	------------------------------*/
@@ -225,7 +225,7 @@ TEST_P(LayerFlattenShapeSizeTest, FlattenSize) {
 	flatten(input);
 	flatten.build(input.getShape());
 
-	EXPECT_EQ(flatten.getShape(), expected);
+	ASSERT_EQ(flatten.getShape(), expected);
 }
 /*	*/
 
@@ -246,7 +246,7 @@ TEST_P(LayerDown2DScaleShapeSizeTest, MaxPooling2D) {
 	maxPooling2D(input);
 	maxPooling2D.build(input.getShape());
 
-	EXPECT_EQ(maxPooling2D.getShape(), expected);
+	ASSERT_EQ(maxPooling2D.getShape(), expected);
 }
 /*	*/
 
@@ -258,7 +258,7 @@ TEST_P(LayerDown2DScaleShapeSizeTest, MinPooling2D) {
 	minPooling2D(input);
 	minPooling2D.build(input.getShape());
 
-	EXPECT_EQ(minPooling2D.getShape(), expected);
+	ASSERT_EQ(minPooling2D.getShape(), expected);
 }
 /*	*/
 
@@ -270,7 +270,7 @@ TEST_P(LayerDown2DScaleShapeSizeTest, AveragePooling2D) {
 	averagePooling2D(input);
 	averagePooling2D.build(input.getShape());
 
-	EXPECT_EQ(averagePooling2D.getShape(), expected);
+	ASSERT_EQ(averagePooling2D.getShape(), expected);
 }
 /*	*/
 
@@ -282,7 +282,7 @@ TEST_P(LayerDown2DScaleShapeSizeTest, Conv2D) {
 	conv2D(input);
 	conv2D.build(input.getShape());
 
-	EXPECT_EQ(conv2D.getShape(), expected);
+	ASSERT_EQ(conv2D.getShape(), expected);
 }
 /*	*/
 
@@ -307,25 +307,25 @@ TEST_P(LayerUp2DScaleShapeSizeTest, UpSampling2D) {
 	upscale(input);
 	upscale.build(input.getShape());
 
-	EXPECT_EQ(upscale.getShape(), expected);
+	ASSERT_EQ(upscale.getShape(), expected);
 }
 
 TEST_P(LayerUp2DScaleShapeSizeTest, Conv2DTranspose) {
 	auto [stride, x, expected] = GetParam();
 
 	Ritsu::Input input(x);
-	Ritsu::Conv2DTranspose conv2DTranspose(64, {2, 2});
+	Ritsu::Conv2DTranspose conv2DTranspose(64, {3, 3}, stride);
 	conv2DTranspose(input);
 	conv2DTranspose.build(input.getShape());
 
-	EXPECT_EQ(conv2DTranspose.getShape(), expected);
+	ASSERT_EQ(conv2DTranspose.getShape(), expected);
 }
 INSTANTIATE_TEST_SUITE_P(
 	Math, LayerUp2DScaleShapeSizeTest,
 	::testing::Values(std::make_tuple(std::array<uint32_t, 2>({2, 2}), Ritsu::Shape<uint32_t>({16, 16, 3}),
-									  Ritsu::Shape<uint32_t>({8, 8, 3})),
+									  Ritsu::Shape<uint32_t>({32, 32, 3})),
 					  std::make_tuple(std::array<uint32_t, 2>({2, 2}), Ritsu::Shape<uint32_t>({256, 256, 1}),
-									  Ritsu::Shape<uint32_t>({128, 128, 1}))));
+									  Ritsu::Shape<uint32_t>({512, 512, 1}))));
 
 class LayerConcatenateShapeSizeTest
 	: public ::testing::TestWithParam<std::tuple<Ritsu::Shape<uint32_t>, Ritsu::Shape<uint32_t>>> {};
@@ -338,7 +338,7 @@ TEST_P(LayerConcatenateShapeSizeTest, Concatenate) {
 	Ritsu::Concatenate cat({}, "");
 	cat(input0, input1);
 
-	EXPECT_EQ(cat.getShape(), expected);
+	ASSERT_EQ(cat.getShape(), expected);
 }
 
 // TODO: add one more argument, from to, expected
@@ -353,7 +353,7 @@ TEST_P(LayerReshapeShapeSizeTest, Reshape) {
 	reshape(input0);
 	reshape.build(input0.getShape());
 
-	EXPECT_EQ(reshape.getShape(), expected);
+	ASSERT_EQ(reshape.getShape(), expected);
 }
 INSTANTIATE_TEST_SUITE_P(Reshape, LayerReshapeShapeSizeTest,
 						 ::testing::Values(std::make_tuple(Ritsu::Shape<uint32_t>({16, 16, 3}),
@@ -364,7 +364,7 @@ INSTANTIATE_TEST_SUITE_P(Reshape, LayerReshapeShapeSizeTest,
 //
 //	Ritsu::Dense dense(16);
 //
-//	EXPECT_EQ(dense.getShape(), expected);
+//	ASSERT_EQ(dense.getShape(), expected);
 //}
 
 // INSTANTIATE_TEST_SUITE_P(DenseLayer, LayerUniformShapeSizeTest,

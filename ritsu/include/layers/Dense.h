@@ -129,19 +129,14 @@ namespace Ritsu {
 			output = (this->weight % inputTesnor) + this->bias;
 		}
 
-		inline void computeDerivative(const Tensor<float> &error, Tensor<float> &result) const noexcept {
-
-			Tensor<float> tmp = error;
-			// tmp.transpose();
-			Tensor<float> tmpWeight = weight;
-
+		inline void computeDerivative(const Tensor<float> &error, Tensor<float> &result) const {
 			/*	*/
-			tmp.dot(tmpWeight, result);
+			error.dot(this->weight, result);
 		}
 
 		void initweight() noexcept {
 			// TODO improve
-			RandomUniform<DType> random(0.0, 2.0);
+			RandomUniform<DType> random(0, 1);
 
 #pragma omp parallel for simd shared(weight)
 			for (size_t i = 0; i < this->weight.getNrElements(); i++) {
@@ -151,7 +146,7 @@ namespace Ritsu {
 
 		void initbias() noexcept {
 			// TODO improve
-			RandomUniform<DType> random(-1.0, 1.0);
+			RandomUniform<DType> random(-1, 1.0);
 
 #pragma omp parallel for simd shared(bias)
 			for (size_t i = 0; i < this->bias.getNrElements(); i++) {

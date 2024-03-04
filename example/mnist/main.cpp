@@ -4,6 +4,8 @@
 #include "layers/Layer.h"
 #include "layers/Regularization.h"
 #include "layers/Rescaling.h"
+#include "layers/Sigmoid.h"
+#include "layers/SoftMax.h"
 #include "mnist_dataset.h"
 #include <Ritsu.h>
 #include <cstdint>
@@ -19,9 +21,9 @@ int main(int argc, const char **argv) {
 
 	try {
 		/*	*/
-		const unsigned int batchSize = 10;
+		const unsigned int batchSize = 1;
 		const unsigned int epochs = 128;
-		const float learningRate = 0.0001f;
+		const float learningRate = 0.01f;
 		bool useBatchNorm = false;
 
 		/*	*/
@@ -79,7 +81,8 @@ int main(int argc, const char **argv) {
 
 		Regularization regulation(0.00005f, 0.000f);
 
-		Sigmoid outputAct;
+		Sigmoid sigmoid;
+		SoftMax outputAct;
 
 		/*	*/
 		{
@@ -101,7 +104,7 @@ int main(int argc, const char **argv) {
 			lay = &relu1(*lay);
 
 			lay = &fw2(*lay);
-			lay = &outputAct(*lay);
+			lay = &sigmoid(*lay);
 
 			Layer<float> &output = regulation(*lay);
 
@@ -112,7 +115,7 @@ int main(int argc, const char **argv) {
 
 			MetricAccuracy accuracy;
 
-			forwardModel.compile(&optimizer, loss_msa, {dynamic_cast<Metric *>(&accuracy)});
+			forwardModel.compile(&optimizer, loss_mse, {dynamic_cast<Metric *>(&accuracy)});
 			std::cout << forwardModel.summary() << std::endl;
 
 			forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize);

@@ -38,7 +38,7 @@ namespace Ritsu {
 		// const size_t DTypeSize = sizeof(DType);
 
 	  public:
-		using LossFunction = void (*)(const Tensor<float> &evoluated_true, const Tensor<float> &expected_pred,
+		using LossFunction = void (*)(const Tensor<float> &evaluated_pre_true, const Tensor<float> &expected_pred,
 									  Tensor<float> &output_result);
 
 		Loss() : Object("loss") {}
@@ -77,11 +77,11 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
-	static void loss_error(const Tensor<float> &evoluated, const Tensor<float> &expected,
+	static void loss_error(const Tensor<float> &evaluated_pre, const Tensor<float> &expected,
 						   Tensor<float> &output_result) {
 
 		/*	(A - B)^2	*/
-		output_result = evoluated - expected;
+		output_result = evaluated_pre - expected;
 
 		if (output_result.getShape()[0] == 1) {
 			return;
@@ -95,11 +95,11 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
-	static void loss_mse(const Tensor<float> &evoluated_true, const Tensor<float> &expected_pred,
+	static void loss_mse(const Tensor<float> &evaluated_pre_true, const Tensor<float> &expected_pred,
 						 Tensor<float> &output_result) {
 
 		/*	(A - B)^2	*/
-		output_result = evoluated_true - expected_pred;
+		output_result = evaluated_pre_true - expected_pred;
 		output_result = output_result * output_result;
 
 		/*	Mean for each batch index.	*/
@@ -110,10 +110,11 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
-	static void loss_msa(const Tensor<float> &evoluated, const Tensor<float> &expected, Tensor<float> &output_result) {
+	static void loss_msa(const Tensor<float> &evaluated_pre, const Tensor<float> &expected,
+						 Tensor<float> &output_result) {
 
 		/*	(A - B)	*/
-		output_result = evoluated - expected;
+		output_result = evaluated_pre - expected;
 		output_result = output_result * output_result;
 
 		/*	*/
@@ -127,10 +128,10 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
-	static void loss_binary_cross_entropy(const Tensor<float> &evoluated, const Tensor<float> &expected,
+	static void loss_binary_cross_entropy(const Tensor<float> &evaluated_pre, const Tensor<float> &expected,
 										  Tensor<float> &output) {
 
-		output = std::move(expected * Tensor<float>::log10(evoluated) * -1.0f);
+		output = std::move(expected * Tensor<float>::log10(evaluated_pre) * -1.0f);
 
 		const int batchIndex = -1;
 		output = output.mean(batchIndex);
@@ -139,14 +140,13 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
-	static void loss_cross_entropy(const Tensor<float> &evoluated, const Tensor<float> &expected,
+	static void loss_cross_entropy(const Tensor<float> &evaluated_pre, const Tensor<float> &expected,
 								   Tensor<float> &output) {
 
-		Tensor<float> A = Tensor<float>::log10(expected);
+		Tensor<float> logY = Tensor<float>::log10(evaluated_pre);
 
 		// TODO add support for primitve
-		Tensor<float> one(evoluated.getShape());
-		output = std::move(-expected * A + (1.0f - expected) * A);
+		output = std::move(-(expected * logY));
 
 		const int batchIndex = -1;
 		output = output.mean(batchIndex);
@@ -156,30 +156,31 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
-	static void loss_cross_catagorial_entropy(const Tensor<float> &evoluated, const Tensor<float> &expected,
+	static void loss_cross_catagorial_entropy(const Tensor<float> &evaluated_pre, const Tensor<float> &expected,
 											  Tensor<float> &output) {
 
-		output = std::move(expected * Tensor<float>::log10(evoluated) * -1.0f);
+		output = std::move(expected * Tensor<float>::log10(evaluated_pre) * -1.0f);
 
-		/*Tensor<float> A = inputA * log(inputB);*/
+		const int batchIndex = -1;
+		output = output.mean(batchIndex);
 	}
 
 	/**
 	 * @brief
 	 */
-	static void sparse_categorical_crossentropy(const Tensor<float> &evoluated, const Tensor<float> &expected,
+	static void sparse_categorical_crossentropy(const Tensor<float> &evaluated_pre, const Tensor<float> &expected,
 												Tensor<float> &output) {
 
-		Tensor<float> expected_one_shot = Tensor<float>::zero(evoluated.getShape());
+		Tensor<float> expected_one_shot = Tensor<float>::zero(evaluated_pre.getShape());
 
 		// expected_one_shot.getValue<float>((uint32_t)expected.getValue<float>(0)) = 1;
 
 		/*	*/
-		if (!Tensor<float>::verifyShape(evoluated, expected_one_shot)) {
+		if (!Tensor<float>::verifyShape(evaluated_pre, expected_one_shot)) {
 			std::cerr << "Sparse Categorical Crossentropy - Bad Shape " << expected_one_shot.getShape() << " not equal "
-					  << evoluated.getShape() << std::endl;
+					  << evaluated_pre.getShape() << std::endl;
 		}
 
-		return loss_cross_catagorial_entropy(evoluated, expected_one_shot, output);
+		return loss_cross_catagorial_entropy(evaluated_pre, expected_one_shot, output);
 	}
 } // namespace Ritsu

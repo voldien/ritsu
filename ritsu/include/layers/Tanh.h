@@ -73,7 +73,7 @@ namespace Ritsu {
 
 #pragma omp parallel shared(output)
 			for (size_t i = 0; i < nrElements; i++) {
-				output.getValue<DType>(i) = computeTanh(output.getValue<DType>(i));
+				output.getValue<DType>(i) = Ritsu::computeTanh(output.getValue<DType>(i));
 			}
 		}
 
@@ -83,7 +83,7 @@ namespace Ritsu {
 
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = computeTanh(tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = Ritsu::computeTanh(tensor.getValue<DType>(i));
 			}
 		}
 

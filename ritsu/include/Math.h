@@ -324,14 +324,15 @@ namespace Ritsu {
 			const T sqr_2_pi_inverse = 1.0 / (standard_deviation * static_cast<T>(std::sqrt(2 * Math::PI)));
 
 			const T offset = static_cast<T>(height) / -2;
-#pragma omp simd
+			//#pragma omp simd
 			for (unsigned int i = 0; i < height; i++) {
 
 				const T exp_num_sqrt = (i - theta + offset);
 
 				const T exponent = exp_inverse * -(exp_num_sqrt * exp_num_sqrt);
+				const T value = sqr_2_pi_inverse * std::exp(exponent);
 
-				guassian[i] = sqr_2_pi_inverse * std::exp(exponent);
+				guassian[i] = value;
 			}
 		}
 
@@ -390,7 +391,7 @@ namespace Ritsu {
 
 		template <typename T, typename U> static constexpr inline T gamma(const T value, const U gamma) noexcept {
 			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-			
+
 			const T exponent = static_cast<T>(1) / gamma;
 			return static_cast<T>(std::pow(value, exponent));
 		}

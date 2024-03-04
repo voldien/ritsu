@@ -91,12 +91,12 @@ TYPED_TEST_P(TensorTest, Addition) {
 		Tensor<TypeParam> tensorA(Shape<uint32_t>({10}));
 		Tensor<TypeParam> tensorB(Shape<uint32_t>({10}));
 
-		tensorA.template assignInitValue(static_cast<TypeParam>(-1));
-		tensorB.template assignInitValue(static_cast<TypeParam>(1));
+		tensorA.assignInitValue(static_cast<TypeParam>(0));
+		tensorB.assignInitValue(static_cast<TypeParam>(1));
 
 		const Tensor<TypeParam> result = tensorA + tensorB;
 
-		ASSERT_EQ(result, Tensor<TypeParam>::zero(result.getShape()));
+		ASSERT_EQ(result, tensorB);
 	}
 }
 

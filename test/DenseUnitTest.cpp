@@ -72,7 +72,7 @@ TEST_P(DenseComputeTest, ResultShape) {
 	Input input({xUnit});
 	Dense dense(denseUnit);
 
-	Tensor<float> inputData({xUnit, 1});
+	Tensor<float> inputData({xUnit});
 
 	Layer<float> &output = dense(input); /*	Build the weight.	*/
 	output.build(dense.getInputs()[0]->getShape());
@@ -97,12 +97,13 @@ TEST_P(DenseShapeTest, ComputeDerivativeResult) {
 	Input input({xUnit});
 	Dense dense(denseUnit);
 
-	const Tensor<float> inputData({xUnit, 1});
+	const Tensor<float> inputData({1, denseUnit});
 
 	Layer<float> &output = dense(input);
 	output.build(dense.getInputs()[0]->getShape());
 
-	Tensor<float> result = dense.compute_derivative(inputData);
+	Tensor<float> result;
+	ASSERT_NO_THROW(result = dense.compute_derivative(inputData));
 
 	ASSERT_EQ(result.getShape(), dense.getTrainableWeights()->getShape());
 }

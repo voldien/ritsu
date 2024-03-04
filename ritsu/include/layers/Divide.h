@@ -40,6 +40,9 @@ namespace Ritsu {
 		}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override { this->outputs = layers; }
 
+		std::vector<Layer<DType> *> getInputs() const override { return inputs; }
+		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
+
 	  private:
 	};
 } // namespace Ritsu

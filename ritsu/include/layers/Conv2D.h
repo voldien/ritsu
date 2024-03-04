@@ -58,10 +58,19 @@ namespace Ritsu {
 			return tensor;
 		}
 
-		void build(const Shape<IndexType> &shape) override {
+		void build(const Shape<IndexType> &buildShape) override {
+			this->shape = buildShape;
+
+			this->shape[-2] /= stride[0];
+			this->shape[-3] /= stride[1];
+
+			/*	*/
+			assert(this->getShape().getNrDimensions() == 3);
+
 			this->initbias(shape);
 			this->initKernels(shape);
 		}
+
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override { this->outputs = layers; }
