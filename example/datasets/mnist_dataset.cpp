@@ -29,10 +29,10 @@ static void load_image_dataset(std::ifstream &stream, Ritsu::Tensor<uint8_t> &da
 	stream.seekg(0, std::ios::beg);
 
 	/*	*/
-	stream.read((char *)&image_magic, sizeof(image_magic));
-	stream.read((char *)&nr_images, sizeof(nr_images));
-	stream.read((char *)&width, sizeof(width));
-	stream.read((char *)&height, sizeof(height));
+	stream.read(reinterpret_cast<char *>(&image_magic), sizeof(image_magic));
+	stream.read(reinterpret_cast<char *>(&nr_images), sizeof(nr_images));
+	stream.read(reinterpret_cast<char *>(&width), sizeof(width));
+	stream.read(reinterpret_cast<char *>(&height), sizeof(height));
 
 	/*	*/
 	image_magic = swap_endian(image_magic);
@@ -60,10 +60,10 @@ static void load_image_dataset(std::ifstream &stream, Ritsu::Tensor<uint8_t> &da
 
 	uint8_t *raw = dataX.getRawData<uint8_t>();
 
-	uint8_t *imageData = (uint8_t *)malloc(ImageSize);
+	uint8_t *imageData = static_cast<uint8_t *>(malloc(ImageSize));
 
 	for (size_t i = 0; i < nr_images; i++) {
-		stream.read((char *)&imageData[0], ImageSize);
+		stream.read(reinterpret_cast<char *>(&imageData[0]), ImageSize);
 		// swap value...
 
 		memcpy(&raw[i * ImageSize], imageData, ImageSize);
@@ -79,8 +79,8 @@ static void load_label_dataset(std::ifstream &stream, Ritsu::Tensor<uint8_t> &da
 	stream.seekg(0, std::ios::beg);
 
 	/*	*/
-	stream.read((char *)&label_magic, sizeof(label_magic));
-	stream.read((char *)&nr_label, sizeof(nr_label));
+	stream.read(reinterpret_cast<char *>(&label_magic), sizeof(label_magic));
+	stream.read(reinterpret_cast<char *>(&nr_label), sizeof(nr_label));
 
 	/*	*/
 	label_magic = swap_endian(label_magic);
@@ -102,7 +102,7 @@ static void load_label_dataset(std::ifstream &stream, Ritsu::Tensor<uint8_t> &da
 	uint8_t label;
 	for (size_t i = 0; i < nr_label; i++) {
 
-		stream.read((char *)&label, sizeof(label));
+		stream.read(reinterpret_cast<char *>(&label), sizeof(label));
 		dataY.getValue<uint8_t>(i) = label;
 	}
 }

@@ -328,18 +328,25 @@ INSTANTIATE_TEST_SUITE_P(
 									  Ritsu::Shape<uint32_t>({512, 512, 1}))));
 
 class LayerConcatenateShapeSizeTest
-	: public ::testing::TestWithParam<std::tuple<Ritsu::Shape<uint32_t>, Ritsu::Shape<uint32_t>>> {};
+	: public ::testing::TestWithParam<
+		  std::tuple<Ritsu::Shape<uint32_t>, Ritsu::Shape<uint32_t>, Ritsu::Shape<uint32_t>>> {};
+
 TEST_P(LayerConcatenateShapeSizeTest, Concatenate) {
-	auto [x, expected] = GetParam();
+	auto [x, y, expected] = GetParam();
 
 	Ritsu::Input input0(x);
-	Ritsu::Input input1(x);
+	Ritsu::Input input1(y);
 
-	Ritsu::Concatenate cat({}, "");
+	Ritsu::Concatenate cat({}, "concatenate");
 	cat(input0, input1);
 
 	ASSERT_EQ(cat.getShape(), expected);
 }
+
+INSTANTIATE_TEST_SUITE_P(Math, LayerConcatenateShapeSizeTest,
+						 ::testing::Values(std::make_tuple(Ritsu::Shape<uint32_t>({32, 32, 1}),
+														   Ritsu::Shape<uint32_t>({32, 32, 2}),
+														   Ritsu::Shape<uint32_t>({32, 32, 3}))));
 
 // TODO: add one more argument, from to, expected
 class LayerReshapeShapeSizeTest
@@ -358,19 +365,3 @@ TEST_P(LayerReshapeShapeSizeTest, Reshape) {
 INSTANTIATE_TEST_SUITE_P(Reshape, LayerReshapeShapeSizeTest,
 						 ::testing::Values(std::make_tuple(Ritsu::Shape<uint32_t>({16, 16, 3}),
 														   Ritsu::Shape<uint32_t>({2, 8, 8, 3}))));
-
-// TEST_P(LayerUniformShapeSizeTest, Values) {
-//	auto [x, expected] = GetParam();
-//
-//	Ritsu::Dense dense(16);
-//
-//	ASSERT_EQ(dense.getShape(), expected);
-//}
-
-// INSTANTIATE_TEST_SUITE_P(DenseLayer, LayerUniformShapeSizeTest,
-//						 ::testing::Values(std::make_tuple(Ritsu::Shape<uint32_t>({16}),
-//														   Ritsu::Shape<uint32_t>({16}))));
-
-class NonUniformSizeTest : public ::testing::TestWithParam<std::tuple<Ritsu::Shape<uint32_t>, Ritsu::Shape<uint32_t>>> {
-
-};

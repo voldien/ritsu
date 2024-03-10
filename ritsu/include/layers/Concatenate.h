@@ -32,7 +32,16 @@ namespace Ritsu {
 			this->inputs = layers;
 		}
 
-		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->inputs = layers; }
+		void setInputs(const std::vector<Layer<DType> *> &layers) override {
+			this->inputs = layers;
+
+			Shape<IndexType> newShape = inputs[0]->getShape();
+			for (size_t i = 1; i < inputs.size(); i++) {
+				newShape.append(inputs[i]->getShape());
+			}
+			
+			this->shape = newShape;
+		}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override { this->outputs = layers; }
 
 		void build(const Shape<IndexType> &buildShape) override { this->shape = buildShape; }

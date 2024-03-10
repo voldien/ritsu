@@ -637,6 +637,18 @@ namespace Ritsu {
 		 */
 		inline Tensor mean(int axis) noexcept { return Tensor::mean(*this, axis); }
 
+		inline Tensor sum(int axis) noexcept { return Tensor::mean(*this, axis); }
+
+		Tensor &clip(const DType min, const DType max) noexcept {
+			const IndexType elements = this->getNrElements();
+
+#pragma omp parallel for default(shared)
+			for (IndexType i = 0; i < elements; i++) {
+				this->getValue(i) = Math::clamp<DType>(getValue(i), min, max);
+			}
+			return *this;
+		}
+
 		DType min() const noexcept {
 			DType minValue = std::numeric_limits<DType>::max();
 			const IndexType elements = this->getNrElements();
@@ -956,6 +968,41 @@ namespace Ritsu {
 			}
 
 			return static_cast<U>(Math::mean<DType>(tensorA.getRawData<DType>(), tensorA.getNrElements()));
+		}
+
+		static Tensor sum(const Tensor &tensorA, int axis) noexcept {
+
+			/*	*/
+			if (tensorA.getNrElements() == 0) {
+				return {};
+			}
+
+			IndexType dim;
+			size_t dim_size;
+			if (tensorA.getShape().getNrDimensions() == 1) {
+				dim = 1;
+				dim_size = 1;
+			} else {
+				dim = tensorA.getShape().getAxisDimensions(axis);
+				dim_size = tensorA.getShape().getAxisDimensions(axis);
+			}
+
+			Tensor result({dim});
+
+			/*	*/
+			for (size_t i = 0; i < dim_size; i++) {
+				const Tensor subset = tensorA.getSubset(
+					{{static_cast<IndexType>(i)},
+					 {0, tensorA.getShape()[0] - 1} /*TODO:remove*/}); // TODO:fix a unit test to make it work.
+
+				const DType *data = subset.getRawData<DType>();
+
+				const size_t elements = subset.getNrElements();
+				const DType meanResult = Math::sum<DType>(data, elements);
+				result.getValue(i) = meanResult; // TODO:
+			}
+
+			return result;
 		}
 
 		static Tensor mean(const Tensor &tensorA, int axis) noexcept {
