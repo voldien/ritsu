@@ -29,9 +29,7 @@ namespace Ritsu {
 		Sigmoid(const std::string &name = "sigmoid") : Activaction(name) {}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
-
 			Tensor<float> output = tensor;
-
 			this->computeActivation(output);
 			return output;
 		}

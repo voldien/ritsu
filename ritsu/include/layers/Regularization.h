@@ -51,7 +51,7 @@ namespace Ritsu {
 			// TODO verify flatten
 
 			/*	*/
-			//this->build(this->getInputs()[0]->getShape());
+			// this->build(this->getInputs()[0]->getShape());
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
@@ -113,7 +113,7 @@ namespace Ritsu {
 		}
 
 		static void computeL2(const Tensor<float> &tensor, const DType L2, Tensor<float> &output) noexcept {
-			const DType value = L2 * tensor.dot(tensor);
+			const DType value = L2 * tensor.dot(tensor, -1);
 			output.assign(tensor);
 			output = value + output;
 		}

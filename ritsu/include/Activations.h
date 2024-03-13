@@ -23,13 +23,7 @@ namespace Ritsu {
 	template <typename T> inline static T computeSigmoid(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
-		//		if (value > 1000000) {
-		//			return 1;
-		//		}
-		//		if (value < -1000000) {
-		//			return 0;
-		//		}
-		return static_cast<T>(1) / (std::exp(-value) + static_cast<T>(1));
+		return Math::clamp<T>(static_cast<T>(1) / (std::exp(-value) + static_cast<T>(1)), 0, 1);
 	}
 
 #pragma omp declare simd uniform(value) simdlen(4)
@@ -154,7 +148,8 @@ namespace Ritsu {
 
 		//#pragma omp for simd
 		for (size_t i = 0; i < nrElements; i++) {
-			Inversesum += static_cast<T>(std::exp(tensor.template getValue<T>(i)));
+			const T value = tensor.template getValue<T>(i);
+			Inversesum += static_cast<T>(std::exp(value));
 		}
 		Inversesum = static_cast<T>(1) / Inversesum;
 

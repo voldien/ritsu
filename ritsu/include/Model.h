@@ -115,6 +115,7 @@ namespace Ritsu {
 
 			Tensor<float> timeSample({8});
 			uint32_t timeIndex = 0;
+			Tensor<float> loss_error;
 
 			for (size_t nthEpoch = 0; nthEpoch < epochs; nthEpoch++) {
 				std::cout << "Epoch: " << nthEpoch << " / " << epochs << std::endl << std::flush;
@@ -138,18 +139,18 @@ namespace Ritsu {
 					/*	Apply metric update.	*/
 
 					/*	Compute the loss/cost.	*/
-					std::cout << std::endl << std::endl;
-					std::cout << subsetExpectedBatch << std::endl << std::endl;
-					std::cout << batchResult << std::endl << std::endl;
-					Tensor<float> loss_error =
-						std::move(this->lossFunction.computeLoss(subsetExpectedBatch, batchResult));
+					// std::cout << std::endl << std::endl;
+					// std::cout << subsetExpectedBatch << std::endl << std::endl;
+					// std::cout << batchResult << std::endl << std::endl;
+
+					loss_error = std::move(this->lossFunction->computeLoss(subsetExpectedBatch, batchResult));
 
 					this->lossmetric.update_state({&loss_error});
 					for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
 						this->metrics[m_index]->update_state(subsetExpectedBatch, batchResult);
 					}
 
-					std::cout << std::endl << std::endl << loss_error << std::endl << std::endl;
+					// std::cout << std::endl << std::endl << loss_error << std::endl << std::endl;
 
 					/*	*/
 					this->backPropagation(loss_error, cachedResult);
@@ -239,9 +240,9 @@ namespace Ritsu {
 			return result;
 		}
 
-		void compile(Optimizer<T> *optimizer, const Loss loss, const std::vector<Metric *> &compile_metrics = {}) {
+		void compile(Optimizer<T> *optimizer, const Loss &loss, const std::vector<Metric *> &compile_metrics = {}) {
 			this->optimizer = optimizer;
-			this->lossFunction = loss;
+			this->lossFunction = &loss;
 
 			/*	Compile metrics.	*/
 			this->metrics = compile_metrics;
@@ -362,7 +363,7 @@ namespace Ritsu {
 
 				// debug_layer<float>(std::cerr, current) << std::endl << std::endl;
 
-				// std::cerr << layerResult << std::endl << std::endl;
+				// std::cerr << layerResult.getShape() << std::endl << std::endl;
 
 				/*	validate result shape. */
 				const auto shape =
@@ -386,31 +387,49 @@ namespace Ritsu {
 		void backPropagation(const Tensor<float> &error, std::map<std::string, Tensor<float>> &cacheResult) {
 
 			Tensor<float> differental_error = error;
+			differental_error.reshape({1, differental_error.getShape().getAxisDimensions(0)});
 
-			Tensor<float> &layerResult = cacheResult[(*this->forwardSequence.rbegin())->getName()];
+			Tensor<float> &current_layer_z = cacheResult[(*this->forwardSequence.rbegin())->getName()];
 
 			/*	*/
 			for (auto it = this->forwardSequence.rbegin(); it != this->forwardSequence.rend(); it++) {
 
 				Layer<T> *current = (*it);
+				// std::cout << current->getName() << std::endl << std::endl;
 
-				/*	*/
-				differental_error = current->compute_derivative(static_cast<const Tensor<float> &>(layerResult));
+				auto tmpIt = it;
+				tmpIt++;
+				Layer<T> *prev = (*(tmpIt));
+
+				current_layer_z = cacheResult[current->getName()];
 
 				/*	Only apply if */
 				Tensor<float> *train_variables = current->getTrainableWeights();
 				Tensor<float> *_variables = current->getVariables();
+
 				if (train_variables) {
-					this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(differental_error),
+
+					Tensor<float> prev_z = cacheResult[prev->getName()];
+					Tensor<float> error = differental_error;
+					if (error.getShape().getNrDimensions() == 1) {
+						error.reshape({1, error.getShape().getAxisDimensions(0)});
+					}
+
+					Tensor<float> weightUpdate = prev_z.transpose().dot(error);
+					// std::cout << weightUpdate << std::endl << std::endl;
+					differental_error =
+						current->compute_derivative(static_cast<const Tensor<float> &>(current_layer_z));
+
+					this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(weightUpdate.transpose()),
 												 reinterpret_cast<Tensor<T> &>(*train_variables));
 
-					this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(layerResult - *_variables),
+					this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(current_layer_z),
 												 reinterpret_cast<Tensor<T> &>(*_variables));
-				//	*_variables = layerResult - *_variables;
+				} else {
+					/*	*/
+					differental_error = differental_error.dot(
+						current->compute_derivative(static_cast<const Tensor<float> &>(current_layer_z)));
 				}
-
-				/*	*/
-				layerResult = cacheResult[current->getName()];
 			}
 		}
 
@@ -499,7 +518,7 @@ namespace Ritsu {
 
 		/*	*/
 		Optimizer<T> *optimizer;
-		Loss lossFunction;
+		const Loss *lossFunction;
 
 		/*	*/
 		std::map<std::string, Layer<T> *> layers;

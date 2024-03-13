@@ -194,7 +194,7 @@ namespace Ritsu {
 			T sum = 0;
 
 			const size_t nrElements = listB.size();
-#pragma omp parallel for simd reduction(+ : sum) shared(listA, meanA, listB, meanB)
+#pragma omp parallel for simd reduction(+ : sum) shared(listA, listB)
 			for (size_t i = 0; i < nrElements; i++) {
 				sum += (listA[i] - meanA) * (listB[i] - meanB);
 			}

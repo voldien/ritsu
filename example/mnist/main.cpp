@@ -24,7 +24,7 @@ int main(int argc, const char **argv) {
 		/*	*/
 		const unsigned int batchSize = 1;
 		const unsigned int epochs = 128;
-		const float learningRate = 0.0004f;
+		const float learningRate = 0.0001f;
 		bool useBatchNorm = false;
 
 		/*	*/
@@ -77,10 +77,10 @@ int main(int argc, const char **argv) {
 		BatchNormalization BN1;
 		Relu relu1;
 
-		Dense fw2 =
+		Dense fw2_output =
 			Dense(output_size, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer2");
 
-		Regularization regulation(0.00005f, 0.000f);
+		Regularization regulation(0.00001f, 0.000f);
 
 		Sigmoid sigmoid;
 		SoftMax outputAct;
@@ -90,7 +90,7 @@ int main(int argc, const char **argv) {
 			Layer<float> *lay = &normalizedLayer(input0node);
 			lay = &flattenInput(*lay);
 
-			lay = &noise(*lay);
+			// lay = &noise(*lay);
 
 			lay = &fw0(*lay);
 			if (useBatchNorm) {
@@ -104,19 +104,20 @@ int main(int argc, const char **argv) {
 			}
 			lay = &relu1(*lay);
 
-			lay = &fw2(*lay);
-			lay = &outputAct(*lay);
+			lay = &fw2_output(*lay);
+			lay = &sigmoid(*lay);
 
 			Layer<float> &output = regulation(*lay);
 
 			Model<float> forwardModel({&input0node}, {&output});
 
-			SGD<float> optimizer(learningRate, 0.2);
+			SGD<float> optimizer(learningRate, 0.05f);
 			Adam<float> ADamoptimizer(learningRate);
 
 			MetricAccuracy accuracy;
-
-			forwardModel.compile(&optimizer, loss_categorial_crossentropy, {dynamic_cast<Metric *>(&accuracy)});
+			CategoricalCrossentropy cross_loss(true);
+			MeanSquareError mse_loss;
+			forwardModel.compile(&optimizer, mse_loss, {dynamic_cast<Metric *>(&accuracy)});
 			std::cout << forwardModel.summary() << std::endl;
 
 			forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize);

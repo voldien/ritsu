@@ -53,7 +53,7 @@ TEST_P(DenseParameterTest, WeightSize) {
 	dense->build(input.getShape());
 
 	ASSERT_EQ(dense->getTrainableWeights()->getShape(), expectedWeightShape);
-	ASSERT_EQ(dense->getVariables()->getShape(), Ritsu::Shape<uint32_t>({denseUnit}));
+	ASSERT_EQ(dense->getVariables()->getShape(), Ritsu::Shape<uint32_t>({1, denseUnit}));
 
 	ASSERT_NO_THROW(delete dense);
 }
@@ -109,6 +109,6 @@ TEST_P(DenseShapeTest, ComputeDerivativeResult) {
 }
 
 INSTANTIATE_TEST_SUITE_P(Dense, DenseShapeTest,
-						 ::testing::Values(std::make_tuple(16, 32, Ritsu::Shape<uint32_t>({16, 32})),
-										   std::make_tuple(32, 32, Ritsu::Shape<uint32_t>({32, 32})),
-										   std::make_tuple(1024, 10, Ritsu::Shape<uint32_t>({1024, 10}))));
+						 ::testing::Values(std::make_tuple(16, 1, Ritsu::Shape<uint32_t>({16, 32})),
+										   std::make_tuple(32, 1, Ritsu::Shape<uint32_t>({32, 32})),
+										   std::make_tuple(1024, 1, Ritsu::Shape<uint32_t>({1024, 10}))));

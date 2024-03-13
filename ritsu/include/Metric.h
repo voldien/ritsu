@@ -55,21 +55,15 @@ namespace Ritsu {
 			assert(args.size() >= 2);
 
 			/*	*/
-			const Tensor<DType> *refA = (*args.begin());
-			const Tensor<DType> *refB = (*(args.begin() + 1));
+			const Tensor<DType> *expected_true = (*args.begin());
+			const Tensor<DType> *eval_pred = (*(args.begin() + 1));
 
-			assert(refA->getShape() == refB->getShape());
+			assert(expected_true->getShape() == eval_pred->getShape());
 
-			size_t correct = 0;
-			for (size_t i = 0; i < refA->getNrElements(); i++) {
+			// size_t correct = 0;
+			const DType correct = eval_pred->round().equal(*expected_true).sum();
 
-				/*	*/
-				if (Math::abs(refA->getValue<DType>(i) - refB->getValue<DType>(i)) < 0.01f) {
-					correct++;
-				}
-			}
-
-			this->m_result.getValue<DType>(0) = static_cast<DType>(correct) / static_cast<DType>(refA->getNrElements());
+			this->m_result.getValue<DType>(0) = static_cast<DType>(correct) / static_cast<DType>(expected_true->getNrElements());
 		}
 
 		void reset_state() override { this->m_result = Tensor<DType>({1}); }

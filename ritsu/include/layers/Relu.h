@@ -62,7 +62,7 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 		Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) override {
-			Tensor<float> output;
+			Tensor<float> output = tensorLoss;
 			computeDeriviate(output);
 			return output;
 		}

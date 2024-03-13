@@ -61,7 +61,7 @@ namespace Ritsu {
 		static inline Tensor<float> createCastTensor(const Tensor<float> &tensor) {
 			Tensor<float> castTensor(tensor.getShape(), sizeof(T));
 
-			return createCastTensorRef(castTensor);
+			return Cast::createCastTensorRef(castTensor);
 		}
 
 		static inline Tensor<float> &createCastTensorRef(Tensor<float> &tensor) {

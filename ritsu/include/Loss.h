@@ -14,6 +14,7 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
+#include "Activations.h"
 #include "Object.h"
 #include "Tensor.h"
 #include <functional>
@@ -34,29 +35,26 @@ namespace Ritsu {
 		//
 		// using IndexType = unsigned int;
 		// static constexpr size_t IndexTypeSize = sizeof(IndexType);
-		// using DType = T;
-		// const size_t DTypeSize = sizeof(DType);
+		using DType = float;
+		const size_t DTypeSize = sizeof(DType);
 
 	  public:
-		using LossFunction = void (*)(const Tensor<float> &evaluated_pre_true, const Tensor<float> &expected_pred,
-									  Tensor<float> &output_result);
+		using LossFunction = void (*)(const Tensor<DType> &evaluated_pre_true, const Tensor<DType> &expected_pred,
+									  Tensor<DType> &output_result);
 
 		Loss() : Object("loss") {}
-		//	template <typename T>
+
 		Loss(LossFunction lambda, const std::string &name = "loss") noexcept : Object(name) {
 			this->loss_function = lambda;
 			/*	Cache buffer.	*/ // TODO:
 		}
 
-		// virtual Tensor<float> &computeLoss(const Tensor<float> &inputX0_true, const Tensor<float> &inputX1_pred)  =
-		// 0;
+		virtual Tensor<DType> computeLoss(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const {
 
-		virtual Tensor<float> computeLoss(const Tensor<float> &inputX0_true, const Tensor<float> &inputX1_pred) const {
-
-			Tensor<float> batchLossResult;
+			Tensor<DType> batchLossResult;
 
 			/*	*/
-			if (!Tensor<float>::verifyShape(inputX0_true, inputX1_pred)) {
+			if (!Tensor<DType>::verifyShape(inputX0_true, inputX1_pred)) {
 				std::cerr << "Loss - Bad Shape " << inputX0_true.getShape() << " not equal " << inputX1_pred.getShape()
 						  << std::endl;
 			}
@@ -66,31 +64,12 @@ namespace Ritsu {
 			return batchLossResult;
 		}
 
-		virtual Tensor<float> operator()(const Tensor<float> &inputX0_true, const Tensor<float> &inputX1_pred) {
+		virtual Tensor<DType> operator()(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) {
 			return this->computeLoss(inputX0_true, inputX1_pred);
 		}
 
 	  private:
 		LossFunction loss_function;
-	};
-
-	class CategoricalCrossentropy : public Loss {
-	  public:
-		// static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
-		//			  "Must be a decimal type(float/double/half) or integer.");
-		//
-		// using IndexType = unsigned int;
-		// static constexpr size_t IndexTypeSize = sizeof(IndexType);
-		// using DType = T;
-		// const size_t DTypeSize = sizeof(DType);
-
-	  public:
-		// CategoricalCrossentropy(const std::string name = "categorical_crossentropy") : Loss("loss") {}
-		////	template <typename T>
-		// CategoricalCrossentropy(LossFunction lambda, const std::string &name = "loss") noexcept : Object(name) {
-		//	this->loss_function = lambda;
-		//	/*	Cache buffer.	*/ // TODO:
-		//}
 	};
 
 	/**
@@ -159,30 +138,15 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
-	static void loss_cross_entropy(const Tensor<float> &evaluated_pre, const Tensor<float> &expected,
-								   Tensor<float> &output) {
+	static void loss_categorical_crossentropy(const Tensor<float> &evaluated_pre, const Tensor<float> &expected_target,
+											  Tensor<float> &output) { // axis = -1
 
-		Tensor<float> logY = Tensor<float>::log10(evaluated_pre);
+		Tensor<float> tmp_output = evaluated_pre;
 
-		// TODO add support for primitve
-		output = std::move(-(expected * logY));
-		const int batchIndex = -1;
-		output = output.sum(batchIndex);
-	}
-
-	// TODO convert to one shot vector.
-	/**
-	 * @brief
-	 */
-	static void loss_categorial_crossentropy(const Tensor<float> &evaluated_pre, const Tensor<float> &expected_target,
-											 Tensor<float> &output) { // axis = -1
-		output = evaluated_pre;
-		output.clip(1e-7, 1 - 1e-7);
-
-		output = expected_target * -Tensor<float>::log10(output);
+		output = -(expected_target * Tensor<float>::log10(tmp_output));
 
 		const int batchIndex = -1;
-		output = output.sum(batchIndex);
+		output = output.mean(batchIndex);
 	}
 
 	/**
@@ -201,6 +165,33 @@ namespace Ritsu {
 					  << evaluated_pre.getShape() << std::endl;
 		}
 
-		return loss_categorial_crossentropy(evaluated_pre, expected_one_shot, output);
+		return loss_categorical_crossentropy(evaluated_pre, expected_one_shot, output);
 	}
+
+	class MeanSquareError : public Loss {
+	  public:
+		MeanSquareError(const std::string name = "mse") : Loss(Ritsu::loss_mse, name) {}
+	};
+
+	class CategoricalCrossentropy : public Loss {
+	  public:
+		CategoricalCrossentropy(bool from_logits = false, const std::string name = "categorical_crossentropy")
+			: Loss(Ritsu::loss_categorical_crossentropy, name), from_logits(from_logits) {}
+
+		Tensor<float> computeLoss(const Tensor<float> &inputX0_true, const Tensor<float> &inputX1_pred) const override {
+			Tensor<float> batchLossResult = inputX1_pred;
+
+			if (this->from_logits) {
+				batchLossResult = Ritsu::softMax(batchLossResult);
+			} else {
+				batchLossResult = batchLossResult / batchLossResult.sum(-1);
+				batchLossResult.clip(1e-7, 1 - 1e-7);
+			}
+
+			return Loss::computeLoss(inputX0_true, batchLossResult);
+		}
+
+	  private:
+		bool from_logits;
+	};
 } // namespace Ritsu

@@ -339,7 +339,18 @@ TYPED_TEST_P(TensorTest, InnerProduct) {
 		tensorA.assignInitValue(1);
 		tensorB.assignInitValue(1);
 
-		ASSERT_EQ(tensorA.dot(tensorB), static_cast<TypeParam>((8 * 8 * 3) * 1));
+		ASSERT_EQ(tensorA.dot(tensorB, -1), static_cast<TypeParam>((8 * 8 * 3) * 1));
+	}
+
+	/*	Improve.*/
+	{
+		Tensor<TypeParam> tensorA(Shape<uint32_t>({8, 8, 3}));
+		Tensor<TypeParam> tensorB(Shape<uint32_t>({8, 8, 3}));
+
+		tensorA.assignInitValue(1);
+		tensorB.assignInitValue(1);
+
+		ASSERT_EQ(tensorA.dot(tensorB, -1), static_cast<TypeParam>((8 * 8 * 3) * 1));
 	}
 }
 

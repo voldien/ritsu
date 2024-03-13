@@ -15,6 +15,7 @@
  */
 #pragma once
 #include "Optimizer.h"
+#include "RitsuDef.h"
 #include <cassert>
 #include <functional>
 #include <map>
@@ -32,8 +33,12 @@ namespace Ritsu {
 		}
 
 		void update_step(const Tensor<T> &gradient, Tensor<T> &variable) override {
-
+			assert(gradient.getShape() == variable.getShape());
 			Tensor<T> gradientUpdate = gradient;
+
+			if (gradient.getShape() != variable.getShape()) {
+				throw RuntimeException("Invalid Variable and Gradient Shape");
+			}
 
 			if (this->momentum > 0) {
 
@@ -44,12 +49,12 @@ namespace Ritsu {
 
 				velocities[uid] = (velocities[uid] * this->momentum) - (gradient * (1.0f - this->momentum));
 
-				gradientUpdate = variable - (velocities[uid] * this->getLearningRate());
+				gradientUpdate = (velocities[uid] * this->getLearningRate());
 
 				this->apply_gradients(gradientUpdate, variable);
 
 			} else {
-				gradientUpdate = gradientUpdate * this->getLearningRate();
+				gradientUpdate = gradient * this->getLearningRate();
 
 				this->apply_gradients(gradientUpdate, variable);
 			}
@@ -59,11 +64,9 @@ namespace Ritsu {
 			assert(gradient.getShape() == variable.getShape());
 
 			if (gradient.getShape() == variable.getShape()) {
-				if (this->momentum > 0) {
-					variable = gradient;
-				} else {
-					variable -= gradient;
-				}
+				variable -= gradient;
+			} else {
+				throw RuntimeException("Invalid Variable and Gradient Shape");
 			}
 		}
 

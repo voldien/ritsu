@@ -33,6 +33,7 @@
 #include <ostream>
 #include <stdexcept>
 #include <string>
+#include <type_traits>
 #include <typeinfo>
 #include <utility>
 #include <vector>
@@ -195,7 +196,7 @@ namespace Ritsu {
 			return *this;
 		}
 
-		Tensor copy() const { return *this; }
+		Tensor copy() const noexcept { return *this; }
 
 		bool operator==(const Tensor &tensor) const noexcept {
 
@@ -243,27 +244,27 @@ namespace Ritsu {
 		// Dtype
 		const std::type_info &getDType() const noexcept { return *this->typeinfo; }
 
-		auto &operator-=(const Tensor &tensor) {
+		Tensor &operator-=(const Tensor &tensor) {
 			const size_t nrElements = this->getNrElements();
 
 #pragma omp parallel for shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
-				this->getValue<DType>(index) = this->getValue<DType>(index) - tensor.getValue<DType>(index);
+				this->getValue<DType>(index) -= tensor.getValue<DType>(index);
 			}
 			return *this;
 		}
 
-		auto &operator+=(const Tensor &tensor) {
+		Tensor &operator+=(const Tensor &tensor) {
 			const size_t nrElements = this->getNrElements();
 
 #pragma omp parallel for shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
-				this->getValue<DType>(index) = this->getValue<DType>(index) + tensor.getValue<DType>(index);
+				this->getValue<DType>(index) += tensor.getValue<DType>(index);
 			}
 			return *this;
 		}
 
-		auto &operator*=(const Tensor &tensor) {
+		Tensor &operator*=(const Tensor &tensor) {
 			const size_t nrElements = this->getNrElements();
 
 #pragma omp parallel for shared(tensor)
@@ -350,7 +351,7 @@ namespace Ritsu {
 			}
 
 			const size_t nrElements = this->getNrElements();
-#pragma omp parallel for simd shared(tensor, nrElements)
+#pragma omp parallel for simd shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = this->getValue<DType>(index) + tensor.getValue<DType>(index);
 			}
@@ -360,7 +361,7 @@ namespace Ritsu {
 		friend Tensor &operator+(const DType value, Tensor &tensor) noexcept {
 			const size_t nrElements = tensor.getNrElements();
 
-#pragma omp simd simdlen(4)
+#pragma omp parallel for simd simdlen(4)
 			for (size_t index = 0; index < nrElements; index++) {
 				tensor.getValue<DType>(index) = value + tensor.getValue<DType>(index);
 			}
@@ -426,6 +427,7 @@ namespace Ritsu {
 		friend Tensor operator-(const DType value, const Tensor &tensor) noexcept {
 			const size_t nrElements = tensor.getNrElements();
 			Tensor tmp = tensor;
+
 #pragma omp parallel for shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
 				tmp.getValue<DType>(index) = value - tensor.getValue<DType>(index);
@@ -444,7 +446,7 @@ namespace Ritsu {
 			return *this;
 		}
 
-		friend auto operator*(const Tensor &tensorA, const Tensor &tensorB) {
+		friend Tensor operator*(const Tensor &tensorA, const Tensor &tensorB) {
 
 			// TODO: verify shape
 
@@ -535,7 +537,7 @@ namespace Ritsu {
 		template <typename U = DType> void assignInitValue(const U initValue) noexcept {
 			const IndexType nrElements = this->getNrElements();
 
-#pragma omp parallel for simd shared(nrElements, initValue)
+#pragma omp parallel for simd
 			for (size_t i = 0; i < nrElements; i++) {
 				this->getValue<DType>(i) = static_cast<DType>(initValue);
 			}
@@ -598,7 +600,16 @@ namespace Ritsu {
 
 		template <typename U> Tensor &insert(const U tensor) { return *this; }
 
-		inline DType dot(const Tensor &tensor) const noexcept { return Tensor::dot(*this, tensor); }
+		inline DType dot(const Tensor &tensor, int axis) const noexcept { return Tensor::dot(*this, tensor); }
+
+		inline Tensor dot(const Tensor &tensor) const noexcept {
+			// TODO:impl
+			if (!isMatrixOperationSupported(this->getShape(), tensor.getShape())) {
+				return *this * tensor;
+			}
+			Tensor out;
+			return Tensor::dot(*this, tensor, out);
+		}
 
 		static inline DType dot(const Tensor &tensorA, const Tensor &tensorB) noexcept {
 			// TODO: determine type.
@@ -608,7 +619,7 @@ namespace Ritsu {
 		void dot(const Tensor &tensorB, Tensor &output) const { Tensor::dot(*this, tensorB, output); }
 
 		static Tensor &dot(const Tensor &tensorA, const Tensor &tensorB, Tensor &output) {
-			output = Tensor::matrixMultiply(tensorA, tensorB, output);
+			output = Tensor::matrixMultiply(tensorA, tensorB);
 			return output;
 		}
 
@@ -617,9 +628,39 @@ namespace Ritsu {
 			return *this;
 		}
 
-		Tensor &sqrt() noexcept {
+		Tensor &round() noexcept {
 			const IndexType nrElements = this->getNrElements();
 
+#pragma omp parallel for default(shared)
+			for (size_t index = 0; index < nrElements; index++) {
+				if constexpr (std::is_floating_point<DType>()) { //|| std::is_integral<DType>()) {
+					const DType value = std::round(this->getValue<DType>(index));
+					this->getValue<DType>(index) = value;
+				}
+			}
+			return *this;
+		}
+
+		Tensor round() const noexcept {
+			Tensor copy = *this;
+			return copy.round();
+		}
+
+		Tensor equal(const Tensor &tensor) const noexcept {
+			const IndexType nrElements = this->getNrElements();
+			Tensor copy = *this;
+#pragma omp parallel for default(shared)
+			for (size_t index = 0; index < nrElements; index++) {
+				copy.getValue<DType>(index) = copy.getValue<DType>(index) == tensor.getValue<DType>(index)
+												  ? static_cast<DType>(1)
+												  : static_cast<DType>(0);
+			}
+			return copy;
+		}
+
+		Tensor &sqrt() noexcept {
+			const IndexType nrElements = this->getNrElements();
+#pragma omp parallel for default(shared)
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = static_cast<DType>(std::sqrt(this->getValue<DType>(index)));
 			}
@@ -635,9 +676,17 @@ namespace Ritsu {
 		 * @brief
 		 *
 		 */
-		inline Tensor mean(int axis) noexcept { return Tensor::mean(*this, axis); }
+		inline Tensor mean(int axis) noexcept { return Tensor::sum(*this, axis); }
 
-		inline Tensor sum(int axis) noexcept { return Tensor::mean(*this, axis); }
+		/**
+		 * @brief
+		 */
+		inline Tensor sum(int axis) noexcept { return Tensor::sum(*this, axis); }
+
+		/**
+		 * @brief
+		 */
+		inline DType sum() noexcept { return Math::sum(this->getRawData(), this->getNrElements()); }
 
 		Tensor &clip(const DType min, const DType max) noexcept {
 			const IndexType elements = this->getNrElements();
@@ -806,6 +855,12 @@ namespace Ritsu {
 			return *this;
 		}
 
+		Tensor transpose() const noexcept {
+			Tensor copy = *this;
+			copy.transpose();
+			return copy;
+		}
+
 		DType operator[](const std::vector<IndexType> &location) const { return this->getValue<DType>(location); }
 		DType &operator[](const std::vector<IndexType> &location) { return this->getValue<DType>(location); }
 
@@ -901,6 +956,11 @@ namespace Ritsu {
 		}
 
 		Tensor &reshape(const Shape<IndexType> &newShape) {
+			this->shape.reshape(newShape);
+			return *this;
+		}
+
+		Tensor &reshape(const std::initializer_list<IndexType> &newShape) {
 			this->shape.reshape(newShape);
 			return *this;
 		}
@@ -1047,8 +1107,37 @@ namespace Ritsu {
 
 		static Tensor variance(const Tensor &tensorA, const DType mean,
 							   int axis) noexcept { // TODO: impl and override the none-axis
-			// return static_cast<DType>(Math::variance<DType>(tensorA.getRawData<DType>(), tensorA.getNrElements(),
-			// mean));
+			/*	*/
+			if (tensorA.getNrElements() == 0) {
+				return {};
+			}
+
+			IndexType dim;
+			size_t dim_size;
+			if (tensorA.getShape().getNrDimensions() == 1) {
+				dim = 1;
+				dim_size = 1;
+			} else {
+				dim = tensorA.getShape().getAxisDimensions(axis);
+				dim_size = tensorA.getShape().getAxisDimensions(axis);
+			}
+
+			Tensor result({dim});
+
+			/*	*/
+			for (size_t i = 0; i < dim_size; i++) {
+				const Tensor subset = tensorA.getSubset(
+					{{static_cast<IndexType>(i)},
+					 {0, tensorA.getShape()[0] - 1} /*TODO:remove*/}); // TODO:fix a unit test to make it work.
+
+				const DType *data = subset.getRawData<DType>();
+
+				const size_t elements = subset.getNrElements();
+				const DType meanResult = Math::variance<DType>(data, elements, mean);
+				result.getValue(i) = meanResult; // TODO:
+			}
+
+			return result;
 		}
 
 		static Tensor zero(const Shape<IndexType> &shape) {
@@ -1119,7 +1208,8 @@ namespace Ritsu {
 			/*	TODO: add multiple dims- layers.	*/
 
 			const IndexType B_col = tensorBRight.getShape().getNrDimensions() > 1 ? tensorBRight.getShape()[1] : 1;
-			Tensor output(Shape<IndexType>({tensorALeft.getShape()[0], B_col}));
+			const IndexType B_row = tensorALeft.getShape()[0];
+			Tensor output(Shape<IndexType>({B_row, B_col}));
 
 			Tensor::matrixMultiply(tensorALeft, tensorBRight, output);
 
