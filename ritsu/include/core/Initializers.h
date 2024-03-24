@@ -34,8 +34,10 @@ namespace Ritsu {
 		Initializer() {}
 
 		virtual Tensor<DType> get(const Shape<unsigned int> &shape) = 0;
+		virtual Tensor<DType> &set(Tensor<DType> &tensor) = 0;
 
-		Tensor<DType> &operator()(const Shape<unsigned int> &shape) { return this->get(shape); }
+		Tensor<DType> operator()(const Shape<unsigned int> &shape) { return this->get(shape); }
+		Tensor<DType> &operator()(Tensor<DType> &tensor) { return this->set(tensor); }
 	};
 
 	template <typename T> class RandomNormalInitializer : public Initializer<T> {
@@ -46,11 +48,14 @@ namespace Ritsu {
 
 			Tensor<T> tensor(shape);
 
-#pragma omp parallel for simd shared(tensor)
-			for (size_t i = 0; i < tensor.getNrElements(); i++) {
-				tensor.getValue(i) = this->random.rand();
-			}
+			return set(tensor);
+		}
 
+		Tensor<T> &set(Tensor<T> &tensor) override {
+#pragma omp parallel for simd shared(tensor)
+			for (size_t index = 0; index < tensor.getNrElements(); index++) {
+				tensor.getValue(index) = this->random.rand();
+			}
 			return tensor;
 		}
 
@@ -66,9 +71,13 @@ namespace Ritsu {
 
 			Tensor<T> tensor(shape);
 
+			return set(tensor);
+		}
+
+		Tensor<T> &set(Tensor<T> &tensor) override {
 #pragma omp parallel for simd shared(tensor)
-			for (size_t i = 0; i < tensor.getNrElements(); i++) {
-				tensor.getValue(i) = this->random.rand();
+			for (size_t index = 0; index < tensor.getNrElements(); index++) {
+				tensor.getValue(index) = this->random.rand();
 			}
 
 			return tensor;
@@ -86,9 +95,13 @@ namespace Ritsu {
 
 			Tensor<T> tensor(shape);
 
+			return set(tensor);
+		}
+
+		Tensor<T> &set(Tensor<T> &tensor) override {
 #pragma omp parallel for simd shared(tensor)
-			for (size_t i = 0; i < tensor.getNrElements(); i++) {
-				tensor.getValue(i) = 0;
+			for (decltype(tensor.getNrElements()) index = 0; index < tensor.getNrElements(); index++) {
+				tensor.getValue(index) = 0;
 			}
 
 			return tensor;

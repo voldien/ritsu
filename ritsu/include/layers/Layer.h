@@ -17,6 +17,7 @@ namespace Ritsu {
 	 *
 	 * @tparam T
 	 */
+	// TODO: add training bool
 	template <typename T> class Layer : public Object {
 	  public:
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
@@ -75,11 +76,13 @@ namespace Ritsu {
 		// Dtype
 		const std::type_info &getDType() const noexcept { return typeid(DType); }
 
+		// TODO: add array.
 		// Weights trainable
-		virtual Tensor<float> *getTrainableWeights() noexcept { return nullptr; }
+		virtual Tensor<DType> *getTrainableWeights() noexcept { return nullptr; }
 
+		// TODO: add array.
 		// non-trainable.
-		virtual Tensor<float> *getVariables() noexcept { return nullptr; }
+		virtual Tensor<DType> *getVariables() noexcept { return nullptr; }
 
 		// input
 		virtual std::vector<Layer<T> *> getInputs() const { return {}; };

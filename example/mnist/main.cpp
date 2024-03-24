@@ -10,10 +10,8 @@
 #include "mnist_dataset.h"
 #include <Ritsu.h>
 #include <cstdint>
-#include <cstdio>
 #include <exception>
 #include <iostream>
-#include <istream>
 #include <ostream>
 
 using namespace Ritsu;
@@ -69,11 +67,11 @@ int main(int argc, const char **argv) {
 		Flatten flattenInput("flatten0");
 		Flatten flatten("flatten1");
 
-		Dense fw0(64, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
+		Dense fw0(16, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
 		BatchNormalization BN0;
 		Relu relu0;
 
-		Dense fw1 = Dense(96, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
+		Dense fw1 = Dense(32, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
 		BatchNormalization BN1;
 		Relu relu1;
 
@@ -111,7 +109,7 @@ int main(int argc, const char **argv) {
 
 			Model<float> forwardModel({&input0node}, {&output});
 
-			SGD<float> optimizer(learningRate, 0.05f);
+			SGD<float> optimizer(learningRate, 0.8f);
 			Adam<float> ADamoptimizer(learningRate);
 
 			MetricAccuracy accuracy;

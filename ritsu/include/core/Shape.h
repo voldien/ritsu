@@ -155,7 +155,7 @@ namespace Ritsu {
 
 		Shape<IndexType> getSubShapeMem(const IndexType start, const IndexType end) const {
 			/*	*/
-			// TODO: validate request.
+			assert(start <= end);
 
 			/*	*/
 			typename std::vector<IndexType>::const_iterator first = this->dims.begin() + start;
@@ -172,17 +172,7 @@ namespace Ritsu {
 		 * @brief Get the Sub Shape object
 		 */
 		Shape<IndexType> getSubShape(const int axis) const {
-			/*	*/
 			return this->getSubShapeMem(axis, this->getNrDimensions() - 1);
-		}
-
-		template <typename... Args> Shape<IndexType> getSubShape2(const Args &... args) const {
-
-			auto res = {std::forward<Args>(args)...};
-			//	const std::initializer_list<ShapePair<IndexType>> res_ = {
-			//		ShapePair<IndexType>(std::forward<Args>(args))...};
-
-			//	return getSubShape3(res_);
 		}
 
 		Shape<IndexType> getSubShape(const std::initializer_list<ShapePair<IndexType>> subaxisGroup) const {
@@ -194,7 +184,7 @@ namespace Ritsu {
 			Shape<IndexType> copy = *this;
 
 			/*	*/
-			for (size_t i = 0; i < subaxisGroup.size(); i++) {
+			for (IndexType i = 0; i < subaxisGroup.size(); i++) {
 
 				const ShapePair<IndexType> &pair = (*(subaxisGroup.begin() + i));
 
@@ -227,8 +217,6 @@ namespace Ritsu {
 
 		/**
 		 * @brief
-		 *
-		 * @return Shape<IndexType>&
 		 */
 		Shape<IndexType> &reduce() noexcept {
 
@@ -244,16 +232,28 @@ namespace Ritsu {
 		}
 
 		Shape<IndexType> reduce() const noexcept {
-			// Remove 1 axis.
-			std::vector<IndexType> tmp = this->dims;
-			for (size_t i = 0; i < tmp.size(); i++) {
-				if (tmp[i] == 1 || tmp[i] == 0) {
-					tmp.erase(tmp.begin() + i);
+			Shape<IndexType> copy = *this;
+			return copy.reduce();
+		}
+
+		Shape<IndexType> squeeze(int index = 0) const noexcept {
+			Shape<IndexType> copy = *this;
+			copy.squeeze(index);
+
+			return *this;
+		}
+
+		Shape<IndexType> &squeeze(int index = 0) noexcept {
+			for (size_t i = index; i < this->dims.size(); i++) {
+				if (this->dims[i] == 1 || this->dims[i] == 0) {
+					this->dims.erase(this->dims.begin() + i);
 					i = -1; /*	reset index counter.	*/
+				} else {
+					break;
 				}
 			}
 
-			return tmp;
+			return *this;
 		}
 
 		/**
@@ -322,7 +322,6 @@ namespace Ritsu {
 			return stream;
 		}
 
-		// TODO add template to allow multiple of primtive types.
 		Shape<IndexType> &reshape(const std::vector<IndexType> &newDims) {
 			/*	Only allow reshape if both dims have the same number of elements.	*/
 			if (Shape<IndexType>::computeNrElements(newDims) == this->getNrElements()) {
@@ -341,16 +340,13 @@ namespace Ritsu {
 		}
 
 		/**
-		 * @brief
-		 *
 		 * @param additionalDims
 		 * @param axis
-		 * @return Shape<IndexType>&
 		 */
 		Shape<IndexType> &append(const Shape<IndexType> &additionalDims, const int axis = -1) {
 
 			if (!canMerge(*this, additionalDims, axis)) {
-				throw RuntimeException("Invalid");
+				throw RuntimeException("Invalid Shape");
 			}
 			const unsigned int axisMod = Math::mod<int>(axis, this->getNrDimensions());
 			this->getAxisDimensions(axisMod) += additionalDims[axisMod];
@@ -361,7 +357,7 @@ namespace Ritsu {
 		Shape<IndexType> append(const Shape<IndexType> &additionalDims, const int axis = -1) const {
 
 			if (!canMerge(*this, additionalDims, axis)) {
-				throw RuntimeException("Invalid");
+				throw RuntimeException("Invalid Shape");
 			}
 
 			const unsigned int axisMod = Math::mod<int32_t>(axis, this->getNrDimensions());
@@ -404,6 +400,9 @@ namespace Ritsu {
 		}
 
 	  public: /*	Static methods.	*/
+		/**
+		 * @brief
+		 */
 		static Shape flatten(const Shape &shape) noexcept {
 			return Shape({static_cast<IndexType>(Shape::computeNrElements(shape.dims))});
 		}
@@ -445,12 +444,12 @@ namespace Ritsu {
 			return true;
 		}
 
-		template <typename U>
+		template <typename U = IndexType>
 		static size_t computeIndex(const std::vector<U> &dim, const Shape<IndexType> &shape) noexcept {
 			size_t totalSize = 0;
-			const size_t nrDims = shape.getNrDimensions();
+			const IndexType nrDims = shape.getNrDimensions();
 
-			for (size_t i = 0; i < nrDims; i++) {
+			for (IndexType i = 0; i < nrDims; i++) {
 				long depth = 1;
 				if (i > 0) {
 					depth = Math::product(&shape.dims.data()[0], i);
@@ -464,12 +463,12 @@ namespace Ritsu {
 			return totalSize;
 		}
 
-		template <typename U>
+		template <typename U = IndexType>
 		static size_t computeIndex(const std::initializer_list<U> &dim, const Shape<IndexType> &shape) noexcept {
 			size_t totalSize = 0;
-			const size_t nrDims = shape.getNrDimensions();
+			const IndexType nrDims = shape.getNrDimensions();
 
-			for (size_t i = 0; i < nrDims; i++) {
+			for (IndexType i = 0; i < nrDims; i++) {
 				long depth = 1;
 				if (i > 0) {
 					depth = Math::product(&shape.dims.data()[0], i);
@@ -496,14 +495,14 @@ namespace Ritsu {
 		/**
 		 * @brief
 		 */
-		template <typename U> static inline U computeNrElements(const std::vector<U> &dims) noexcept {
+		template <typename U = IndexType> static inline U computeNrElements(const std::vector<U> &dims) noexcept {
 			static_assert(std::is_integral<U>::value, "Type must be a integral type.");
 			return Math::product(dims);
 		}
 
 	  private:
 		std::vector<IndexType> dims;
-		IndexType count;
+		IndexType count; // TODO: add, to improve get number of elements. cache
 		std::vector<IndexType> cacheDim;
 	};
 } // namespace Ritsu

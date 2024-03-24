@@ -22,15 +22,13 @@
 #include <cassert>
 #include <cstddef>
 #include <ctime>
-#include <random>
 #include <vector>
 
 namespace Ritsu {
 
+	/**
+	 */
 	class Dense : public Layer<float> {
-		//  kernel_initializer='glorot_uniform',
-		//    bias_initializer='zeros',
-
 	  public:
 		Dense(uint32_t units, bool use_bias = true,
 			  const Initializer<DType> &weight_init = RandomUniformInitializer<DType>(),
@@ -45,6 +43,7 @@ namespace Ritsu {
 			if (use_bias) {
 				this->bias = Tensor<float>(Shape<IndexType>({units}));
 			}
+			this->use_bias = use_bias;
 		}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
@@ -102,8 +101,6 @@ namespace Ritsu {
 			this->input = layers[0];
 		}
 
-		// input
-
 		std::vector<Layer<DType> *> getInputs() const override { return {this->input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return this->outputs; }
 
@@ -126,7 +123,10 @@ namespace Ritsu {
 	  protected:
 		inline void compute(const Tensor<float> &inputTesnor, Tensor<float> &output) const noexcept {
 			/*	*/
-			output = (this->weight % inputTesnor) + this->bias;
+			output = (this->weight % inputTesnor);
+			if (this->use_bias) {
+				output += this->bias;
+			}
 		}
 
 		inline void computeDerivative(const Tensor<float> &value, Tensor<float> &result) const {
@@ -146,12 +146,15 @@ namespace Ritsu {
 
 		void initbias() noexcept {
 			// TODO improve
+			ZeroInitializer<DType> init;
 			RandomUniform<DType> random(-1, 1);
 
-#pragma omp parallel for simd shared(bias)
-			for (size_t i = 0; i < this->bias.getNrElements(); i++) {
-				this->bias.getValue<DType>(i) = random.rand();
-			}
+			// #pragma omp parallel for simd shared(bias)
+			//			for (size_t i = 0; i < this->bias.getNrElements(); i++) {
+			//				this->bias.getValue<DType>(i) = random.rand();
+			//			}
+			
+			init.set(this->bias);
 			this->bias.reshape({1, this->bias.getShape().getAxisDimensions(0)});
 		}
 
@@ -159,6 +162,7 @@ namespace Ritsu {
 		Tensor<DType> bias;
 		uint32_t units;
 		Tensor<DType> weight;
+		bool use_bias;
 		// Initializer<DType> &weight_init;
 		// Initializer<DType> &bias_init;
 	};

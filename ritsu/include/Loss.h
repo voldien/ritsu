@@ -17,7 +17,6 @@
 #include "Activations.h"
 #include "Object.h"
 #include "Tensor.h"
-#include <functional>
 #include <iostream>
 
 namespace Ritsu {

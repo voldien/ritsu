@@ -2,7 +2,6 @@
 #include <cstddef>
 #include <cstdint>
 #include <gtest/gtest.h>
-#include <streambuf>
 
 using namespace Ritsu;
 

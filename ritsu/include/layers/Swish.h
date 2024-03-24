@@ -22,10 +22,9 @@ namespace Ritsu {
 	 * @brief
 	 *
 	 */
-	// TODO: add beta
 	class Swish : public Activaction {
 	  public:
-		Swish(const std::string &name = "swish") : Activaction(name) {}
+		Swish(const DType beta, const std::string &name = "swish") : Activaction(name), beta(beta) {}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 
@@ -69,12 +68,13 @@ namespace Ritsu {
 
 #pragma omp parallel shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = Ritsu::computeSwish(tensor.getValue<DType>(i), 0.1f);
+				tensor.getValue<DType>(i) = Ritsu::computeSwish(tensor.getValue<DType>(i), this->beta);
 			}
 		}
 
 	  private:
 		Layer<DType> *input;
+		const float beta;
 		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

@@ -1,8 +1,15 @@
+#include "Random.h"
 #include "Ritsu.h"
+#include "core/Initializers.h"
 #include <cmath>
 #include <cstdint>
 
 namespace Ritsu {
+
+	template class RandomNormalInitializer<std::float_t>;
+
+	template class RandomNormal<std::float_t>;
+
 	/*	*/
 	template class Shape<std::uint32_t>;
 	template class Shape<std::int32_t>;
@@ -11,8 +18,7 @@ namespace Ritsu {
 
 	/*	*/
 	template class Model<std::float_t>;
-	template class Model<std::int32_t>;
-	template class Model<std::int8_t>;
+	template class Model<std::double_t>;
 
 	/*	*/
 	template class Layer<std::float_t>;
@@ -27,6 +33,7 @@ namespace Ritsu {
 	template class Tensor<std::double_t>;
 	template class Tensor<std::float_t>;
 	template class Tensor<std::int32_t>;
+	template class Tensor<std::int16_t>;
 	template class Tensor<std::int8_t>;
 	template class Tensor<bool>;
 

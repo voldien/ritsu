@@ -23,7 +23,8 @@ namespace Ritsu {
 	template <typename T> inline static T computeSigmoid(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
-		return Math::clamp<T>(static_cast<T>(1) / (std::exp(-value) + static_cast<T>(1)), 0, 1);
+		return Math::clamp<T>(static_cast<T>(1) / (std::exp(-value) + static_cast<T>(1)), static_cast<T>(0),
+							  static_cast<T>(1));
 	}
 
 #pragma omp declare simd uniform(value) simdlen(4)
@@ -75,11 +76,11 @@ namespace Ritsu {
 	template <typename T> inline static constexpr T computeTanh(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
-		// TODO: c++ tanh check
+
 		const T negative_e = static_cast<T>(std::exp(-value));
 		const T positive_e = static_cast<T>(std::exp(value));
 
-		return (positive_e - negative_e) / (positive_e + negative_e);
+		return Math::clamp<T>((positive_e - negative_e) / (positive_e + negative_e), -1, 1);
 	}
 
 #pragma omp declare simd uniform(value) simdlen(4)
@@ -146,14 +147,14 @@ namespace Ritsu {
 		T Inversesum = 0;
 		const size_t nrElements = tensor.getNrElements();
 
-		//#pragma omp for simd
+		// #pragma omp for simd
 		for (size_t i = 0; i < nrElements; i++) {
 			const T value = tensor.template getValue<T>(i);
 			Inversesum += static_cast<T>(std::exp(value));
 		}
 		Inversesum = static_cast<T>(1) / Inversesum;
 
-		//#pragma omp for simd
+		// #pragma omp for simd
 		for (size_t i = 0; i < nrElements; i++) {
 			tensor.template getValue<T>(i) = static_cast<T>(std::exp(tensor.template getValue<T>(i))) * Inversesum;
 		}

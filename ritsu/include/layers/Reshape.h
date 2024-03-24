@@ -39,7 +39,7 @@ namespace Ritsu {
 		}
 
 		void build(const Shape<IndexType> &shape) override {
-			/*	*///TODO: verify
+//			assert(shape == this->newShape);
 			this->shape = newShape;
 		}
 

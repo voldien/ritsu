@@ -133,7 +133,6 @@ namespace Ritsu {
 			return sum;
 		}
 
-		// TODO: accuracy.
 		template <typename T> static void pow(const T exponent, T *list, const size_t nrElements) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");

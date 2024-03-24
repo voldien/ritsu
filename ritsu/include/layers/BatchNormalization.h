@@ -17,6 +17,7 @@
 #include "../Math.h"
 #include "Layer.h"
 #include "Tensor.h"
+#include "core/Initializers.h"
 #include "core/Shape.h"
 
 namespace Ritsu {
@@ -46,7 +47,13 @@ namespace Ritsu {
 
 		void build(const Shape<IndexType> &shape) override { /*	Validate */
 			// TODO: fix
-			this->beta = Tensor<DType>(shape);
+			Shape<IndexType> weight_shape = shape;
+
+			this->beta = Tensor<DType>(weight_shape);
+			ZeroInitializer<DType> zero_init;
+			zero_init.set(this->beta);
+			this->gamma = Tensor<DType>(weight_shape);
+			this->gamma.assignInitValue(1);
 		}
 
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
@@ -62,23 +69,21 @@ namespace Ritsu {
 		void compute(const Tensor<float> &input, Tensor<float> &output) {
 
 			const size_t ndims = 10;
+			int axis = -1;
+			const DType epsilon = std::numeric_limits<DType>::epsilon();
+			Tensor<DType> batch_mean = Tensor<DType>::mean(input, axis);
+			Tensor<DType> batch_variance = Tensor<DType>::variance(input, batch_mean, axis);
 
-			/*	*/
-			for (size_t i = 0; i < ndims; i++) {
+			Tensor<DType> inv = (epsilon + batch_variance).sqrt();
+			inv *= gamma;
 
-				Tensor<float> subset = input.getSubset(0, 12, Shape<IndexType>({12}));
-				DType mean = Math::mean(subset.getRawData<DType>(), subset.getNrElements());
-				// TODO add // (subset - mean) /
-				(Math::variance<DType>(subset.getRawData<DType>(), subset.getNrElements(), mean) + 0.00001f);
-			}
-
-			/*	*///TOOD:fix
-			output = input;
+			/*	*/ // TOOD:fix
+			output = input * inv + (this->beta - batch_mean * inv);
 		}
 
 	  private:
 		Tensor<float> beta;
-		Tensor<float> alpha;
+		Tensor<float> gamma;
 
 		/*	*/
 		/*	*/

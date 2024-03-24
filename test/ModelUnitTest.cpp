@@ -19,11 +19,12 @@ TEST_P(ModelTest, Setup) {
 	Rescaling normalizedLayer(1.0f / 255.0f);
 	GuassianNoise noise(0.1, 0.1f);
 
+	/*	*/
 	Layer<float> &output = noise(normalizedLayer(cast2Float(input0node)));
 
 	Model<float> *forwardModel = nullptr;
 	ASSERT_NO_THROW(forwardModel = new Model<float>({&input0node}, {&output}));
-	EXPECT_EQ(output.getShape(), expected);
+	ASSERT_EQ(output.getShape(), expected);
 	ASSERT_NO_THROW(delete forwardModel);
 }
 
@@ -39,16 +40,14 @@ TEST_P(ModelTest, Compile) {
 
 	Model<float> *forwardModel = nullptr;
 	ASSERT_NO_THROW(forwardModel = new Model<float>({&input0node}, {&output}));
-	EXPECT_EQ(output.getShape(), expected);
+	ASSERT_EQ(output.getShape(), expected);
 
 	SGD<float> optimizer(0.1, 0.0);
 
 	MetricAccuracy accuracy;
-	MetricMean lossmetric("loss");
 
 	Loss mse_loss(sparse_categorical_crossentropy);
-	forwardModel->compile(&optimizer, sparse_categorical_crossentropy,
-						  {dynamic_cast<Metric *>(&lossmetric), dynamic_cast<Metric *>(&accuracy)});
+	forwardModel->compile(&optimizer, sparse_categorical_crossentropy, {dynamic_cast<Metric *>(&accuracy)});
 
 	ASSERT_NO_THROW(delete forwardModel);
 }
@@ -65,7 +64,7 @@ TEST_P(ModelTest, Fit) {
 
 	Model<float> *forwardModel = nullptr;
 	ASSERT_NO_THROW(forwardModel = new Model<float>({&input0node}, {&output}));
-	EXPECT_EQ(output.getShape(), expected);
+	ASSERT_EQ(output.getShape(), expected);
 	// forwardModel->fit(1, const Tensor<float> &inputData, const Tensor<float> &expectedData)
 	ASSERT_NO_THROW(delete forwardModel);
 }

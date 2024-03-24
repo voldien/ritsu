@@ -20,18 +20,28 @@
 
 namespace Ritsu {
 
-	template <typename U> std::ostream &debug_layer(std::ostream &stream, const Layer<U> &layer) noexcept {
+	template <typename U = float> std::ostream &debug_print_layer(std::ostream &stream, Layer<U> &layer) noexcept {
 
-		stream << layer.getName() << std::endl << std::endl;
+		stream << "Layer: " << layer.getName() << std::endl << std::endl;
 
 		if (layer.getTrainableWeights()) {
-			std::cerr << "trainable: " << *layer.getTrainableWeights() << std::endl << std::endl;
+			stream << "trainable: " << *layer.getTrainableWeights() << std::endl << std::endl;
 		}
 
 		if (layer.getVariables()) {
-			std::cerr << "non-trainable: " << *layer.getVariables() << std::endl << std::endl;
+			stream << "non-trainable: " << *layer.getVariables() << std::endl << std::endl;
 		}
 
 		return stream;
 	}
+	template <typename U = float> std::ostream &debug_print_tensor(std::ostream &stream, Tensor<U> &tensor) noexcept {
+		stream << tensor << std::endl << std::endl;
+		return stream;
+	}
+	template <typename U = float>
+	std::ostream &debug_print_tensor_layer(std::ostream &stream, const Layer<U> &layer, Tensor<U> &tensor) noexcept {
+		stream << layer.getName() << " " << tensor << std::endl << std::endl;
+		return stream;
+	}
+
 } // namespace Ritsu

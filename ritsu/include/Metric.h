@@ -33,7 +33,7 @@ namespace Ritsu {
 
 		virtual void update_state(const std::initializer_list<const Tensor<DType> *> args) = 0;
 
-		template <typename... Args> void update_state(Args &... args) { return this->update_state({&args...}); }
+		template <typename... Args> void update_state(Args &...args) { return this->update_state({&args...}); }
 
 		virtual void reset_state() = 0;
 
@@ -63,7 +63,8 @@ namespace Ritsu {
 			// size_t correct = 0;
 			const DType correct = eval_pred->round().equal(*expected_true).sum();
 
-			this->m_result.getValue<DType>(0) = static_cast<DType>(correct) / static_cast<DType>(expected_true->getNrElements());
+			this->m_result.getValue<DType>(0) =
+				static_cast<DType>(correct) / static_cast<DType>(expected_true->getNrElements());
 		}
 
 		void reset_state() override { this->m_result = Tensor<DType>({1}); }
@@ -89,6 +90,7 @@ namespace Ritsu {
 			const Tensor<DType> *refA = (*args.begin());
 
 			m_result.getValue<DType>(0) = refA->mean();
+
 			assert(!std::isnan(m_result.getValue<DType>(0)));
 		}
 

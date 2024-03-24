@@ -16,7 +16,6 @@
 #pragma once
 #include "Activaction.h"
 #include "Tensor.h"
-#include <cmath>
 
 namespace Ritsu {
 

@@ -19,6 +19,7 @@
 #include "Metric.h"
 #include "Object.h"
 #include "RitsuDebug.h"
+#include "RitsuDef.h"
 #include "Tensor.h"
 #include "core/Shape.h"
 #include "core/Time.h"
@@ -28,6 +29,7 @@
 #include <chrono>
 #include <cstddef>
 #include <exception>
+#include <iostream>
 #include <istream>
 #include <list>
 #include <map>
@@ -71,7 +73,7 @@ namespace Ritsu {
 			/*	*/
 			if (!this->is_build()) {
 				/*	Invalid state.	*/
-				throw std::bad_exception();
+				throw RuntimeException("Model not built and compiled");
 			}
 
 			/*	Number of batches in dataset.	*/
@@ -253,11 +255,12 @@ namespace Ritsu {
 				this->history[this->metrics[m_index]->getName()] = Tensor<float>({1});
 			}
 
-			/*	*/
+			/*	*/ // Cache result tensors.
 			std::vector<Tensor<float> *> tensors;
 			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
 				//(*it)->
 			}
+			/*	build optimizer.	*/
 			// this->optimizer->build(tensors);
 		}
 
@@ -361,9 +364,10 @@ namespace Ritsu {
 
 				layerResult = std::move(batchTmp);
 
-				// debug_layer<float>(std::cerr, current) << std::endl << std::endl;
-
-				// std::cerr << layerResult.getShape() << std::endl << std::endl;
+				/*	*/
+				debug_print_tensor_layer<T>(std::cerr, *current, reinterpret_cast<Tensor<T> &>(layerResult))
+					<< std::endl
+					<< std::endl;
 
 				/*	validate result shape. */
 				const auto shape =
@@ -395,7 +399,6 @@ namespace Ritsu {
 			for (auto it = this->forwardSequence.rbegin(); it != this->forwardSequence.rend(); it++) {
 
 				Layer<T> *current = (*it);
-				// std::cout << current->getName() << std::endl << std::endl;
 
 				auto tmpIt = it;
 				tmpIt++;
@@ -404,8 +407,11 @@ namespace Ritsu {
 				current_layer_z = cacheResult[current->getName()];
 
 				/*	Only apply if */
-				Tensor<float> *train_variables = current->getTrainableWeights();
-				Tensor<float> *_variables = current->getVariables();
+				Tensor<DType> *train_variables = current->getTrainableWeights();
+				Tensor<DType> *_variables = current->getVariables();
+
+				/*	*/
+				debug_print_layer<DType>(std::cerr, *current) << std::endl << std::endl;
 
 				if (train_variables) {
 
@@ -430,6 +436,9 @@ namespace Ritsu {
 					differental_error = differental_error.dot(
 						current->compute_derivative(static_cast<const Tensor<float> &>(current_layer_z)));
 				}
+
+				/*	*/
+				debug_print_layer<DType>(std::cerr, *current) << std::endl << std::endl;
 			}
 		}
 
@@ -470,10 +479,10 @@ namespace Ritsu {
 					current->build(current->getInputs()[0]->getShape());
 				}
 
-				forwardSequence.push_back(current);
+				this->forwardSequence.push_back(current);
 
 				// TODO add support.
-				if (is_junction_layer(current)) {
+				if (this->is_junction_layer(current)) {
 				}
 
 				if (current->getTrainableWeights() != nullptr) {

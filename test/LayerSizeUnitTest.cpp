@@ -88,7 +88,7 @@ TEST_P(LayerUniformShapeSizeTest, SwishLayerShapeSize) {
 	auto [expected] = GetParam();
 
 	Ritsu::Input input(expected);
-	Ritsu::Swish swish;
+	Ritsu::Swish swish(0.2f);
 	swish(input);
 	swish.build(input.getShape());
 

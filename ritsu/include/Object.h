@@ -25,10 +25,10 @@ namespace Ritsu {
 	 */
 	class Object {
 	  public:
-		Object(const std::string &name) noexcept : name(name) {}
+		Object(const std::string &newName) noexcept : name(newName) {}
 
 		const std::string &getName() const noexcept { return this->name; }
-		void setName(const std::string &name) noexcept { this->name = name; }
+		void setName(const std::string &newName) noexcept { this->name = newName; }
 
 	  private:
 		std::string name;
