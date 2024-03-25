@@ -36,6 +36,8 @@ namespace Ritsu {
 
 		virtual DType rand() noexcept = 0;
 
+		virtual void reset() noexcept = 0;
+
 	  protected:
 		std::random_device random_device; // Will be used to obtain a seed for the random number engine
 	};
@@ -52,6 +54,7 @@ namespace Ritsu {
 		}
 
 		U rand() noexcept override { return this->distribution(this->generator); }
+		void reset() noexcept override { this->distribution.reset(); }
 
 	  private:
 		std::uniform_real_distribution<U> distribution;
@@ -72,6 +75,7 @@ namespace Ritsu {
 		}
 
 		U rand() noexcept override { return this->distribution(this->gen); }
+		void reset() noexcept override { this->distribution.reset(); }
 
 	  private:
 		std::normal_distribution<U> distribution;
@@ -88,15 +92,34 @@ namespace Ritsu {
 		RandomBernoulli(const U perc = 1.0, const size_t seed = 0) {
 			this->distribution = std::bernoulli_distribution(perc);
 			std::random_device random_device;
-			this->generator =
-				std::default_random_engine(random_device()); // Standard mersenne_twister_engine seeded with rd()
+			this->generator = std::mt19937(random_device()); // Standard mersenne_twister_engine seeded with rd()
 		}
 
 		U rand() noexcept override { return this->distribution(this->generator); }
+		void reset() noexcept override { this->distribution.reset(); }
 
 	  private:
 		std::bernoulli_distribution distribution;
-		std::default_random_engine generator;
+		std::mt19937 generator;
+	};
+
+	template <typename U> class RandomBinomial : public Random<U> {
+	  public:
+		RandomBinomial(const U perc = 0.5, const size_t seed = 123456) {
+			this->distribution = std::binomial_distribution<>(seed, perc);
+			std::random_device random_device;
+			this->generator = std::mt19937(random_device());
+		}
+
+		U rand() noexcept override { return this->distribution(this->generator); }
+		void reset() noexcept override {
+			this->generator.seed(123456);
+			this->distribution.reset();
+		}
+
+	  private:
+		std::binomial_distribution<> distribution;
+		std::mt19937 generator;
 	};
 
 } // namespace Ritsu

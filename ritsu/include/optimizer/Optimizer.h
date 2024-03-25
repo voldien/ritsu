@@ -37,24 +37,17 @@ namespace Ritsu {
 		}
 
 		/**
-		 * @brief Set the Learning Rate object
-		 *
-		 * @param rate
+		 * @brief 
 		 */
 		virtual void setLearningRate(const T rate) noexcept { this->learningRate = rate; }
 
 		/**
-		 * @brief Get the Learning Rate object
-		 *
-		 * @return T
+		 * @brief 
 		 */
 		virtual T getLearningRate() const noexcept { return this->learningRate; }
 
 		/**
-		 * @brief
-		 *
-		 * @param gradient
-		 * @param variable
+		 * @brief 
 		 */
 		template <typename... Args> void update_step(const Tensor<T> &gradient, Args &... args) {
 			// this->update_step(gradient, {&args...});
@@ -63,14 +56,18 @@ namespace Ritsu {
 		virtual void update_step(const Tensor<T> &gradient, Tensor<T> &variable) = 0;
 
 		/**
-		 * @brief
-		 *
-		 * @param gradient
-		 * @param variable
+		 * @brief 
 		 */
 		virtual void apply_gradients(const Tensor<T> &gradient, Tensor<T> &variable) = 0;
 
+		/**
+		 * @brief
+		 */
 		template <typename... Args> void build(Args &... args) { this->build({&args...}); }
+
+		/**
+		 * @brief
+		 */
 		virtual void build(std::initializer_list<const Tensor<void> &> &list) {}
 
 	  private:

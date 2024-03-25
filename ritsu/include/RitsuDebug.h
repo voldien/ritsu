@@ -16,10 +16,10 @@
  */
 #pragma once
 #include "Ritsu.h"
-#include "RitsuDef.h"
 
 namespace Ritsu {
 
+	/*	*/
 	template <typename U = float> std::ostream &debug_print_layer(std::ostream &stream, Layer<U> &layer) noexcept {
 
 		stream << "Layer: " << layer.getName() << std::endl << std::endl;
@@ -34,11 +34,16 @@ namespace Ritsu {
 
 		return stream;
 	}
-	template <typename U = float> std::ostream &debug_print_tensor(std::ostream &stream, Tensor<U> &tensor) noexcept {
+
+	/*	*/
+	template <typename U = std::float_t>
+	std::ostream &debug_print_tensor(std::ostream &stream, Tensor<U> &tensor) noexcept {
 		stream << tensor << std::endl << std::endl;
 		return stream;
 	}
-	template <typename U = float>
+
+	/*	*/
+	template <typename U = std::float_t>
 	std::ostream &debug_print_tensor_layer(std::ostream &stream, const Layer<U> &layer, Tensor<U> &tensor) noexcept {
 		stream << layer.getName() << " " << tensor << std::endl << std::endl;
 		return stream;

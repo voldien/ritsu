@@ -17,7 +17,6 @@
 #include <cstddef>
 
 namespace Ritsu {
-    
 	const int batchIndex = 0;
 	const int ImageColorChannel = -1;
 

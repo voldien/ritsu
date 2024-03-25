@@ -10,7 +10,10 @@ TYPED_TEST_P(RandomType, Uniform) { ASSERT_NO_THROW(Ritsu::RandomUniform<TypePar
 TYPED_TEST_P(RandomType, UniformGet) {
 	Ritsu::RandomUniform<TypeParam> uniform(0, 1);
 	for (size_t i = 0; i < 1000; i++) {
-		ASSERT_NO_THROW(uniform.rand());
+		TypeParam value;
+		ASSERT_NO_THROW(value = uniform.rand());
+		ASSERT_LE(value, 1);
+		ASSERT_GE(value, 0);
 	}
 }
 

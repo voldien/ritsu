@@ -33,7 +33,7 @@ namespace Ritsu {
 
 		virtual void update_state(const std::initializer_list<const Tensor<DType> *> args) = 0;
 
-		template <typename... Args> void update_state(Args &...args) { return this->update_state({&args...}); }
+		template <typename... Args> void update_state(Args &... args) { return this->update_state({&args...}); }
 
 		virtual void reset_state() = 0;
 
@@ -60,7 +60,6 @@ namespace Ritsu {
 
 			assert(expected_true->getShape() == eval_pred->getShape());
 
-			// size_t correct = 0;
 			const DType correct = eval_pred->round().equal(*expected_true).sum();
 
 			this->m_result.getValue<DType>(0) =

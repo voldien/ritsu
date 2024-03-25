@@ -452,6 +452,7 @@ namespace Ritsu {
 		}
 
 		friend Tensor operator*(const Tensor &tensorA, const Tensor &tensorB) {
+
 			Tensor output(tensorA.getShape());
 			const IndexType nrElements = tensorA.getNrElements();
 
@@ -636,15 +637,14 @@ namespace Ritsu {
 
 		Tensor equal(const Tensor &tensor) const noexcept {
 			const IndexType nrElements = this->getNrElements();
-			Tensor copy = *this;
 
-#pragma omp parallel for default(shared)
-			for (IndexType index = 0; index < nrElements; index++) {
-				copy.getValue<DType>(index) = copy.getValue<DType>(index) == tensor.getValue<DType>(index)
-												  ? static_cast<DType>(1)
-												  : static_cast<DType>(0);
-			}
-			return copy;
+			return Tensor::equal(*this, tensor);
+		}
+
+		Tensor notEqual(const Tensor &tensor) const noexcept {
+			const IndexType nrElements = this->getNrElements();
+
+			return Tensor::notEqual(*this, tensor);
 		}
 
 		Tensor &sqrt() noexcept {
@@ -970,6 +970,14 @@ namespace Ritsu {
 		const std::type_info *typeinfo; /*	*/
 
 		inline bool ownAllocation() const noexcept { return this->memoryBuffer.uid == this->memoryBuffer.ownerUid; }
+
+	  public:
+		static void assertEqualSize(const Tensor &tensorA, const Tensor &tensorB) {
+			assert(tensorA.getShape() == tensorB.getShape());
+		}
+		static void assertEqualMember(const Tensor &tensorA, const Tensor &tensorB) {
+			assert(tensorA.getNrElements() == tensorB.getNrElements());
+		}
 
 	  public: /*	Tensor Static Math Functions.	*/
 		/**
@@ -1321,6 +1329,7 @@ namespace Ritsu {
 		 * @brief
 		 */
 		static Tensor equal(const Tensor &tensorA, const Tensor &tensorB) {
+			assertEqualMember(tensorA, tensorB);
 
 			Tensor output(tensorA.getShape(), sizeof(uint8_t));
 
@@ -1331,6 +1340,22 @@ namespace Ritsu {
 												: static_cast<DType>(0);
 			}
 
+			return output;
+		}
+
+		/**
+		 * @brief
+		 */
+		static Tensor notEqual(const Tensor &tensorA, const Tensor &tensorB) {
+			assertEqualMember(tensorA, tensorB);
+			Tensor output(tensorA.getShape(), sizeof(uint8_t));
+
+#pragma omp parallel for shared(tensorA, tensorB, output)
+			for (size_t i = 0; i < tensorA.getNrElements(); i++) {
+				output.getValue<DType>(i) = tensorA.getValue<DType>(i) != tensorB.getValue<DType>(i)
+												? static_cast<DType>(1)
+												: static_cast<DType>(0);
+			}
 			return output;
 		}
 

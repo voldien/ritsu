@@ -26,9 +26,11 @@ namespace Ritsu {
 	class Dropout : public Layer<float> {
 
 	  public:
-		Dropout(const DType perc, const size_t seed = 0, const std::string &name = "dropout") : Layer(name) {
+		Dropout(const DType perc = 0.5f, const size_t seed = 12345679, const std::string &name = "dropout")
+			: Layer(name), perc(perc) {
 			this->random = new RandomBernoulli<DType>(perc, seed);
 		}
+		~Dropout() override { delete this->random; }
 
 		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			this->computeDropout(tensor);
@@ -54,18 +56,34 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		void build(const Shape<IndexType> &shape) override {}
+		void build(const Shape<IndexType> &buildShape) override { this->shape = buildShape; }
 
-		Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) override { return tensorLoss; }
-		Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const override { return tensorLoss; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) override {
+			Tensor<float> tmpOutput = tensorLoss;
+			this->computeDropout(tmpOutput);
+			return tmpOutput;
+		}
+
+		Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const override {
+			this->computeDropout(tensorLoss);
+			return tensorLoss;
+		}
 
 	  private:
-		void computeDropout(Tensor<float> &tensor) { /*	Iterate through each all elements.    */
+		void computeDropout(Tensor<float> &tensor) const { /*	Iterate through each all elements.    */
 
-			/*	*/
+			this->random->reset();
+			const IndexType nrElements = tensor.getNrElements();
+
+#pragma omp parallel for shared(tensor)
+			for (IndexType i = 0; i < nrElements; i++) {
+				const DType value = tensor.getValue<DType>(i) * this->random->rand() * (1.0f / (1.0 - this->perc));
+				tensor.getValue<DType>(i) = value;
+			}
 		}
 
 		/*	*/
+		DType perc;
 		Random<DType> *random;
 		Layer<DType> *input;
 		std::vector<Layer<DType> *> outputs;

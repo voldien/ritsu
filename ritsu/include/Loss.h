@@ -172,6 +172,11 @@ namespace Ritsu {
 		MeanSquareError(const std::string name = "mse") : Loss(Ritsu::loss_mse, name) {}
 	};
 
+	class MeanAbsoluterror : public Loss {
+	  public:
+		MeanAbsoluterror(const std::string name = "mse") : Loss(Ritsu::loss_msa, name) {}
+	};
+
 	class CategoricalCrossentropy : public Loss {
 	  public:
 		CategoricalCrossentropy(bool from_logits = false, const std::string name = "categorical_crossentropy")

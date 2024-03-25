@@ -76,11 +76,7 @@ namespace Ritsu {
 	template <typename T> inline static constexpr T computeTanh(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
-
-		const T negative_e = static_cast<T>(std::exp(-value));
-		const T positive_e = static_cast<T>(std::exp(value));
-
-		return Math::clamp<T>((positive_e - negative_e) / (positive_e + negative_e), -1, 1);
+		return std::tanh(value);
 	}
 
 #pragma omp declare simd uniform(value) simdlen(4)

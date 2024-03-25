@@ -13,7 +13,7 @@ TEST_P(LossTest, LossError) {
 
 	Tensor<float> result;
 	ASSERT_NO_THROW(Ritsu::loss_error(x, y, result));
-	//ASSERT_EQ(result, expected);
+	ASSERT_EQ(result, expected);
 }
 
 TEST_P(LossTest, MSE) {

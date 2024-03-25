@@ -1,6 +1,7 @@
 #include "Loss.h"
 #include "Metric.h"
 #include "Tensor.h"
+#include "layers/Dropout.h"
 #include "layers/GaussianNoise.h"
 #include "layers/Layer.h"
 #include "layers/Regularization.h"
@@ -69,10 +70,12 @@ int main(int argc, const char **argv) {
 
 		Dense fw0(16, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
 		BatchNormalization BN0;
+		Dropout drop0(0.5f);
 		Relu relu0;
 
 		Dense fw1 = Dense(32, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
 		BatchNormalization BN1;
+		Dropout drop1(0.5f);
 		Relu relu1;
 
 		Dense fw2_output =
@@ -93,12 +96,16 @@ int main(int argc, const char **argv) {
 			lay = &fw0(*lay);
 			if (useBatchNorm) {
 				lay = &BN0(*lay);
+			} else {
+				lay = &drop0(*lay);
 			}
 			lay = &relu0(*lay);
 
 			lay = &fw1(*lay);
 			if (useBatchNorm) {
 				lay = &BN1(*lay);
+			} else {
+				lay = &drop1(*lay);
 			}
 			lay = &relu1(*lay);
 

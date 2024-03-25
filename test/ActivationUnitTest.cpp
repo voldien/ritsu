@@ -56,7 +56,8 @@ TEST_P(SigmoidActivationFunctionTest, Sigmoid) {
 }
 INSTANTIATE_TEST_SUITE_P(Sigmoid, SigmoidActivationFunctionTest,
 						 ::testing::Values(std::make_tuple(5, 0.99330714907572), std::make_tuple(1, 0.7310585786300),
-										   std::make_tuple(-1, 0.26894142136999512)));
+										   std::make_tuple(-1, 0.26894142136999512), std::make_tuple(-100000000000, 0),
+										   std::make_tuple(100000000000, 1), std::make_tuple(0, 0.5)));
 
 /*	Derivative	*/
 class SigmoidDerivativeActivationFunctionTest : public ActivationFunctionTest {};
@@ -124,8 +125,8 @@ TEST_P(TanhActivationFunctionTest, Tahn) {
 }
 INSTANTIATE_TEST_SUITE_P(ActivationTahn, TanhActivationFunctionTest,
 						 ::testing::Values(std::make_tuple(5, 0.9999092042625951312),
-										   std::make_tuple(1, 0.76159415595576),
-										   std::make_tuple(-2, -0.9640275800758)));
+										   std::make_tuple(1, 0.76159415595576), std::make_tuple(-2, -0.9640275800758),
+										   std::make_tuple(-200000, -1), std::make_tuple(200000, 1)));
 
 class TanhDerivativeActivationFunctionTest : public ActivationFunctionTest {};
 TEST_P(TanhDerivativeActivationFunctionTest, Tahn) {
