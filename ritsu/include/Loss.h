@@ -63,6 +63,9 @@ namespace Ritsu {
 			return batchLossResult;
 		}
 
+		virtual Tensor<DType> derivative(const Tensor<DType> &inputX0_true,
+										 const Tensor<DType> &inputX1_pred) const = 0;
+
 		virtual Tensor<DType> operator()(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) {
 			return this->computeLoss(inputX0_true, inputX1_pred);
 		}
@@ -137,12 +140,12 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
-	static void loss_categorical_crossentropy(const Tensor<float> &evaluated_pre, const Tensor<float> &expected_target,
+	static void loss_categorical_crossentropy(const Tensor<float> &evaluated_pre, const Tensor<float> &expected_true,
 											  Tensor<float> &output) { // axis = -1
 
 		Tensor<float> tmp_output = evaluated_pre;
 
-		output = -(expected_target * Tensor<float>::log10(tmp_output));
+		output = -(expected_true * Tensor<float>::log10(tmp_output));
 
 		const int batchIndex = -1;
 		output = output.mean(batchIndex);
@@ -170,11 +173,26 @@ namespace Ritsu {
 	class MeanSquareError : public Loss {
 	  public:
 		MeanSquareError(const std::string name = "mse") : Loss(Ritsu::loss_mse, name) {}
+
+		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
+			Tensor<float> output_result = (inputX0_true - inputX1_pred) * -2;
+			/*	Mean for each batch index.	*/
+			const int batchIndex = -1;
+			output_result = output_result.mean(batchIndex);
+			return output_result;
+		}
 	};
 
 	class MeanAbsoluterror : public Loss {
 	  public:
 		MeanAbsoluterror(const std::string name = "mse") : Loss(Ritsu::loss_msa, name) {}
+		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
+			Tensor<float> output_result = (inputX0_true - inputX1_pred) * -2;
+			/*	Mean for each batch index.	*/
+			const int batchIndex = -1;
+			output_result = output_result.mean(batchIndex);
+			return output_result;
+		}
 	};
 
 	class CategoricalCrossentropy : public Loss {
@@ -193,6 +211,14 @@ namespace Ritsu {
 			}
 
 			return Loss::computeLoss(inputX0_true, batchLossResult);
+		}
+		
+		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
+			Tensor<float> output_result = (inputX0_true - inputX1_pred) * -2;
+			/*	Mean for each batch index.	*/
+			const int batchIndex = -1;
+			output_result = output_result.mean(batchIndex);
+			return output_result;
 		}
 
 	  private:

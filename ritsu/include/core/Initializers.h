@@ -71,10 +71,11 @@ namespace Ritsu {
 
 			Tensor<T> tensor(shape);
 
-			return set(tensor);
+			return this->set(tensor);
 		}
 
 		Tensor<T> &set(Tensor<T> &tensor) override {
+
 #pragma omp parallel for simd shared(tensor)
 			for (size_t index = 0; index < tensor.getNrElements(); index++) {
 				tensor.getValue(index) = this->random.rand();

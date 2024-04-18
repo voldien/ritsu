@@ -150,10 +150,11 @@ namespace Ritsu {
 		}
 		Inversesum = static_cast<T>(1) / Inversesum;
 
-		// #pragma omp for simd
+#pragma omp for simd
 		for (size_t i = 0; i < nrElements; i++) {
 			tensor.template getValue<T>(i) = static_cast<T>(std::exp(tensor.template getValue<T>(i))) * Inversesum;
 		}
+		/*	*/
 		return tensor.clip(1e-7, 1 - 1e-7);
 	}
 

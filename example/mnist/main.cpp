@@ -21,10 +21,11 @@ int main(int argc, const char **argv) {
 
 	try {
 		/*	*/
-		const unsigned int batchSize = 1;
+		const unsigned int batchSize = 16;
 		const unsigned int epochs = 128;
 		const float learningRate = 0.0001f;
 		bool useBatchNorm = false;
+		bool useSigmoidAct = true;
 
 		/*	*/
 		Tensor<uint8_t> inputResY;
@@ -70,13 +71,13 @@ int main(int argc, const char **argv) {
 
 		Dense fw0(16, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
 		BatchNormalization BN0;
-		Dropout drop0(0.5f);
-		Relu relu0;
+		Dropout drop0(0.1f);
+		Sigmoid relu0("relu0");
 
 		Dense fw1 = Dense(32, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
 		BatchNormalization BN1;
-		Dropout drop1(0.5f);
-		Relu relu1;
+		Dropout drop1(0.1f);
+		Sigmoid relu1("relu1");
 
 		Dense fw2_output =
 			Dense(output_size, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer2");
@@ -97,7 +98,7 @@ int main(int argc, const char **argv) {
 			if (useBatchNorm) {
 				lay = &BN0(*lay);
 			} else {
-				lay = &drop0(*lay);
+				// lay = &drop0(*lay);
 			}
 			lay = &relu0(*lay);
 
@@ -105,7 +106,7 @@ int main(int argc, const char **argv) {
 			if (useBatchNorm) {
 				lay = &BN1(*lay);
 			} else {
-				lay = &drop1(*lay);
+				// lay = &drop1(*lay);
 			}
 			lay = &relu1(*lay);
 
@@ -122,7 +123,7 @@ int main(int argc, const char **argv) {
 			MetricAccuracy accuracy;
 			CategoricalCrossentropy cross_loss(true);
 			MeanSquareError mse_loss;
-			forwardModel.compile(&optimizer, mse_loss, {dynamic_cast<Metric *>(&accuracy)});
+			forwardModel.compile(&optimizer, mse_loss, {&accuracy});
 			std::cout << forwardModel.summary() << std::endl;
 
 			forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize);

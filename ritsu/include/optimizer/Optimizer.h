@@ -26,8 +26,7 @@ namespace Ritsu {
 	 */
 	template <typename T> class Optimizer : public Object {
 	  public:
-		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
-					  "Must be a decimal type(T/double/half) or integer.");
+		static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half)");
 		using DType = T;
 		const unsigned int DTypeSize = sizeof(DType);
 
@@ -37,17 +36,17 @@ namespace Ritsu {
 		}
 
 		/**
-		 * @brief 
+		 * @brief
 		 */
 		virtual void setLearningRate(const T rate) noexcept { this->learningRate = rate; }
 
 		/**
-		 * @brief 
+		 * @brief
 		 */
 		virtual T getLearningRate() const noexcept { return this->learningRate; }
 
 		/**
-		 * @brief 
+		 * @brief
 		 */
 		template <typename... Args> void update_step(const Tensor<T> &gradient, Args &... args) {
 			// this->update_step(gradient, {&args...});
@@ -56,7 +55,7 @@ namespace Ritsu {
 		virtual void update_step(const Tensor<T> &gradient, Tensor<T> &variable) = 0;
 
 		/**
-		 * @brief 
+		 * @brief
 		 */
 		virtual void apply_gradients(const Tensor<T> &gradient, Tensor<T> &variable) = 0;
 
@@ -69,6 +68,8 @@ namespace Ritsu {
 		 * @brief
 		 */
 		virtual void build(std::initializer_list<const Tensor<void> &> &list) {}
+
+		// Variables.
 
 	  private:
 		T learningRate;

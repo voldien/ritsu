@@ -213,14 +213,12 @@ TYPED_TEST_P(TensorTest, MatrixMultiplication) {
 		const Tensor<TypeParam> tensorA = Tensor<TypeParam>::zero(Shape<uint32_t>({1006, 6}));
 		const Tensor<TypeParam> tensorB = Tensor<TypeParam>::zero(Shape<uint32_t>({6, 1006}));
 
-		// TODO: add
-		// const Tensor<TypeParam> result0 = tensorA % tensorB;
-		// const Tensor<TypeParam> result1 = Tensor<TypeParam>::matrixMultiply(tensorA, tensorB);
-		// ASSERT_EQ(result0, result1);
-		//
-		//// TODO: verify the shape.
-		// ASSERT_EQ(result0.getShape(), Shape<uint32_t>({2, 2}));
-		// ASSERT_EQ(result0.getShape(), result1.getShape());
+		const Tensor<TypeParam> result0 = tensorA.transpose() % tensorB.transpose();
+		const Tensor<TypeParam> result1 = Tensor<TypeParam>::matrixMultiply(tensorA.transpose(), tensorB.transpose());
+		ASSERT_EQ(result0, result1);
+
+		ASSERT_EQ(result0.getShape(), Shape<uint32_t>({6, 6}));
+		ASSERT_EQ(result0.getShape(), result1.getShape());
 	}
 }
 

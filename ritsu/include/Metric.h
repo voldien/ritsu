@@ -60,10 +60,15 @@ namespace Ritsu {
 
 			assert(expected_true->getShape() == eval_pred->getShape());
 
-			const DType correct = eval_pred->round().equal(*expected_true).sum();
+			Tensor<DType> sum_list = eval_pred->round().equal((*expected_true).round());
+			const DType correct = sum_list.sum();
 
-			this->m_result.getValue<DType>(0) =
+			const DType average_correct_perc =
 				static_cast<DType>(correct) / static_cast<DType>(expected_true->getNrElements());
+
+			assert(average_correct_perc >= 0 && average_correct_perc <= 1);
+
+			this->m_result.getValue<DType>(0) = average_correct_perc;
 		}
 
 		void reset_state() override { this->m_result = Tensor<DType>({1}); }
@@ -88,9 +93,10 @@ namespace Ritsu {
 
 			const Tensor<DType> *refA = (*args.begin());
 
-			m_result.getValue<DType>(0) = refA->mean();
+			const DType mean = refA->mean();
+			assert(mean >= 0);
 
-			assert(!std::isnan(m_result.getValue<DType>(0)));
+			m_result.getValue<DType>(0) = refA->mean();
 		}
 
 		void reset_state() override {

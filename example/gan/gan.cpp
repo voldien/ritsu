@@ -97,7 +97,8 @@ int main(int argc, const char **argv) {
 		MetricAccuracy accuracy;
 		MetricMean lossmetric("loss");
 
-		Loss mse_loss(loss_mse);
+		MeanSquareError mse_loss = MeanSquareError();
+
 		discriminatorModel.compile(&optimizer, mse_loss, {dynamic_cast<Metric *>(&lossmetric), (Metric *)&accuracy});
 		std::cout << discriminatorModel.summary() << std::endl;
 

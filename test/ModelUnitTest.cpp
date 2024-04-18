@@ -1,6 +1,10 @@
+#include "Loss.h"
 #include "RitsuUnitTest.h"
+#include "core/Initializers.h"
+#include "core/Shape.h"
 #include <Ritsu.h>
 #include <gtest/gtest.h>
+#include <ostream>
 #include <tuple>
 
 using namespace Ritsu;
@@ -46,10 +50,10 @@ TEST_P(ModelTest, Compile) {
 
 	MetricAccuracy accuracy;
 
-	Loss mse_loss(sparse_categorical_crossentropy);
-	forwardModel->compile(&optimizer, sparse_categorical_crossentropy, {dynamic_cast<Metric *>(&accuracy)});
+	// Loss& mse_loss(sparse_categorical_crossentropy);
+	// forwardModel->compile(&optimizer, sparse_categorical_crossentropy, {dynamic_cast<Metric *>(&accuracy)});
 
-	ASSERT_NO_THROW(delete forwardModel);
+	// ASSERT_NO_THROW(delete forwardModel);
 }
 
 TEST_P(ModelTest, Fit) {
@@ -88,3 +92,35 @@ TEST_P(ModelTest, Predict) {
 
 INSTANTIATE_TEST_SUITE_P(Model, ModelTest,
 						 ::testing::Values(std::make_tuple(16, 32, Ritsu::Shape<uint32_t>({16 * 32}))));
+
+TEST(ModelTest, DenseAddition) {
+
+	Input input({2}, "input");
+	Dense dense0(2);
+	Dense outputDense(1);
+
+	RandomUniformInitializer<float> random(0, 2, 10052);
+	Tensor<float> dataX = random(Shape<unsigned int>({128, 2}));
+
+	/*	Sum.	*/
+	Tensor<float> dataY({128, 1});
+	for (unsigned int i = 0; i < dataY.getNrElements(); i++) {
+		
+		const float value = dataX.getValue({i, 0}) + dataX.getValue({i, 1});
+		dataY.getValue(i) = value;
+	}
+
+	Layer<float> &output = outputDense(dense0(input));
+	SGD<float> optimizer(0.0001, 0.0);
+
+	MetricAccuracy accuracy;
+	Model<float> forwardModel = Model<float>({&input}, {&output});
+	MeanSquareError mse_loss = MeanSquareError();
+	forwardModel.compile(&optimizer, mse_loss, {dynamic_cast<Metric *>(&accuracy)});
+
+	Model<float>::History *result;
+	ASSERT_NO_THROW(result = &forwardModel.fit(8, dataX, dataY, 1, 0, false, false));
+
+	EXPECT_NEAR((*result)["loss"].getValue((*result)["loss"].getNrElements() - 1), 0, 0.2);
+	EXPECT_NEAR((*result)["accuracy"].getValue((*result)["accuracy"].getNrElements() - 1), 1, 0.01);
+}

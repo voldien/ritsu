@@ -51,6 +51,7 @@ namespace Ritsu {
 	  public:
 		RandomUniform(const U min = 0.0, const U max = 1.0, const size_t seed = 0) {
 			this->distribution = std::uniform_real_distribution<U>(min, max);
+			this->generator.seed(seed);
 		}
 
 		U rand() noexcept override { return this->distribution(this->generator); }
@@ -72,6 +73,7 @@ namespace Ritsu {
 			this->distribution = std::normal_distribution<U>(mean, stddev);
 			std::random_device random_device;
 			this->gen = std::mt19937(random_device()); // Standard mersenne_twister_engine seeded with rd()
+			this->gen.seed(seed);
 		}
 
 		U rand() noexcept override { return this->distribution(this->gen); }
@@ -93,6 +95,7 @@ namespace Ritsu {
 			this->distribution = std::bernoulli_distribution(perc);
 			std::random_device random_device;
 			this->generator = std::mt19937(random_device()); // Standard mersenne_twister_engine seeded with rd()
+			this->generator.seed(seed);
 		}
 
 		U rand() noexcept override { return this->distribution(this->generator); }
@@ -109,11 +112,11 @@ namespace Ritsu {
 			this->distribution = std::binomial_distribution<>(seed, perc);
 			std::random_device random_device;
 			this->generator = std::mt19937(random_device());
+			this->generator.seed(seed);
 		}
 
 		U rand() noexcept override { return this->distribution(this->generator); }
 		void reset() noexcept override {
-			this->generator.seed(123456);
 			this->distribution.reset();
 		}
 

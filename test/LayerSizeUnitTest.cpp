@@ -274,24 +274,33 @@ TEST_P(LayerDown2DScaleShapeSizeTest, AveragePooling2D) {
 }
 /*	*/
 
-TEST_P(LayerDown2DScaleShapeSizeTest, Conv2D) {
-	auto [stride, x, expected] = GetParam();
-
-	Ritsu::Input input(x);
-	Ritsu::Conv2D conv2D(64, {2, 2}, stride, ConvPadding::Same);
-	conv2D(input);
-	conv2D.build(input.getShape());
-
-	ASSERT_EQ(conv2D.getShape(), expected);
-}
-/*	*/
-
 INSTANTIATE_TEST_SUITE_P(
 	Math, LayerDown2DScaleShapeSizeTest,
 	::testing::Values(std::make_tuple(std::array<uint32_t, 2>({2, 2}), Ritsu::Shape<uint32_t>({16, 16, 3}),
 									  Ritsu::Shape<uint32_t>({8, 8, 3})),
 					  std::make_tuple(std::array<uint32_t, 2>({2, 2}), Ritsu::Shape<uint32_t>({256, 256, 1}),
 									  Ritsu::Shape<uint32_t>({128, 128, 1}))));
+
+class LayerConv2DScaleShapeSizeTest
+	: public ::testing::TestWithParam<
+		  std::tuple<uint32_t, std::array<uint32_t, 2>, Ritsu::Shape<uint32_t>, Ritsu::Shape<uint32_t>>> {};
+
+TEST_P(LayerConv2DScaleShapeSizeTest, Conv2D) {
+	auto [filter, stride, x, expected] = GetParam();
+
+	Ritsu::Input input(x);
+	Ritsu::Conv2D conv2D(filter, {2, 2}, stride, ConvPadding::Same);
+	conv2D(input);
+	conv2D.build(input.getShape());
+
+	ASSERT_EQ(conv2D.getShape(), expected);
+}
+INSTANTIATE_TEST_SUITE_P(
+	Math, LayerConv2DScaleShapeSizeTest,
+	::testing::Values(std::make_tuple(64, std::array<uint32_t, 2>({2, 2}), Ritsu::Shape<uint32_t>({16, 16, 3}),
+									  Ritsu::Shape<uint32_t>({8, 8, 64})),
+					  std::make_tuple(128, std::array<uint32_t, 2>({2, 2}), Ritsu::Shape<uint32_t>({256, 256, 1}),
+									  Ritsu::Shape<uint32_t>({128, 128, 128}))));
 
 class LayerUp2DScaleShapeSizeTest
 	: public ::testing::TestWithParam<

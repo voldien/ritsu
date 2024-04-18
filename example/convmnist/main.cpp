@@ -1,3 +1,4 @@
+#include "Loss.h"
 #include "layers/Conv2D.h"
 #include "layers/Regularization.h"
 #include "mnist_dataset.h"
@@ -16,6 +17,9 @@ int main(int argc, const char **argv) {
 	const unsigned int epochs = 128;
 	const size_t dataBufferSize = 5;
 	const float learningRate = 0.002f;
+
+	bool useResnet;
+	bool useBatchNorm = false;
 
 	/*	*/
 	Tensor<uint8_t> inputResY;
@@ -47,9 +51,6 @@ int main(int argc, const char **argv) {
 	const Tensor<float> inputDataXF = inputDataX.cast<float>();
 	const Tensor<float> inputTestXF = inputTestX.cast<float>();
 
-	bool useResnet;
-	bool useBatchNorm = false;
-
 	/*	*/
 	{
 		Input input0node(dataShape, "input");
@@ -69,15 +70,12 @@ int main(int argc, const char **argv) {
 
 		Flatten flatten0("flatten0");
 		Dense output(output_size);
-		
+
 		Sigmoid sigmoid;
 		Regularization regularization(0.1f, 0.2f);
 
 		/*	*/
 		{
-			// Layer<float> *lay = &cast2Float(input0node);
-
-			// lay = &normalizedLayer(*lay);
 			Layer<float> *lay = &normalizedLayer(input0node);
 
 			lay = &conv2D_0(*lay);
@@ -111,11 +109,9 @@ int main(int argc, const char **argv) {
 
 			SGD<float> optimizer(learningRate, 0.0);
 			MetricAccuracy accuracy;
-			MetricMean lossmetric("loss");
 
-			Loss mse_loss(loss_mse);
-			forwardModel.compile(&optimizer, loss_error,
-								 {dynamic_cast<Metric *>(&lossmetric), dynamic_cast<Metric *>(&accuracy)});
+			MeanSquareError mse_loss;//(loss_mse);
+			forwardModel.compile(&optimizer, mse_loss, {&accuracy});
 			std::cout << forwardModel.summary() << std::endl;
 
 			forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize);

@@ -50,13 +50,11 @@ namespace Ritsu {
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
+			this->shape = layers[0]->getShape();
 			this->input = layers[0];
-
-			/*	*/
-			this->build(this->input->getShape());
 		}
 
-		void build(const Shape<IndexType> &shape) override { this->shape = shape; }
+		void build(const Shape<IndexType> &buildShape) override { this->shape = buildShape; }
 
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
@@ -75,9 +73,11 @@ namespace Ritsu {
 	  private:
 		void computeSigmoidDerivative(Tensor<float> &tensor) const noexcept {
 			const size_t nrElements = tensor.getNrElements();
+
 #pragma omp parallel for shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = computeSigmoidDerivate<DType>(tensor.getValue<DType>(i));
+				const DType value = Ritsu::computeSigmoidDerivate<DType>(tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = value;
 			}
 		}
 
@@ -87,7 +87,7 @@ namespace Ritsu {
 
 #pragma omp parallel for shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = computeSigmoid(tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = Ritsu::computeSigmoid(tensor.getValue<DType>(i));
 			}
 		}
 

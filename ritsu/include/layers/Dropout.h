@@ -60,12 +60,12 @@ namespace Ritsu {
 
 		Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) override {
 			Tensor<float> tmpOutput = tensorLoss;
-			this->computeDropout(tmpOutput);
+			//this->computeDropout(tmpOutput);
 			return tmpOutput;
 		}
 
 		Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const override {
-			this->computeDropout(tensorLoss);
+			//this->computeDropout(tensorLoss);
 			return tensorLoss;
 		}
 

@@ -94,7 +94,7 @@ namespace Ritsu {
 			T sum = 0;
 			T value;
 			size_t index;
-#pragma omp simd reduction(+ : sum) private(value) simdlen(4) linear(index : 1)
+//#pragma omp simd reduction(+ : sum) private(value) simdlen(4) linear(index : 1)
 			for (index = 0; index < nrElements; index++) {
 				value = list[index];
 				sum += value;

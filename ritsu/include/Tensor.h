@@ -283,10 +283,17 @@ namespace Ritsu {
 			return *this;
 		}
 
+		template <class... Arg> auto &operator()(const Arg &... location) const {
+			return this->getValue({(IndexType)location...});
+		}
+		template <class... Arg> auto operator()(const Arg &... location) const {
+			return this->getValue({(IndexType)location...});
+		}
+
 		/**
 		 * @brief Get the Value object
 		 */
-		template <typename U = DType> inline U getValue(const std::vector<IndexType> &location) const {
+		template <typename U = DType> inline U getValue(const std::initializer_list<IndexType> &location) const {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			static_assert(!std::is_pointer<U>::value, "Can not be pointer");
@@ -297,7 +304,7 @@ namespace Ritsu {
 		/**
 		 * @brief Get the Value object
 		 */
-		template <typename U = DType> inline U &getValue(const std::vector<IndexType> &location) {
+		template <typename U = DType> inline U &getValue(const std::initializer_list<IndexType> &location) {
 			static_assert(std::is_floating_point<U>::value || std::is_integral<U>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			static_assert(!std::is_pointer<U>::value, "Can not be pointer");
@@ -635,11 +642,7 @@ namespace Ritsu {
 			return copy.round();
 		}
 
-		Tensor equal(const Tensor &tensor) const noexcept {
-			const IndexType nrElements = this->getNrElements();
-
-			return Tensor::equal(*this, tensor);
-		}
+		Tensor equal(const Tensor &tensor) const noexcept { return Tensor::equal(*this, tensor); }
 
 		Tensor notEqual(const Tensor &tensor) const noexcept {
 			const IndexType nrElements = this->getNrElements();
@@ -666,7 +669,7 @@ namespace Ritsu {
 		 * @brief
 		 *
 		 */
-		inline Tensor mean(int axis) noexcept { return Tensor::sum(*this, axis); }
+		inline Tensor mean(int axis) noexcept { return Tensor::mean(*this, axis); }
 
 		/**
 		 * @brief
@@ -676,7 +679,7 @@ namespace Ritsu {
 		/**
 		 * @brief
 		 */
-		inline DType sum() noexcept { return Math::sum(this->getRawData(), this->getNrElements()); }
+		inline DType sum() const noexcept { return Math::sum<DType>(this->getRawData(), this->getNrElements()); }
 
 		/**
 		 * @brief
@@ -768,7 +771,7 @@ namespace Ritsu {
 			/*	Add additional data.	*/
 			this->resizeBuffer(this->shape, DTypeSize);
 
-			/*	Copy new Data.	*/
+			/*	Copy value at the end of the buffer.		*/
 			this->getValue<DType>(this->getNrElements() - 1) = value;
 
 			return *this;
@@ -844,8 +847,10 @@ namespace Ritsu {
 			return copy;
 		}
 
-		DType operator[](const std::vector<IndexType> &location) const { return this->getValue<DType>(location); }
-		DType &operator[](const std::vector<IndexType> &location) { return this->getValue<DType>(location); }
+		DType operator[](const std::initializer_list<IndexType> &location) const {
+			return this->getValue<DType>(location);
+		}
+		DType &operator[](const std::initializer_list<IndexType> &location) { return this->getValue<DType>(location); }
 
 		void resizeBuffer(const Shape<IndexType> &shape, const size_t elementSize) {
 			const size_t total_nr_elements = shape.getNrElements();
@@ -1011,7 +1016,8 @@ namespace Ritsu {
 
 #pragma omp parallel for shared(tensorA)
 			for (IndexType i = 0; i < tensorA.getNrElements(); i++) {
-				tensorA.getValue<DType>(i) = static_cast<DType>(std::log10(tensorA.getValue<DType>(i)));
+				tensorA.getValue<DType>(i) = Math::max<DType>(
+					static_cast<DType>(1e-7), static_cast<DType>(std::log10(tensorA.getValue<DType>(i))));
 			}
 			return tensorA;
 		}
@@ -1331,13 +1337,16 @@ namespace Ritsu {
 		static Tensor equal(const Tensor &tensorA, const Tensor &tensorB) {
 			assertEqualMember(tensorA, tensorB);
 
-			Tensor output(tensorA.getShape(), sizeof(uint8_t));
+			Tensor output(tensorA.getShape());
+			const IndexType nrElements = tensorA.getNrElements();
 
 #pragma omp parallel for shared(tensorA, tensorB, output)
-			for (size_t i = 0; i < tensorA.getNrElements(); i++) {
-				output.getValue<DType>(i) = tensorA.getValue<DType>(i) == tensorB.getValue<DType>(i)
-												? static_cast<DType>(1)
-												: static_cast<DType>(0);
+
+			for (IndexType i = 0; i < nrElements; i++) {
+				const bool equal = tensorA.getValue<DType>(i) == tensorB.getValue<DType>(i);
+				const DType value = equal ? static_cast<DType>(1) : static_cast<DType>(0);
+
+				output.getValue<DType>(i) = value;
 			}
 
 			return output;
@@ -1348,13 +1357,12 @@ namespace Ritsu {
 		 */
 		static Tensor notEqual(const Tensor &tensorA, const Tensor &tensorB) {
 			assertEqualMember(tensorA, tensorB);
-			Tensor output(tensorA.getShape(), sizeof(uint8_t));
+			Tensor output(tensorA.getShape());
 
 #pragma omp parallel for shared(tensorA, tensorB, output)
 			for (size_t i = 0; i < tensorA.getNrElements(); i++) {
-				output.getValue<DType>(i) = tensorA.getValue<DType>(i) != tensorB.getValue<DType>(i)
-												? static_cast<DType>(1)
-												: static_cast<DType>(0);
+				const bool not_equal = tensorA.getValue<DType>(i) != tensorB.getValue<DType>(i);
+				output.getValue<DType>(i) = not_equal ? static_cast<DType>(1) : static_cast<DType>(0);
 			}
 			return output;
 		}

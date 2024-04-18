@@ -147,12 +147,12 @@ TEST_P(MeanTest, Values) {
 
 	EXPECT_FLOAT_EQ(mean, expected);
 }
-INSTANTIATE_TEST_SUITE_P(Math, MeanTest,
-						 ::testing::Values(std::make_tuple(std::vector<float>({9, 10, 12, 13, 13, 13, 15, 15, 16, 16,
-																			   18, 22, 23, 24, 24, 25}),
-														   16.75f),
-										   std::make_tuple(std::vector<float>({-10, 1, 4, 5, 10, 20, 70}),
-														   14.285714285714f)));
+INSTANTIATE_TEST_SUITE_P(
+	Math, MeanTest,
+	::testing::Values(
+		std::make_tuple(std::vector<float>({9, 10, 12, 13, 13, 13, 15, 15, 16, 16, 18, 22, 23, 24, 24, 25}), 16.75f),
+		std::make_tuple(std::vector<float>({-10, 1, 4, 5, 10, 20, 70}), 14.285714285714f),
+		std::make_tuple(std::vector<float>({-10}), -10)));
 
 class VarianceTest : public ::testing::TestWithParam<std::tuple<std::vector<float>, float>> {};
 
