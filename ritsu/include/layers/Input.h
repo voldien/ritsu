@@ -29,6 +29,10 @@ namespace Ritsu {
 			this->shape = input;
 		}
 
+		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override { return tensor; }
+
+		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override { return tensor; }
+
 		void setInputs([[maybe_unused]] const std::vector<Layer<DType> *> &layers) override {
 			/*	No input layer connection, since input layer.	*/
 		}

@@ -50,6 +50,13 @@ namespace Ritsu {
 			return tensor;
 		}
 
+		Tensor<float> &call(Tensor<float> &tensor, bool training) override { return tensor; }
+
+		Tensor<float> call(const Tensor<float> &tensor, bool training) override {
+			Tensor<float> output({1});
+			return output;
+		}
+
 		void setOutputs(const std::vector<Layer<T> *> &layers) override {
 			/*	Set input layer */
 			this->outputs = layers;

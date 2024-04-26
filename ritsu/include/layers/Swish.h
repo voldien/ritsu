@@ -43,6 +43,17 @@ namespace Ritsu {
 			return tensor;
 		}
 
+		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override {
+			this->computeActivation(tensor);
+			return tensor;
+		}
+
+		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override {
+			Tensor<float> output = tensor;
+			this->computeActivation(output);
+			return output;
+		}
+
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
 			/*	Set input layer */
 			this->outputs = layers;

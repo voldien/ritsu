@@ -39,6 +39,17 @@ namespace Ritsu {
 			return tmp;
 		}
 
+		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override {
+			this->computeScale(tensor);
+			return tensor;
+		}
+
+		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override {
+			Tensor<float> tmp = tensor;
+			this->computeScale(tmp);
+			return tmp;
+		}
+
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
 			this->input = layers[0];
 			this->shape = this->input->getShape();

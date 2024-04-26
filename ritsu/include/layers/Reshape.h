@@ -38,8 +38,19 @@ namespace Ritsu {
 			return tmp;
 		}
 
+		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override {
+			tensor.reshape(this->newShape);
+			return tensor;
+		}
+
+		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override {
+			Tensor<float> tmp = tensor;
+			tmp.reshape(this->newShape);
+			return tmp;
+		}
+
 		void build(const Shape<IndexType> &shape) override {
-//			assert(shape == this->newShape);
+			//			assert(shape == this->newShape);
 			this->shape = newShape;
 		}
 

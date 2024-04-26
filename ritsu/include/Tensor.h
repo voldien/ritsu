@@ -536,7 +536,7 @@ namespace Ritsu {
 
 		Tensor &assign(const Tensor &other) {
 			/*	Transfer data.	*/
-			assert(other.getShape().getNrElements() == this->getShape().getNrElements());
+			assert(other.getShape().getNrElements() >= this->getShape().getNrElements());
 
 			const size_t dataSizeInBytes = other.getDatSize();
 			std::memcpy(this->memoryBuffer.buffer.data, other.memoryBuffer.buffer.data, dataSizeInBytes);

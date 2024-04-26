@@ -39,7 +39,26 @@ namespace Ritsu {
 
 		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
 
-		// Tensor<float> &operator()(Tensor<float> &tensor) override { return tensor; }
+		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override {
+			if (this->l1 > 0 && training) {
+				Regularization::computeL1(tensor, this->l1, tensor);
+			}
+			if (this->l2 > 0 && training) {
+				Regularization::computeL2(tensor, this->l2, tensor);
+			}
+			return tensor;
+		}
+
+		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override {
+			Tensor<float> tmp = tensor;
+			if (this->l1 > 0 && training) {
+				Regularization::computeL1(tensor, this->l1, tmp);
+			}
+			if (this->l2 > 0 && training) {
+				Regularization::computeL2(tensor, this->l2, tmp);
+			}
+			return tmp;
+		}
 
 		void build(const Shape<IndexType> &buildShape) override { this->shape = buildShape; }
 

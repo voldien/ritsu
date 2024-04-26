@@ -5,6 +5,7 @@
 #include "layers/GaussianNoise.h"
 #include "layers/Layer.h"
 #include "layers/Regularization.h"
+#include "layers/Relu.h"
 #include "layers/Rescaling.h"
 #include "layers/Sigmoid.h"
 #include "layers/SoftMax.h"
@@ -23,9 +24,13 @@ int main(int argc, const char **argv) {
 		/*	*/
 		const unsigned int batchSize = 16;
 		const unsigned int epochs = 128;
-		const float learningRate = 0.0001f;
+		const float learningRate = 0.00005f;
 		bool useBatchNorm = false;
 		bool useSigmoidAct = true;
+		bool useDropout = true;
+		const float validationSplit = 0.1f;
+		bool useBias = false;
+		bool useNoise = false;
 
 		/*	*/
 		Tensor<uint8_t> inputResY;
@@ -69,20 +74,20 @@ int main(int argc, const char **argv) {
 		Flatten flattenInput("flatten0");
 		Flatten flatten("flatten1");
 
-		Dense fw0(16, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
+		Dense fw0(16, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
 		BatchNormalization BN0;
 		Dropout drop0(0.1f);
-		Sigmoid relu0("relu0");
+		Relu relu0("relu0");
 
-		Dense fw1 = Dense(32, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
+		Dense fw1 = Dense(32, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
 		BatchNormalization BN1;
 		Dropout drop1(0.1f);
-		Sigmoid relu1("relu1");
+		Relu relu1("relu1");
 
 		Dense fw2_output =
-			Dense(output_size, true, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer2");
+			Dense(output_size, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer2");
 
-		Regularization regulation(0.00001f, 0.000f);
+		Regularization regulation(0.0001f, 0.000f);
 
 		Sigmoid sigmoid;
 		SoftMax outputAct;
@@ -92,21 +97,27 @@ int main(int argc, const char **argv) {
 			Layer<float> *lay = &normalizedLayer(input0node);
 			lay = &flattenInput(*lay);
 
-			// lay = &noise(*lay);
+			if (useNoise) {
+				lay = &noise(*lay);
+			}
 
 			lay = &fw0(*lay);
 			if (useBatchNorm) {
 				lay = &BN0(*lay);
-			} else {
-				// lay = &drop0(*lay);
 			}
+
+			if (useDropout) {
+				lay = &drop0(*lay);
+			}
+
 			lay = &relu0(*lay);
 
 			lay = &fw1(*lay);
 			if (useBatchNorm) {
 				lay = &BN1(*lay);
-			} else {
-				// lay = &drop1(*lay);
+			}
+			if (useDropout) {
+				lay = &drop0(*lay);
 			}
 			lay = &relu1(*lay);
 
@@ -126,7 +137,7 @@ int main(int argc, const char **argv) {
 			forwardModel.compile(&optimizer, mse_loss, {&accuracy});
 			std::cout << forwardModel.summary() << std::endl;
 
-			forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize);
+			forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize, validationSplit);
 
 			forwardModel.saveWeight("mnist_forward_network_model.weight");
 

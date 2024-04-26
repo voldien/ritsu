@@ -28,7 +28,6 @@ namespace Ritsu {
 		ExpLinear(const DType linear, const std::string &name = "exp-linear") : Activaction(name), coff(linear) {}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
-
 			Tensor<float> output = tensor;
 			this->computeActivation(output);
 			return output;
@@ -42,6 +41,17 @@ namespace Ritsu {
 		Tensor<float> operator>>(Tensor<float> &tensor) override {
 			this->computeActivation(tensor);
 			return tensor;
+		}
+
+		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override {
+			this->computeActivation(tensor);
+			return tensor;
+		}
+
+		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override {
+			Tensor<float> output = tensor;
+			this->computeActivation(output);
+			return output;
 		}
 
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {

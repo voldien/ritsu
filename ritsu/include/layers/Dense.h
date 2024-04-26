@@ -44,6 +44,12 @@ namespace Ritsu {
 				this->bias = Tensor<float>(Shape<IndexType>({units}));
 			}
 			this->use_bias = use_bias;
+
+			this->variables.reserve(2);
+			this->variables = {&this->weight};
+			if (this->use_bias) {
+				this->variables.push_back(&this->bias);
+			}
 		}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
@@ -61,8 +67,19 @@ namespace Ritsu {
 
 		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
 
-		Tensor<float> *getTrainableWeights() noexcept override { return &this->weight; }
-		Tensor<float> *getVariables() noexcept override { return &this->bias; }
+		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override {
+			Tensor<float> output({this->units}, DTypeSize);
+			this->compute(tensor, output);
+			return tensor;
+		}
+
+		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override {
+			Tensor<float> output({this->units}, DTypeSize);
+			this->compute(tensor, output);
+			return output;
+		}
+
+		std::optional<std::vector<Tensor<DType> *>> getTrainableWeights() noexcept override { return this->variables; }
 
 		void build(const Shape<IndexType> &buildShape) override {
 
@@ -147,11 +164,13 @@ namespace Ritsu {
 
 		void initbias() noexcept {
 			// TODO improve
-			ZeroInitializer<DType> init;
-			RandomUniform<DType> random(-1, 1);
-			
-			init.set(this->bias);
-			this->bias.reshape({1, this->bias.getShape().getAxisDimensions(0)});
+			if (this->bias.getNrElements() > 0) {
+				ZeroInitializer<DType> init;
+				RandomUniform<DType> random(-1, 1);
+
+				init.set(this->bias);
+				this->bias.reshape({1, this->bias.getShape().getAxisDimensions(0)});
+			}
 		}
 
 	  private:
@@ -159,6 +178,7 @@ namespace Ritsu {
 		uint32_t units;
 		Tensor<DType> weight;
 		bool use_bias;
+		std::vector<Tensor<float> *> variables;
 		// Initializer<DType> &weight_init;
 		// Initializer<DType> &bias_init;
 	};

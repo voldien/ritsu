@@ -319,16 +319,7 @@ TEST_P(LayerUp2DScaleShapeSizeTest, UpSampling2D) {
 	ASSERT_EQ(upscale.getShape(), expected);
 }
 
-TEST_P(LayerUp2DScaleShapeSizeTest, Conv2DTranspose) {
-	auto [stride, x, expected] = GetParam();
 
-	Ritsu::Input input(x);
-	Ritsu::Conv2DTranspose conv2DTranspose(64, {3, 3}, stride);
-	conv2DTranspose(input);
-	conv2DTranspose.build(input.getShape());
-
-	ASSERT_EQ(conv2DTranspose.getShape(), expected);
-}
 INSTANTIATE_TEST_SUITE_P(
 	Math, LayerUp2DScaleShapeSizeTest,
 	::testing::Values(std::make_tuple(std::array<uint32_t, 2>({2, 2}), Ritsu::Shape<uint32_t>({16, 16, 3}),

@@ -34,13 +34,13 @@ namespace Ritsu {
 		if (isDebugEnabled()) {
 			stream << "Layer: " << layer.getName() << std::endl;
 
-			if (layer.getTrainableWeights()) {
-				stream << std::endl << "trainable: " << *layer.getTrainableWeights() << std::endl << std::endl;
-			}
+			// if (!layer.getTrainableWeights().empty()) {
+			//	//stream << std::endl << "trainable: " << *layer.getTrainableWeights() << std::endl << std::endl;
+			//}
 
-			if (layer.getVariables()) {
-				stream << std::endl << "non-trainable: " << *layer.getVariables() << std::endl << std::endl;
-			}
+			// if (!layer.getVariables().empty()) {
+			//	//stream << std::endl << "non-trainable: " << *layer.getVariables() << std::endl << std::endl;
+			//}
 		}
 
 		return stream;

@@ -43,6 +43,17 @@ namespace Ritsu {
 			return tmpOutput;
 		}
 
+		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override {
+			this->computeDropout(tensor);
+			return tensor;
+		}
+
+		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override {
+			Tensor<float> tmpOutput = tensor;
+			this->computeDropout(tmpOutput);
+			return tmpOutput;
+		}
+
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
 			this->input = layers[0];
 			this->shape = this->input->getShape();
@@ -53,19 +64,19 @@ namespace Ritsu {
 			this->outputs = layers;
 		}
 
-		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
-		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
+		std::vector<Layer<DType> *> getInputs() const override { return {this->input}; }
+		std::vector<Layer<DType> *> getOutputs() const override { return this->outputs; }
 
 		void build(const Shape<IndexType> &buildShape) override { this->shape = buildShape; }
 
 		Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) override {
 			Tensor<float> tmpOutput = tensorLoss;
-			//this->computeDropout(tmpOutput);
+			this->computeDropout(tmpOutput);
 			return tmpOutput;
 		}
 
 		Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const override {
-			//this->computeDropout(tensorLoss);
+			this->computeDropout(tensorLoss);
 			return tensorLoss;
 		}
 

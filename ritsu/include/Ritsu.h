@@ -25,7 +25,6 @@
 #include "layers/Cast.h"
 #include "layers/Concatenate.h"
 #include "layers/Conv2D.h"
-#include "layers/Conv2DTranspose.h"
 #include "layers/Dense.h"
 #include "layers/Divide.h"
 #include "layers/Dropout.h"

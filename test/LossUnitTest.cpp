@@ -20,7 +20,7 @@ TEST_P(LossTest, MSE) {
 	auto [x, y, expected] = GetParam();
 
 	Tensor<float> result;
-	ASSERT_NO_THROW(Ritsu::loss_mse(x, y, result));
+	ASSERT_NO_THROW(Ritsu::MeanSquareError::loss_mse(x, y, result));
 	ASSERT_EQ(result, expected);
 }
 
@@ -28,7 +28,7 @@ TEST_P(LossTest, MSA) {
 	auto [x, y, expected] = GetParam();
 
 	Tensor<float> result;
-	ASSERT_NO_THROW(Ritsu::loss_msa(x, y, result));
+	ASSERT_NO_THROW(Ritsu::MeanAbsoluterror::loss_msa(x, y, result));
 	ASSERT_EQ(result, expected);
 }
 

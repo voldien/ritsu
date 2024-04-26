@@ -46,6 +46,13 @@ namespace Ritsu {
 
 		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
 
+		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override { return tensor; }
+
+		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override {
+			Tensor<float> output({1});
+			return output;
+		}
+		
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {}
 

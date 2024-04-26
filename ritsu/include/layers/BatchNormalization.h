@@ -34,6 +34,13 @@ namespace Ritsu {
 
 		Tensor<float> &operator<<(Tensor<float> &tensor) override { return tensor; }
 
+		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override { return tensor; }
+
+		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override {
+			Tensor<float> output({1});
+			return output;
+		}
+
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
 			this->shape = layers[0]->getShape();
 			/*	Set input layer */
@@ -62,8 +69,8 @@ namespace Ritsu {
 		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
 		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
-		Tensor<float> *getTrainableWeights() noexcept override { return nullptr; }
-		Tensor<float> *getVariables() noexcept override { return nullptr; }
+		std::optional<std::vector<Tensor<DType> *>> getTrainableWeights() noexcept override { return {}; }
+		std::vector<Tensor<float> *> getVariables() noexcept override { return {}; }
 
 	  private:
 		void compute(const Tensor<float> &input, Tensor<float> &output) {

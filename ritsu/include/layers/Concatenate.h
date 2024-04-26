@@ -32,6 +32,13 @@ namespace Ritsu {
 			this->inputs = layers;
 		}
 
+		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override { return tensor; }
+
+		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override {
+			Tensor<float> output({1});
+			return output;
+		}
+
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
 			this->inputs = layers;
 
@@ -39,7 +46,7 @@ namespace Ritsu {
 			for (size_t i = 1; i < inputs.size(); i++) {
 				newShape.append(inputs[i]->getShape());
 			}
-			
+
 			this->shape = newShape;
 		}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override { this->outputs = layers; }

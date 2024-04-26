@@ -50,7 +50,16 @@ namespace Ritsu {
 		/**
 		 * @brief
 		 */
-		virtual Tensor<float> &operator()(Tensor<float> &tensor) { return tensor; }
+		virtual Tensor<float> &operator()(Tensor<float> &tensor, bool training = true) {
+			return this->call(tensor, training);
+		}
+
+		virtual Tensor<float> operator()(const Tensor<float> &tensor, bool training = true) {
+			return this->call(tensor, training);
+		}
+
+		virtual Tensor<float> &call(Tensor<float> &tensor, bool training) = 0;
+		virtual Tensor<float> call(const Tensor<float> &tensor, bool training) = 0;
 
 		/**
 		 * @brief
@@ -78,11 +87,12 @@ namespace Ritsu {
 
 		// TODO: add array.
 		// Weights trainable
-		virtual Tensor<DType> *getTrainableWeights() noexcept { return nullptr; }
+
+		virtual std::optional<std::vector<Tensor<DType> *>> getTrainableWeights() noexcept { return {}; }
 
 		// TODO: add array.
 		// non-trainable.
-		virtual Tensor<DType> *getVariables() noexcept { return nullptr; }
+		virtual std::vector<Tensor<DType> *> getVariables() noexcept { return {}; }
 
 		// input
 		virtual std::vector<Layer<T> *> getInputs() const { return {}; };

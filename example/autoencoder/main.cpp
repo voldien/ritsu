@@ -1,3 +1,4 @@
+#include "layers/Dense.h"
 #include "layers/GaussianNoise.h"
 #include "layers/Layer.h"
 #include "layers/Regularization.h"
@@ -16,13 +17,15 @@ using namespace Ritsu;
 
 int main(int argc, const char **argv) {
 	try {
-		const unsigned int batchSize = 1;
+		const unsigned int batchSize = 16;
 		const unsigned int epochs = 128;
 		const float learningRate = 0.0002f;
 		bool useBatchNorm = false;
-
-		Shape<unsigned int> dataShape({32, 32, 1});
-		Shape<unsigned int> resultShape({10});
+		bool useDropout = false;
+		bool useReg = false;
+		const float validationSplit = 0.1f;
+		bool useBias = false;
+		bool useNoise = false;
 
 		/*	*/
 		Tensor<uint8_t> inputResY;
@@ -34,70 +37,159 @@ int main(int argc, const char **argv) {
 		/*	*/
 		RitsuDataSet::loadMNIST("train-images.idx3-ubyte", "train-labels.idx1-ubyte", "t10k-images.idx3-ubyte",
 								"t10k-labels.idx1-ubyte", inputDataX, inputResY, inputTestX, inputResTestY);
+		/*	*/
+		std::cout << "Loaded MNIST Data Set: " << inputDataX.getShape() << " Labels: " << inputResY.getShape()
+				  << std::endl;
+
+		/*	Extract data shape.	*/
+		Shape<unsigned int> dataShape = inputDataX.getShape().getSubShapeMem(1, 3);
+		Shape<unsigned int> resultShape = inputResY.getShape().getSubShapeMem(1, 1);
+
+		const Tensor<float> inputDataXF = inputDataX.cast<float>();
+		const Tensor<float> inputTestXF = inputTestX.cast<float>();
+
+		/*	*/
+		std::cout << "Train Object Size: " << dataShape << " Expected result Size: " << resultShape << std::endl;
 
 		Input input0node(dataShape, "input");
-		Cast<uint8_t, float> cast2Float;
 		Rescaling normalizedLayer(1.0f / 255.0f);
+		Flatten flattenInput("flatten0");
 
-		Conv2D conv2D_0(32, {3, 3}, {2, 2}, ConvPadding::Same);
-		Relu relu_0;
+		Dense dense_0(128, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
+		Relu relu_0("relu0");
 		BatchNormalization BatchNormalization_0;
-		Add encAdd0;
+		Dropout drop0(0.1f);
 
-		Conv2D conv2D_1(64, {3, 3}, {1, 1}, ConvPadding::Same);
-		Relu relu_1;
+		Dense dense_1(64, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
+		Relu relu_1("relu1");
 		BatchNormalization BatchNormalization_1;
+		Dropout drop1(0.1f);
 
-		Conv2D conv2D_2(64, {3, 3}, {1, 1}, ConvPadding::Same);
-		Relu relu_2;
+		Dense dense_2(32, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer2");
+		Relu relu_2("relu2");
 		BatchNormalization BatchNormalization_2;
+		Dropout drop2(0.1f);
 
-		Flatten flatten0("flatten0");
-		Regularization regularization(0.1, 0.2);
-		Reshape reshape(Shape<unsigned int>({256, 256, 32}));
+		/*	*/
+		Dense latent(8, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "latent");
+		Regularization regularization(0.01, 0.02);
 
-		UpSampling2D<float> upscale0(2);
-		Conv2D conv2D_3(32, {3, 3}, {2, 2}, ConvPadding::Same);
-		Relu relu_3;
+		/*	*/
+		Dense dense_3(32, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer3");
+		Relu relu_3("relu3");
 		BatchNormalization BatchNormalization_3;
+		Dropout drop3(0.1f);
 
-		UpSampling2D<float> upscale1(2);
-		Conv2D conv2D_4(64, {3, 3}, {1, 1}, ConvPadding::Same);
-		Relu relu_4;
+		Dense dense_4(64, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer4");
+		Relu relu_4("relu4");
 		BatchNormalization BatchNormalization_4;
+		Dropout drop4(0.1f);
 
-		UpSampling2D<float> upscale3(2);
-		Conv2D conv2D_5(64, {3, 3}, {1, 1}, ConvPadding::Same);
-		Relu relu_5;
+		Dense dense_5(128, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer5");
+		Relu relu_5("relu5");
 		BatchNormalization BatchNormalization_5;
+		Dropout drop5(0.1f);
+
+		Dense dense_6(dataShape.getNrElements(), useBias, RandomNormalInitializer<float>(),
+					  RandomNormalInitializer<float>(), "layer6");
+		Reshape reshape(dataShape);
+		Sigmoid sigmoid;
 
 		/*	*/
 		{
+
 			Layer<float> *lay = &normalizedLayer(input0node);
-
-			// lay = &noise(*lay);
-
-			lay = &flatten0(*lay);
+			lay = &flattenInput(*lay);
 
 			/*	*/
-			// Layer<float> &encoder =
-			//	output(flatten0(relu_0(BatchNormalization_1(conv2D_1(relu_0(BatchNormalization_0(conv2D_0(input0node))))))));
-			//
-			// Layer<float> &decoder =
-			//	output(flatten0(relu_0(BatchNormalization_1(conv2D_1(relu_0(BatchNormalization_0(conv2D_0(encoder))))))));
+			lay = &dense_0(*lay);
+			if (useBatchNorm) {
+				lay = &BatchNormalization_0(*lay);
+			}
+			if (useDropout) {
+				lay = &drop0(*lay);
+			}
+			lay = &relu_0(*lay);
 
-			SGD<float> optimizer(learningRate, 0.0);
+			/*	*/
+			lay = &dense_1(*lay);
+			if (useBatchNorm) {
+				lay = &BatchNormalization_1(*lay);
+			}
+			if (useDropout) {
+				lay = &drop1(*lay);
+			}
+			lay = &relu_1(*lay);
+
+			/*	*/
+			lay = &dense_2(*lay);
+			if (useBatchNorm) {
+				lay = &BatchNormalization_2(*lay);
+			}
+			if (useDropout) {
+				lay = &drop2(*lay);
+			}
+			lay = &relu_2(*lay);
+
+			lay = &latent(*lay);
+			if (useReg) {
+				lay = &regularization(*lay);
+			}
+			Layer<float> *encoderLayer = lay;
+
+			/*	*/
+			lay = &dense_3(*lay);
+			if (useBatchNorm) {
+				lay = &BatchNormalization_3(*lay);
+			}
+			if (useDropout) {
+				lay = &drop3(*lay);
+			}
+			lay = &relu_3(*lay);
+
+			/*	*/
+			lay = &dense_4(*lay);
+			if (useBatchNorm) {
+				lay = &BatchNormalization_4(*lay);
+			}
+			if (useDropout) {
+				lay = &drop4(*lay);
+			}
+			lay = &relu_4(*lay);
+
+			/*	*/
+			lay = &dense_5(*lay);
+			if (useBatchNorm) {
+				lay = &BatchNormalization_5(*lay);
+			}
+			if (useDropout) {
+				lay = &drop5(*lay);
+			}
+			lay = &relu_5(*lay);
+
+			lay = &dense_6(*lay);
+			lay = &reshape(*lay);
+			lay = &sigmoid(*lay);
+			Layer<float> *decoderLayer = lay;
+
+			Model<float> autoencoder({&input0node}, {decoderLayer});
+			std::cout << autoencoder.summary();
+			// Model<float> encoderModel({&input0node}, {encoderLayer});
+			// Model<float> decoderModel({encoderLayer}, {decoderLayer});
+
+			SGD<float> optimizer(learningRate, 0.05f);
 
 			MetricAccuracy accuracy;
 			MetricMean lossmetric("loss");
-			//
-			// Model<float> model({&input0node}, {&decoder});
+			MeanSquareError mse_loss;
 
-			// Tensor<float> predict = std::move(model.predict(inputTestX));
-			// Compare.
-			// std::cout << "Predict " << predict << std::endl;
+			autoencoder.compile(&optimizer, mse_loss, {&accuracy});
+
+			autoencoder.fit(epochs, inputDataXF, inputDataXF, batchSize, validationSplit);
 		}
-	} catch (std::exception &ex) {
+	}
+
+	catch (std::exception &ex) {
 		std::cerr << ex.what() << std::endl;
 		return EXIT_FAILURE;
 	}

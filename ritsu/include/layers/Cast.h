@@ -35,6 +35,16 @@ namespace Ritsu {
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override { return this->createCastTensor(tensor); }
 
+		Tensor<T> &call(Tensor<T> &tensor, bool training) override {
+			this->createCastTensor(tensor);
+			return tensor;
+		}
+
+		Tensor<T> call(const Tensor<T> &tensor, bool training) override {
+			Tensor<float> tmp = this->createCastTensor(tensor);
+			return tmp;
+		}
+
 		void setInputs(const std::vector<Layer<T> *> &layers) override {
 			this->input = layers[0];
 

@@ -54,6 +54,13 @@ namespace Ritsu {
 			return tensor;
 		}
 
+		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override { return tensor; }
+
+		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override {
+			Tensor<float> output({1});
+			return output;
+		}
+
 		void build(const Shape<IndexType> &buildShape) override {
 
 			if (buildShape.getNrDimensions() > 3) {
@@ -83,8 +90,9 @@ namespace Ritsu {
 		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
 		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
-		Tensor<float> *getTrainableWeights() noexcept override { return &this->filters; }
-		Tensor<float> *getVariables() noexcept override { return &this->bias; }
+		std::optional<std::vector<Tensor<DType> *>> getTrainableWeights() noexcept override {
+			return {{&this->filters, &this->bias}};
+		}
 
 	  protected:
 		// operator

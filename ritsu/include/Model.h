@@ -90,6 +90,8 @@ namespace Ritsu {
 			nrTrainBatches = Math::min<size_t>(nrTrainBatches, nrTrainExpectedBatches);
 
 			const size_t nrValidationBatches = std::floor(nrTrainBatches * validation_split);
+			nrTrainBatches -= nrValidationBatches;
+
 			// TODO verify shape and etc.
 
 			// TODO add array support.
@@ -216,17 +218,21 @@ namespace Ritsu {
 				for (size_t ibatch = 0; ibatch < nrValidationBatches; ibatch++) {
 
 					/*	Extract subset of the data.	*/
+					const size_t baseBatch = (nrTrainBatches + ibatch);
+					/*	Extract subset of the data.	*/
 					const Tensor<float> subsetBatchX =
-						inputData.getSubset(ibatch * batch_size * batchDataElementSize,
-											(ibatch + 1) * batch_size * batchDataElementSize, batchDataShape);
+						inputData.getSubset({{static_cast<unsigned int>(baseBatch * batch_size),
+											  static_cast<unsigned int>((baseBatch + 1) * batch_size) - 1}});
 
-					const Tensor<float> subsetExpecetedBatch = expectedData.getSubset(
-						ibatch * batch_size * batchExpectedElementSize,
-						(ibatch + 1) * batch_size * batchExpectedElementSize, batchExpectedShape);
+					/*	*/
+					const Tensor<float> subsetExpectedBatch =
+						expectedData.getSubset({{static_cast<unsigned int>(baseBatch * batch_size),
+												 static_cast<unsigned int>((baseBatch + 1) * batch_size) - 1}});
 
 					/*	Compute network forward.	*/
-					this->forwardPropgation(subsetBatchX, batchResult, batch_size);
+					this->forwardPropgation(subsetBatchX, batchResult, batch_size, nullptr);
 					/*	*/
+					loss_error = std::move(this->lossFunction->computeLoss(subsetExpectedBatch, batchResult));
 				}
 
 				/*	Update history, using all metrics.	*/
@@ -366,6 +372,7 @@ namespace Ritsu {
 
 			/*	*/
 			Tensor<float> layerResult = inputData;
+			const bool training = cacheResult != nullptr;
 
 			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
 				Layer<T> *current = (*it);
@@ -385,7 +392,8 @@ namespace Ritsu {
 					Tensor<float> resultSubset = batchTmp.getSubset({static_cast<IndexType>(i)});
 
 					/*	Perform layer on data.	*/
-					resultSubset.assign((*current) << (const_cast<const Tensor<float> &>(prevBatch)));
+					Tensor<float> result = current->call(const_cast<const Tensor<float> &>(prevBatch), training);
+					resultSubset.assign(result);
 				}
 				/*	Override the layer result with the batch.	*/
 
@@ -439,13 +447,13 @@ namespace Ritsu {
 				current_layer_z = cacheResult[current->getName()];
 
 				/*	Only apply if */
-				Tensor<DType> *train_variables = current->getTrainableWeights();
-				Tensor<DType> *_variables = current->getVariables();
+				std::optional<std::vector<Tensor<DType> *>> optional_train_variables = current->getTrainableWeights();
 
 				/*	*/
 				debug_print_layer<DType>(std::cout, *current);
 
-				if (train_variables) {
+				if (optional_train_variables.has_value() && !optional_train_variables.value().empty()) {
+					std::vector<Tensor<DType> *> train_variables = optional_train_variables.value();
 
 					Tensor<float> layer_ahead_z = cacheResult[prev->getName()];
 					Tensor<float> partial_error = differental_error;
@@ -457,19 +465,28 @@ namespace Ritsu {
 
 					Tensor<float> weightGradient = layer_ahead_z.transpose().dot(partial_error);
 
+					for (size_t i_var = 0; i_var < train_variables.size(); i_var++) {
+						Tensor<DType> *variable = train_variables[i_var];
+
+						if (variable) {
+							this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(weightGradient.transpose()),
+														 reinterpret_cast<Tensor<T> &>(*variable));
+						}
+					}
+
 					/*	*/
 					differental_error =
 						current->compute_derivative(static_cast<const Tensor<float> &>(current_layer_z));
 
-					this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(weightGradient.transpose()),
-												 reinterpret_cast<Tensor<T> &>(*train_variables));
+					// this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(weightGradient.transpose()),
+					//							 reinterpret_cast<Tensor<T> &>(*train_variables));
 
-					partial_error = Tensor<float>::mean(partial_error, 1);
-					if (partial_error.getShape().getNrDimensions() == 1) {
-						partial_error.reshape({1, partial_error.getShape().getAxisDimensions(0)});
-					}
-					this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(partial_error),
-												 reinterpret_cast<Tensor<T> &>(*_variables));
+					// partial_error = Tensor<float>::mean(partial_error, 1);
+					// if (partial_error.getShape().getNrDimensions() == 1) {
+					//	partial_error.reshape({1, partial_error.getShape().getAxisDimensions(0)});
+					// }
+					//					this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(partial_error),
+					//												 reinterpret_cast<Tensor<T> &>(*_variables));
 				} else {
 
 					/*	Update delta.	*/
@@ -507,6 +524,7 @@ namespace Ritsu {
 
 		void build_sequence(const std::vector<Layer<T> *> inputs, const std::vector<Layer<T> *> outputs) {
 			// Iterate through each and extract number of trainable variables.
+
 			Layer<T> *current = inputs[0];
 			this->nr_weights = 0;
 			this->trainableWeightSizeInBytes = 0;
@@ -525,13 +543,27 @@ namespace Ritsu {
 				if (this->is_junction_layer(current)) {
 				}
 
-				if (current->getTrainableWeights() != nullptr) {
-					this->nr_weights += current->getTrainableWeights()->getNrElements();
-					this->trainableWeightSizeInBytes += current->getTrainableWeights()->getDatSize();
+				std::optional<std::vector<Tensor<DType> *>> optional_train_variables = current->getTrainableWeights();
+
+				if (optional_train_variables.has_value()) {
+					std::vector<Tensor<DType> *> train_variables = optional_train_variables.value();
+
+					if (!train_variables.empty()) {
+						for (size_t i = 0; i < train_variables.size(); i++) {
+							Tensor<DType> *variable = train_variables[i];
+							this->nr_weights += variable->getNrElements();
+							this->trainableWeightSizeInBytes += variable->getDatSize();
+						}
+					}
 				}
-				if (current->getVariables() != nullptr) {
-					this->noneTrainableWeightSizeInBytes += current->getVariables()->getDatSize();
-				}
+
+				// if (!train_variables.empty()) {
+				//	for (size_t i = 0; i < current->getVariables().size(); i++) {
+				//		Tensor<DType> *variable = current->getVariables()[i];
+				//		this->noneTrainableWeightSizeInBytes += variable->getDatSize();
+				//	}
+				//	//
+				//}
 				// TODO add support
 
 				// TODO verify the shape.
@@ -585,7 +617,6 @@ namespace Ritsu {
 		size_t nr_weights;
 		size_t trainableWeightSizeInBytes;
 		size_t noneTrainableWeightSizeInBytes;
-		std::string name;
 
 	}; // namespace Ritsu
 } // namespace Ritsu

@@ -40,6 +40,17 @@ namespace Ritsu {
 			return tensor;
 		}
 
+		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override {
+			Ritsu::softMax<DType>(tensor);
+			return tensor;
+		}
+
+		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override {
+			Tensor<DType> tmp = tensor;
+			Ritsu::softMax<DType>(tmp);
+			return tmp;
+		}
+
 		void build(const Shape<IndexType> &buildShape) override { this->shape = buildShape; }
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override { this->input = layers[0]; }

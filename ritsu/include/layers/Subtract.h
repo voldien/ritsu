@@ -27,6 +27,13 @@ namespace Ritsu {
 	  public:
 		Subtract(const std::string &name = "subtract") : Add(name) {}
 
+		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override { return tensor; }
+
+		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override {
+			Tensor<float> output({1});
+			return output;
+		}
+
 		void build(const Shape<IndexType> &shape) override { this->shape = shape; }
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
@@ -40,7 +47,7 @@ namespace Ritsu {
 			this->shape = layers[0]->getShape();
 		}
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override { this->outputs = layers; }
-		
+
 		std::vector<Layer<DType> *> getInputs() const override { return inputs; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
