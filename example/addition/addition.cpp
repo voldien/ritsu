@@ -2,10 +2,8 @@
 #include "Tensor.h"
 #include "mnist_dataset.h"
 #include <Ritsu.h>
-#include <cstdint>
 #include <cstdio>
 #include <iostream>
-#include <istream>
 #include <ostream>
 
 using namespace Ritsu;
@@ -13,10 +11,10 @@ using namespace Ritsu;
 int main(int argc, const char **argv) {
 
 	/*	*/
-	const unsigned int batchSize = 16;
+	const unsigned int batchSize = 8;
 	const unsigned int epochs = 512;
 	const size_t dataBufferSize = 5;
-	const float learningRate = 0.00005f;
+	const float learningRate = 0.000001f;
 	const size_t trainingDataSize = 2048;
 	const float validationSplit = 0.1f;
 	bool useBias = false;
@@ -43,7 +41,8 @@ int main(int argc, const char **argv) {
 		}
 
 		Layer<float> &output = outputDense(dense0(input));
-		SGD<float> optimizer(learningRate, 0.0f);
+		SGD<float> optimizer(learningRate, 0.8f);
+		Adam<float> ADamoptimizer(learningRate);
 
 		MetricAccuracy accuracy;
 		Model<float> forwardModel = Model<float>({&input}, {&output});

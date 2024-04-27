@@ -34,13 +34,14 @@ namespace Ritsu {
 		if (isDebugEnabled()) {
 			stream << "Layer: " << layer.getName() << std::endl;
 
-			// if (!layer.getTrainableWeights().empty()) {
-			//	//stream << std::endl << "trainable: " << *layer.getTrainableWeights() << std::endl << std::endl;
-			//}
+			if (layer.getTrainableWeights().has_value() && !layer.getTrainableWeights().value().empty()) {
+				// stream << std::endl << "trainable: " << layer.getTrainableWeights().value() << std::endl <<
+				// std::endl;
+			}
 
-			// if (!layer.getVariables().empty()) {
-			//	//stream << std::endl << "non-trainable: " << *layer.getVariables() << std::endl << std::endl;
-			//}
+			if (layer.getVariables().has_value() && !layer.getVariables().value().empty()) {
+				// stream << std::endl << "non-trainable: " << layer.getVariables().value() << std::endl << std::endl;
+			}
 		}
 
 		return stream;
@@ -48,9 +49,9 @@ namespace Ritsu {
 
 	/*	*/
 	template <typename U = std::float_t>
-	std::ostream &debug_print_tensor(std::ostream &stream, Tensor<U> &tensor) noexcept {
+	std::ostream &debug_print_tensor(std::ostream &stream, Tensor<U> &tensor, const std::string &name = "") noexcept {
 		if (isDebugEnabled()) {
-			stream << std::endl << tensor << std::endl << std::endl;
+			stream << std::endl << name << tensor << std::endl << std::endl;
 		}
 		return stream;
 	}

@@ -354,6 +354,17 @@ namespace Ritsu {
 			return *this;
 		}
 
+		Shape<IndexType> &append(const std::initializer_list<IndexType> &additionalDims, const int axis = -1) {
+
+			// if (!canMerge(*this, additionalDims, axis)) {
+			//	throw RuntimeException("Invalid Shape");
+			// }
+			const unsigned int axisMod = Math::mod<int>(axis, this->getNrDimensions());
+			this->getAxisDimensions(axisMod) += *(additionalDims.begin() + axisMod);
+
+			return *this;
+		}
+
 		Shape<IndexType> append(const Shape<IndexType> &additionalDims, const int axis = -1) const {
 
 			if (!canMerge(*this, additionalDims, axis)) {
@@ -370,6 +381,11 @@ namespace Ritsu {
 
 		Shape<IndexType> &insert(int axis, const Shape<IndexType> &additionalDims) {
 			this->dims.insert(std::begin(this->dims) + axis, additionalDims.dims.begin(), additionalDims.dims.end());
+			return *this;
+		}
+
+		Shape<IndexType> &insert(int axis, const std::initializer_list<IndexType> &additionalDims) {
+			this->dims.insert(std::begin(this->dims) + axis, additionalDims.begin(), additionalDims.end());
 			return *this;
 		}
 

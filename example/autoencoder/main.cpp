@@ -1,16 +1,11 @@
 #include "layers/Dense.h"
-#include "layers/GaussianNoise.h"
 #include "layers/Layer.h"
 #include "layers/Regularization.h"
 #include "layers/Reshape.h"
-#include "layers/Tanh.h"
-#include "layers/UpSampling2D.h"
 #include "mnist_dataset.h"
 #include <Ritsu.h>
-#include <cstdio>
 #include <cstdlib>
 #include <iostream>
-#include <istream>
 #include <ostream>
 
 using namespace Ritsu;

@@ -22,12 +22,12 @@ int main(int argc, const char **argv) {
 
 	try {
 		/*	*/
-		const unsigned int batchSize = 16;
+		const unsigned int batchSize = 1;
 		const unsigned int epochs = 128;
-		const float learningRate = 0.00005f;
+		const float learningRate = 0.000001f;
 		bool useBatchNorm = false;
 		bool useSigmoidAct = true;
-		bool useDropout = true;
+		bool useDropout = false;
 		const float validationSplit = 0.1f;
 		bool useBias = false;
 		bool useNoise = false;
@@ -69,25 +69,25 @@ int main(int argc, const char **argv) {
 		Cast<uint8_t, float> cast2Float;
 		Rescaling normalizedLayer(1.0f / 255.0f);
 
-		GuassianNoise noise(0.1, 0.1f);
+		GuassianNoise noise(0, 0.8f);
 
 		Flatten flattenInput("flatten0");
 		Flatten flatten("flatten1");
 
-		Dense fw0(16, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
+		Dense fw0(32, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
 		BatchNormalization BN0;
-		Dropout drop0(0.1f);
+		Dropout drop0(0.3f);
 		Relu relu0("relu0");
 
-		Dense fw1 = Dense(32, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
+		Dense fw1 = Dense(16, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
 		BatchNormalization BN1;
-		Dropout drop1(0.1f);
+		Dropout drop1(0.3f);
 		Relu relu1("relu1");
 
 		Dense fw2_output =
 			Dense(output_size, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer2");
 
-		Regularization regulation(0.0001f, 0.000f);
+		Regularization regulation(0.00001f, 0.000f);
 
 		Sigmoid sigmoid;
 		SoftMax outputAct;
@@ -117,7 +117,7 @@ int main(int argc, const char **argv) {
 				lay = &BN1(*lay);
 			}
 			if (useDropout) {
-				lay = &drop0(*lay);
+				lay = &drop1(*lay);
 			}
 			lay = &relu1(*lay);
 
@@ -128,8 +128,7 @@ int main(int argc, const char **argv) {
 
 			Model<float> forwardModel({&input0node}, {&output});
 
-			SGD<float> optimizer(learningRate, 0.8f);
-			Adam<float> ADamoptimizer(learningRate);
+			SGD<float> optimizer(learningRate, 0.0008f);
 
 			MetricAccuracy accuracy;
 			CategoricalCrossentropy cross_loss(true);

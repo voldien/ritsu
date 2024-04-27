@@ -3,9 +3,7 @@
 #include "core/Shape.h"
 #include <cassert>
 #include <cstdint>
-#include <exception>
 #include <fstream>
-#include <stdexcept>
 
 using namespace Ritsu;
 

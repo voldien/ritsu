@@ -14,10 +14,8 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
-#include "Math.h"
 #include "Object.h"
 #include "Tensor.h"
-#include <cmath>
 #include <string>
 
 namespace Ritsu {

@@ -64,7 +64,7 @@ namespace Ritsu {
 		/**
 		 * @brief
 		 */
-		template <class... Arg> auto &operator()(const Arg &... layer) {
+		template <class... Arg> auto &operator()(const Arg &...layer) {
 			this->getInputs() = {layer...};
 			return *this;
 		}
@@ -72,7 +72,7 @@ namespace Ritsu {
 		/**
 		 * @brief
 		 */
-		template <class... Arg> auto &operator()(Arg &... layer) {
+		template <class... Arg> auto &operator()(Arg &...layer) {
 			std::initializer_list<Layer *> list = {&layer...};
 			this->connectLayers(list);
 			return *this;
@@ -92,7 +92,8 @@ namespace Ritsu {
 
 		// TODO: add array.
 		// non-trainable.
-		virtual std::vector<Tensor<DType> *> getVariables() noexcept { return {}; }
+
+		virtual std::optional<std::vector<Tensor<DType> *>> getVariables() noexcept { return {}; }
 
 		// input
 		virtual std::vector<Layer<T> *> getInputs() const { return {}; };

@@ -47,7 +47,7 @@ namespace Ritsu {
 					velocities[uid] = Tensor<T>::zero(variable.getShape());
 				}
 
-				velocities[uid] = (velocities[uid] * this->momentum) - (gradient * (1.0f - this->momentum));
+				velocities[uid] = (velocities[uid] * this->momentum) + (gradient * (1.0f - this->momentum));
 
 				gradientUpdate = (velocities[uid] * this->getLearningRate());
 

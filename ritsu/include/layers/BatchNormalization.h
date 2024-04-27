@@ -70,7 +70,7 @@ namespace Ritsu {
 		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
 
 		std::optional<std::vector<Tensor<DType> *>> getTrainableWeights() noexcept override { return {}; }
-		std::vector<Tensor<float> *> getVariables() noexcept override { return {}; }
+		std::optional<std::vector<Tensor<float> *>> getVariables() noexcept override { return {}; }
 
 	  private:
 		void compute(const Tensor<float> &input, Tensor<float> &output) {

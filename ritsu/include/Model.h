@@ -145,8 +145,13 @@ namespace Ritsu {
 					/*	Compute network forward.	*/
 					this->forwardPropgation(subsetBatchX, batchResult, batch_size, &cachedResult);
 
-					loss_error = std::move(this->lossFunction->computeLoss(subsetExpectedBatch, batchResult));
+					// std::cout << std::endl << subsetExpectedBatch << std::endl;
+
+					loss_error = this->lossFunction->computeLoss(subsetExpectedBatch, batchResult);
 					loss_deriv = this->lossFunction->derivative(subsetExpectedBatch, batchResult);
+
+					debug_print_tensor(std::cout, loss_error, "loss");
+					debug_print_tensor(std::cout, loss_deriv, "loss-derivative");
 
 					/*	Apply metric update.	*/
 					{
@@ -167,8 +172,6 @@ namespace Ritsu {
 						}
 						this->history[this->lossmetric.getName()].concatenate(this->lossmetric.result().getValue(0));
 
-						debug_print_tensor(std::cout, loss_error);
-						debug_print_tensor(std::cout, loss_deriv);
 						// std::cout << std::endl << std::endl << "loss: " << loss_error << std::endl << std::endl;
 						// std::cout << std::endl << "loss derv: " << loss_deriv << std::endl << std::endl;
 					}
@@ -433,7 +436,12 @@ namespace Ritsu {
 			for (int i = 0; i < batch_size - 1; i++) {
 				differental_error.concatenate(error);
 			}
-			differental_error.reshape({batch_size, error.getShape().getAxisDimensions(0)});
+			// TODO:
+			Shape<IndexType> diffShape;
+			diffShape.insert(0, {(IndexType)batch_size});
+			diffShape.insert(1, error.getShape().getSubShape(1));
+
+			differental_error.reshape(diffShape);
 
 			/*	*/
 			for (auto it = this->forwardSequence.rbegin(); it != this->forwardSequence.rend(); it++) {
@@ -501,25 +509,12 @@ namespace Ritsu {
 
 		virtual void build(std::vector<Layer<T> *> inputs, std::vector<Layer<T> *> outputs) { /*	*/
 
+			/*	*/
+			this->forwardSequence.clear();
+
 			// Iterate through each and extract number of trainable variables.
 			this->build_sequence(inputs, outputs);
-
-			/*	Extract all layer and rename to make them all unique.	*/
-			for (auto it = this->forwardSequence.rbegin(); it != this->forwardSequence.rend(); it++) {
-
-				const std::string &name = (*it)->getName();
-				std::string newName = (*it)->getName();
-
-				int index = 0;
-				while (this->layers.find(newName) != this->layers.end()) {
-
-					newName = name + "_" + (*it)->getDType().name();
-					newName += static_cast<char>('0' + static_cast<char>(index));
-				}
-
-				(*it)->setName(newName);
-				this->layers[newName] = (*it);
-			}
+			this->init_unique_name();
 		}
 
 		void build_sequence(const std::vector<Layer<T> *> inputs, const std::vector<Layer<T> *> outputs) {
@@ -577,6 +572,29 @@ namespace Ritsu {
 				}
 			}
 			// this->forwardSequence.reverse();
+		}
+
+		void init_unique_name() {
+
+			/*	Extract all layer and rename to make them all unique.	*/
+			for (auto it = this->forwardSequence.rbegin(); it != this->forwardSequence.rend(); it++) {
+
+				/*	*/
+				const std::string &name = (*it)->getName();
+				std::string newName = (*it)->getName();
+
+				int index = 0;
+				while (this->layers.find(newName) != this->layers.end()) {
+
+					newName = name + "_" + (*it)->getDType().name();
+					newName += static_cast<char>('0' + static_cast<char>(index));
+
+					index++; /*	*/
+				}
+
+				(*it)->setName(newName);
+				this->layers[newName] = (*it);
+			}
 		}
 
 		void print_status(std::ostream &stream) {

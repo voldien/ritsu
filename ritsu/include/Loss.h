@@ -31,9 +31,6 @@ namespace Ritsu {
 	  public:
 		// static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 		//			  "Must be a decimal type(float/double/half) or integer.");
-		//
-		// using IndexType = unsigned int;
-		// static constexpr size_t IndexTypeSize = sizeof(IndexType);
 		using DType = float;
 		const size_t DTypeSize = sizeof(DType);
 
@@ -88,7 +85,7 @@ namespace Ritsu {
 		}
 
 		/*	Mean for each batch index.	*/
-		const int batchIndex = -1;
+		const int batchIndex = 0;
 		output_result = output_result.mean(batchIndex);
 	}
 
@@ -102,7 +99,7 @@ namespace Ritsu {
 
 		output = -(expected_true * Tensor<float>::log10(tmp_output));
 
-		const int batchIndex = -1;
+		const int batchIndex = 0;
 		output = output.mean(batchIndex);
 	}
 
@@ -132,7 +129,7 @@ namespace Ritsu {
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
 			Tensor<float> output_result = (inputX0_true - inputX1_pred) * -2;
 			/*	Mean for each batch index.	*/
-			const int batchIndex = -1;
+			const int batchIndex = 0;
 			output_result = output_result.mean(batchIndex);
 			return output_result;
 		}
@@ -148,7 +145,7 @@ namespace Ritsu {
 			output_result = output_result * output_result;
 
 			/*	Mean for each batch index.	*/
-			const int batchIndex = -1;
+			const int batchIndex = 0;
 			output_result = output_result.mean(batchIndex);
 		}
 	};
@@ -157,9 +154,13 @@ namespace Ritsu {
 	  public:
 		MeanAbsoluterror(const std::string name = "mse") : Loss(loss_msa, name) {}
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
-			Tensor<float> output_result = (inputX0_true - inputX1_pred) * -2;
+
+			const DType cons = static_cast<DType>(1.0 / -2);
+			Tensor<float> output_result =
+				Tensor<float>::abs(inputX0_true - inputX1_pred) * static_cast<DType>(1.0 / -2);
+
 			/*	Mean for each batch index.	*/
-			const int batchIndex = -1;
+			const int batchIndex = 0;
 			output_result = output_result.mean(batchIndex);
 			return output_result;
 		}
@@ -178,7 +179,7 @@ namespace Ritsu {
 			output_result = Tensor<float>::abs(output_result);
 
 			/*	*/
-			const int batchIndex = -1;
+			const int batchIndex = 0;
 			output_result = output_result.mean(batchIndex);
 		}
 	};
@@ -190,7 +191,7 @@ namespace Ritsu {
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
 			Tensor<float> output_result = (inputX0_true - inputX1_pred) * -2;
 			/*	Mean for each batch index.	*/
-			const int batchIndex = -1;
+			const int batchIndex = 0;
 			output_result = output_result.mean(batchIndex);
 			return output_result;
 		}
@@ -200,7 +201,7 @@ namespace Ritsu {
 
 			output = std::move(expected * Tensor<float>::log10(evaluated_pre) * -1.0f);
 
-			const int batchIndex = -1;
+			const int batchIndex = 0;
 			output = output.mean(batchIndex);
 		}
 	};
@@ -216,7 +217,7 @@ namespace Ritsu {
 			if (this->from_logits) {
 				batchLossResult = Ritsu::softMax(batchLossResult);
 			} else {
-				batchLossResult = batchLossResult / batchLossResult.sum(-1);
+				batchLossResult = batchLossResult / batchLossResult.sum(0);
 				batchLossResult.clip(1e-7, 1 - 1e-7);
 			}
 
@@ -226,7 +227,7 @@ namespace Ritsu {
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
 			Tensor<DType> output_result = (inputX0_true - inputX1_pred) * -2;
 			/*	Mean for each batch index.	*/
-			const int batchIndex = -1;
+			const int batchIndex = 0;
 			output_result = output_result.mean(batchIndex);
 			return output_result;
 		}

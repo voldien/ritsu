@@ -283,10 +283,10 @@ namespace Ritsu {
 			return *this;
 		}
 
-		template <class... Arg> auto &operator()(const Arg &... location) const {
+		template <class... Arg> auto &operator()(const Arg &...location) const {
 			return this->getValue({(IndexType)location...});
 		}
-		template <class... Arg> auto operator()(const Arg &... location) const {
+		template <class... Arg> auto operator()(const Arg &...location) const {
 			return this->getValue({(IndexType)location...});
 		}
 
@@ -584,6 +584,7 @@ namespace Ritsu {
 
 			/*	Validate new subset shape size request.	*/
 			if (newShape.getNrDimensions() == 0) {
+				throw RuntimeException("Invalid Shape");
 			}
 
 			/*	Create a tensor, parent to this.	*/
@@ -1064,30 +1065,29 @@ namespace Ritsu {
 			if (tensorA.getNrElements() == 0) {
 				return {};
 			}
-
-			IndexType dim;
-			size_t dim_size;
-			if (tensorA.getShape().getNrDimensions() == 1) {
-				dim = 1;
-				dim_size = 1;
-			} else {
-				dim = tensorA.getShape().getAxisDimensions(axis);
-				dim_size = tensorA.getShape().getAxisDimensions(axis);
+			if (tensorA.getNrElements() == 1) {
+				return tensorA;
 			}
 
-			Tensor result({dim});
+			Shape<IndexType> dim;
+			size_t batch_size;
+
+			if (tensorA.getShape().getNrDimensions() == 1) {
+				dim = {1};
+				batch_size = 1;
+			} else {
+				dim = tensorA.getShape().getSubShape(axis);
+				dim[axis] = 1;
+				batch_size = tensorA.getShape().getAxisDimensions(axis);
+			}
+
+			Tensor result = Tensor::zero(dim);
 
 			/*	*/
-			for (size_t i = 0; i < dim_size; i++) {
-				const Tensor subset = tensorA.getSubset(
-					{{static_cast<IndexType>(i)},
-					 {0, tensorA.getShape()[0] - 1} /*TODO:remove*/}); // TODO:fix a unit test to make it work.
+			for (size_t i = 0; i < batch_size; i++) {
+				const Tensor subset = tensorA.getSubset({{static_cast<IndexType>(i)}});
 
-				const DType *data = subset.getRawData<DType>();
-
-				const size_t elements = subset.getNrElements();
-				const DType meanResult = Math::sum<DType>(data, elements);
-				result.getValue(i) = meanResult; // TODO:
+				result += subset;
 			}
 
 			return result;
@@ -1102,21 +1102,33 @@ namespace Ritsu {
 			if (tensorA.getNrElements() == 0) {
 				return {};
 			}
-
-			IndexType dim;
-			size_t dim_size;
-			if (tensorA.getShape().getNrDimensions() == 1) {
-				dim = 1;
-				dim_size = 1;
-			} else {
-				dim = tensorA.getShape().getAxisDimensions(axis);
-				dim_size = tensorA.getShape().getAxisDimensions(axis);
+			if (tensorA.getNrElements() == 1) {
+				return tensorA;
 			}
 
-			Tensor result({dim});
+			Tensor resultMean = Tensor::sum(tensorA, axis);
+
+			Shape<IndexType> dim;
+			size_t batch_size;
+			dim = tensorA.getShape().getSubShape({0});
+			batch_size = tensorA.getShape().getAxisDimensions(axis);
+
+			// if (tensorA.getShape().getNrDimensions() == 1) {
+			//	dim = {1};
+			//	batch_size = 1;
+			// } else {
+			//
+			//}
+
+			const DType averageInverse = (static_cast<DType>(1) / static_cast<DType>(batch_size));
+			resultMean = resultMean * averageInverse;
+			return resultMean;
+
+			Tensor result(dim);
 
 			/*	*/
-			for (size_t i = 0; i < dim_size; i++) {
+			for (size_t i = 0; i < batch_size; i++) {
+
 				const Tensor subset = tensorA.getSubset(
 					{{static_cast<IndexType>(i)},
 					 {0, tensorA.getShape()[0] - 1} /*TODO:remove*/}); // TODO:fix a unit test to make it work.
@@ -1149,17 +1161,18 @@ namespace Ritsu {
 				return {};
 			}
 
-			IndexType dim;
+			Shape<IndexType> dim;
 			size_t dim_size;
+
 			if (tensorA.getShape().getNrDimensions() == 1) {
-				dim = 1;
+				dim = {1};
 				dim_size = 1;
 			} else {
-				dim = tensorA.getShape().getAxisDimensions(axis);
+				dim = tensorA.getShape().getSubShape({0});
 				dim_size = tensorA.getShape().getAxisDimensions(axis);
 			}
 
-			Tensor result({dim});
+			Tensor result(dim);
 
 			/*	*/
 			for (size_t i = 0; i < dim_size; i++) {

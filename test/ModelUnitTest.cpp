@@ -4,7 +4,6 @@
 #include "core/Shape.h"
 #include <Ritsu.h>
 #include <gtest/gtest.h>
-#include <ostream>
 #include <tuple>
 
 using namespace Ritsu;
@@ -96,8 +95,8 @@ INSTANTIATE_TEST_SUITE_P(Model, ModelTest,
 TEST(ModelTest, DenseAddition) {
 
 	Input input({2}, "input");
-	Dense dense0(2);
-	Dense outputDense(1);
+	Dense dense0(2, false);
+	Dense outputDense(1, false);
 
 	RandomUniformInitializer<float> random(0, 2, 10052);
 	Tensor<float> dataX = random(Shape<unsigned int>({128, 2}));
@@ -119,8 +118,8 @@ TEST(ModelTest, DenseAddition) {
 	forwardModel.compile(&optimizer, mse_loss, {dynamic_cast<Metric *>(&accuracy)});
 
 	Model<float>::History *result;
-	//ASSERT_NO_FATAL_FAILURE(result = &forwardModel.fit(8, dataX, dataY, 1, 0, false, false));
+	ASSERT_NO_FATAL_FAILURE(result = &forwardModel.fit(8, dataX, dataY, 1, 0, false, false));
 
-	//EXPECT_NEAR((*result)["loss"].getValue((*result)["loss"].getNrElements() - 1), 0, 0.2);
-	//EXPECT_NEAR((*result)["accuracy"].getValue((*result)["accuracy"].getNrElements() - 1), 1, 0.01);
+	// EXPECT_NEAR((*result)["loss"].getValue((*result)["loss"].getNrElements() - 1), 0, 0.2);
+	// EXPECT_NEAR((*result)["accuracy"].getValue((*result)["accuracy"].getNrElements() - 1), 1, 0.01);
 }

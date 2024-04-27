@@ -54,18 +54,18 @@ namespace Ritsu {
 			return tmpOutput;
 		}
 
-		void setInputs(const std::vector<Layer<DType> *> &layers) override {
-			this->input = layers[0];
-			this->shape = this->input->getShape();
-		}
-
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
 			/*	Set input layer */
 			this->outputs = layers;
 		}
 
-		std::vector<Layer<DType> *> getInputs() const override { return {this->input}; }
-		std::vector<Layer<DType> *> getOutputs() const override { return this->outputs; }
+		void setInputs(const std::vector<Layer<DType> *> &layers) override {
+			this->shape = layers[0]->getShape();
+			this->input = layers[0];
+		}
+
+		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
+		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 		void build(const Shape<IndexType> &buildShape) override { this->shape = buildShape; }
 

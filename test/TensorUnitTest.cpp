@@ -295,43 +295,93 @@ TYPED_TEST_P(TensorTest, Mean) {
 
 	{
 		Tensor<TypeParam> tensor({32, 10}, sizeof(TypeParam));
+		tensor.assignInitValue(1);
 
 		TypeParam value;
 		ASSERT_NO_THROW(value = tensor.mean());
+		ASSERT_EQ(value, static_cast<TypeParam>(1));
 	}
 
 	{
 		Tensor<TypeParam> tensor({32, 10}, sizeof(TypeParam));
 
-		ASSERT_NO_THROW(Tensor<TypeParam>::mean(tensor, -1));
+		ASSERT_NO_THROW(Tensor<TypeParam>::mean(tensor, 0));
 
-		const Tensor<TypeParam> result = Tensor<TypeParam>::mean(tensor, -1);
-		ASSERT_EQ(result.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({10}));
+		const Tensor<TypeParam> result = Tensor<TypeParam>::mean(tensor, 0);
+		ASSERT_EQ(result.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({1, 10}));
 	}
 
 	{
 		Tensor<TypeParam> tensor({32, 10, 10}, sizeof(TypeParam));
 
-		ASSERT_NO_THROW(Tensor<TypeParam>::mean(tensor, -1));
+		ASSERT_NO_THROW(Tensor<TypeParam>::mean(tensor, 0));
 
-		const Tensor<TypeParam> result = Tensor<TypeParam>::mean(tensor, -1);
-		ASSERT_EQ(result.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({10}));
+		const Tensor<TypeParam> result = Tensor<TypeParam>::mean(tensor, 0);
+		ASSERT_EQ(result.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({1, 10, 10}));
 	}
 
 	/*	*/
 	{
-		// Tensor<TypeParam> tensor({2, 2, 3}, sizeof(TypeParam));
-		//
-		// const TypeParam randomValue = static_cast<TypeParam>(rand());
-		// tensor.template getValue<TypeParam>(0) = (TypeParam)randomValue;
-		//
-		// const Tensor<TypeParam> result = Tensor<TypeParam>::mean(tensor, -1);
-		//
-		// Tensor<TypeParam>::template mean<float>(tensor);
-		//
-		// Tensor<TypeParam>::abs(tensor);
-		//
-		// ASSERT_EQ(tensor.template getValue<TypeParam>(0), (TypeParam)randomValue);
+		Tensor<TypeParam> tensor({16, 28, 28, 1}, sizeof(TypeParam));
+
+		ASSERT_NO_THROW(Tensor<TypeParam>::mean(tensor, 0));
+
+		const Tensor<TypeParam> result = Tensor<TypeParam>::mean(tensor, 0);
+		ASSERT_EQ(result.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({1, 28, 28, 1}));
+	}
+}
+
+TYPED_TEST_P(TensorTest, Sum) {
+
+	{
+		Tensor<TypeParam> tensor({32, 10}, sizeof(TypeParam));
+		tensor.assignInitValue(1);
+
+		TypeParam value;
+		ASSERT_NO_THROW(value = tensor.sum());
+		ASSERT_EQ(value, static_cast<TypeParam>(320));
+	}
+
+	{
+		Tensor<TypeParam> tensor({32, 10}, sizeof(TypeParam));
+		tensor.assignInitValue(1);
+
+		ASSERT_NO_THROW(Tensor<TypeParam>::sum(tensor, 0));
+
+		const Tensor<TypeParam> result = Tensor<TypeParam>::sum(tensor, 0);
+		ASSERT_EQ(result.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({1, 10}));
+		for (int i = 0; i < result.getNrElements(); i++) {
+			ASSERT_EQ(result.getValue(i), static_cast<TypeParam>(32));
+		}
+	}
+
+	{
+		Tensor<TypeParam> tensor({32, 10, 10}, sizeof(TypeParam));
+		tensor.assignInitValue(1);
+
+		ASSERT_NO_THROW(Tensor<TypeParam>::sum(tensor, 0));
+
+		const Tensor<TypeParam> result = Tensor<TypeParam>::sum(tensor, 0);
+		ASSERT_EQ(result.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({1, 10, 10}));
+
+		for (int i = 0; i < result.getNrElements(); i++) {
+			ASSERT_EQ(result.getValue(i), static_cast<TypeParam>(32));
+		}
+	}
+
+	/*	*/
+	{
+		Tensor<TypeParam> tensor({16, 28, 28, 1}, sizeof(TypeParam));
+		tensor.assignInitValue(1);
+
+		ASSERT_NO_THROW(Tensor<TypeParam>::sum(tensor, 0));
+
+		const Tensor<TypeParam> result = Tensor<TypeParam>::sum(tensor, 0);
+		ASSERT_EQ(result.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({1, 28, 28, 1}));
+
+		for (int i = 0; i < result.getNrElements(); i++) {
+			ASSERT_EQ(result.getValue(i), static_cast<TypeParam>(16));
+		}
 	}
 }
 
@@ -555,7 +605,7 @@ TYPED_TEST_P(TensorTest, AXPY) {
 }
 
 REGISTER_TYPED_TEST_SUITE_P(TensorTest, DefaultConstructor, DefaultType, PrintNoThrow, AssignMove, DataSize, Addition,
-							Subtract, MultiplyFactor, ElementCount, FromArray, SetGetValues, Max, Min, Log10, Mean,
+							Subtract, MultiplyFactor, ElementCount, FromArray, SetGetValues, Max, Min, Log10, Mean, Sum,
 							Flatten, Transpose, InnerProduct, Append, Reduce, Reshape, Cast, SubSet,
 							MatrixMultiplication, Equal, NotEqual, OneShot, AXPY);
 
