@@ -69,7 +69,7 @@ namespace Ritsu {
 	 */
 	template <typename U> class RandomNormal : public Random<U> {
 	  public:
-		RandomNormal(const U mean = 0.0, const U stddev = 1.0, const size_t seed = 0) {
+		RandomNormal(const U mean = 0.0, const U stddev = 1.0, const size_t seed = 118284) {
 			this->distribution = std::normal_distribution<U>(mean, stddev);
 			std::random_device random_device;
 			this->gen = std::mt19937(random_device()); // Standard mersenne_twister_engine seeded with rd()
@@ -91,7 +91,7 @@ namespace Ritsu {
 	 */
 	template <typename U> class RandomBernoulli : public Random<U> {
 	  public:
-		RandomBernoulli(const U perc = 1.0, const size_t seed = 0) {
+		RandomBernoulli(const U perc = 1.0, const size_t seed = 512523) {
 			this->distribution = std::bernoulli_distribution(perc);
 			std::random_device random_device;
 			this->generator = std::mt19937(random_device()); // Standard mersenne_twister_engine seeded with rd()

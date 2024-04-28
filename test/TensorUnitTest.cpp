@@ -413,7 +413,8 @@ TYPED_TEST_P(TensorTest, InnerProduct) {
 		tensorA.assignInitValue(1);
 		tensorB.assignInitValue(1);
 
-		ASSERT_EQ(tensorA.dot(tensorB, -1), static_cast<TypeParam>((8 * 8 * 3) * 1));
+		const TypeParam result = tensorA.dot(tensorB, -1);
+		ASSERT_EQ(result, static_cast<TypeParam>((8 * 8 * 3) * 1));
 	}
 
 	/*	Improve.*/
@@ -424,7 +425,8 @@ TYPED_TEST_P(TensorTest, InnerProduct) {
 		tensorA.assignInitValue(1);
 		tensorB.assignInitValue(1);
 
-		ASSERT_EQ(tensorA.dot(tensorB, -1), static_cast<TypeParam>((8 * 8 * 3) * 1));
+		const TypeParam result = tensorA.dot(tensorB, -1);
+		ASSERT_EQ(result, static_cast<TypeParam>((8 * 8 * 3) * 1));
 	}
 }
 

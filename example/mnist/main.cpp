@@ -22,12 +22,12 @@ int main(int argc, const char **argv) {
 
 	try {
 		/*	*/
-		const unsigned int batchSize = 32;
+		const unsigned int batchSize = 64;
 		const unsigned int epochs = 128;
 		const float learningRate = 0.000001f;
 		bool useBatchNorm = false;
 		bool useSigmoidAct = true;
-		bool useDropout = false;
+		bool useDropout = true;
 		const float validationSplit = 0.1f;
 		bool useBias = false;
 		bool useNoise = false;
