@@ -253,18 +253,6 @@ namespace Ritsu {
 			return this->history;
 		}
 
-		Tensor<float> evaluate(const Tensor<float> &XData, const Tensor<float> &YData, const size_t batch = 1,
-							   const bool verbose = false) {
-
-			Tensor<float> result;
-
-			Time time;
-
-			this->forwardPropgation(XData, result, batch);
-
-			return result;
-		}
-
 		Tensor<float> predict(const Tensor<float> &inputTensor, const size_t batch = 1, const bool verbose = false) {
 
 			Tensor<float> result;
@@ -283,7 +271,6 @@ namespace Ritsu {
 			this->lossmetric = MetricMean("loss");
 			/*	Compile metrics.	*/
 			this->metrics = compile_metrics;
-			// TODO verify the objects.
 
 			/*	*/
 			for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
@@ -606,7 +593,10 @@ namespace Ritsu {
 			//			  << " -  accuracy: " << accuracy << std::flush;
 		}
 
-		bool is_build() const noexcept { return layers.size() > 0; }
+		bool is_build() const noexcept {
+			return layers.size() > 0 && optimizer && lossFunction && inputs.size() > 0 && outputs.size() > 0 &&
+				   forwardSequence.size() > 0;
+		}
 
 		bool is_junction_layer(const Layer<DType> *layer) const noexcept { return layer->getInputs().size() > 1; }
 

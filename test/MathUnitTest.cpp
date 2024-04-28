@@ -100,8 +100,6 @@ TEST_P(GuassianDistributionTest, Values) {
 
 	const float sum = Math::sum<float>(guass);
 	EXPECT_NEAR(sum, 1.0f, 0.015f);
-
-	// TODO: validate result.
 }
 
 INSTANTIATE_TEST_SUITE_P(Math, GuassianDistributionTest,
@@ -110,7 +108,6 @@ INSTANTIATE_TEST_SUITE_P(Math, GuassianDistributionTest,
 
 TEST(Math, Distrubtion) {
 	/*	Guassian distribution.	*/
-	// TODO add
 	const float mean = 0.0f;
 	const int num_guass = 30;
 	const int num_total_guass = num_guass * 2 + 1;

@@ -5,30 +5,30 @@
 
 
 ```cpp
-	Input input({2}, "input");
-	Dense dense0(2, false);
-	Dense outputDense(1, false);
+Input input({2}, "input");
+Dense dense0(2, false);
+Dense outputDense(1, false);
 
-	RandomUniformInitializer<float> random(0, 2, 10052);
-	Tensor<float> dataX = random(Shape<unsigned int>({128, 2}));
+RandomUniformInitializer<float> random(0, 2, 10052);
+Tensor<float> dataX = random(Shape<unsigned int>({128, 2}));
 
-	/*	Sum.	*/
-	Tensor<float> dataY({128, 1});
-	for (unsigned int i = 0; i < dataY.getNrElements(); i++) {
+/*	Sum.	*/
+Tensor<float> dataY({128, 1});
+for (unsigned int i = 0; i < dataY.getNrElements(); i++) {
 
-		const float value = dataX.getValue({i, 0}) + dataX.getValue({i, 1});
-		dataY.getValue(i) = value;
-	}
+	const float value = dataX.getValue({i, 0}) + dataX.getValue({i, 1});
+	dataY.getValue(i) = value;
+}
 
-	Layer<float> &output = outputDense(dense0(input));
-	SGD<float> optimizer(0.0001, 0.0);
+Layer<float> &output = outputDense(dense0(input));
+SGD<float> optimizer(0.0001, 0.0);
 
-	MetricAccuracy accuracy;
-	Model<float> forwardModel = Model<float>({&input}, {&output});
-	MeanSquareError mse_loss = MeanSquareError();
-	forwardModel.compile(&optimizer, mse_loss, {dynamic_cast<Metric *>(&accuracy)});
+MetricAccuracy accuracy;
+Model<float> forwardModel = Model<float>({&input}, {&output});
+MeanSquareError mse_loss = MeanSquareError();
+forwardModel.compile(&optimizer, mse_loss, {dynamic_cast<Metric *>(&accuracy)});
 
-	Model<float>::History *result = &forwardModel.fit(8, dataX, dataY, 1, 0, false, false);
+Model<float>::History *result = &forwardModel.fit(8, dataX, dataY, 1, 0, false, false);
 
 ```
 

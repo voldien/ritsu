@@ -415,6 +415,9 @@ namespace Ritsu {
 			return size;
 		}
 
+	  private:
+		void update_count() noexcept { this->count = this->computeNrElements(this->dims); }
+
 	  public: /*	Static methods.	*/
 		/**
 		 * @brief
