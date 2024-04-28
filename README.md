@@ -36,16 +36,8 @@ logo
 - **Batch Normalization**
 - **Dropout**
 - **GuassianNoise**
-- **MaxPooling2D**
-- **AveragePooling2D**
-- **MinPooling2D**
-- **Convolution2D**
-- **TransposeConvolution2D**
 - **Flatten**
 - **Reshape**
-
-- **EmbeedingLayer**
-
 - **Concatenate**
 - **Add**
 - **Subtract**
@@ -56,16 +48,13 @@ logo
 ## Loss Function
 - **MSE** - Mean Square Error.
 - **MSA** - Mean Square Absolute.
-- **SSIM** - Structural similarity
 - **CrossEntropy** - 
 - **CatagorialCrossEntropy** - 
 
 ## Optimizer
 
 - **SGD** - Stochastic Gradient Descent
-- **Ada** - 
 - **Adam** - Adaptive Moment estimation
-
 
 ## Dependencies
 
@@ -85,7 +74,6 @@ In order to compile the program on Linux based machine, the following Debian pac
 
 ## Installation
 
-
 ## Testing
 
 ```bash
@@ -95,7 +83,6 @@ ctest -vv
 ```bash
 ctest -O failure.txt --output-on-failure
 ```
-
 
 ## License
 

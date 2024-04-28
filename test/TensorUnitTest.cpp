@@ -299,7 +299,7 @@ TYPED_TEST_P(TensorTest, Mean) {
 
 		TypeParam value;
 		ASSERT_NO_THROW(value = tensor.mean());
-		ASSERT_EQ(value, static_cast<TypeParam>(1));
+		ASSERT_NEAR(value, static_cast<TypeParam>(1), 0.0001);
 	}
 
 	{

@@ -20,11 +20,9 @@
 #include "core/Shape.h"
 
 #include "layers/Add.h"
-#include "layers/AveragePooling2D.h"
 #include "layers/BatchNormalization.h"
 #include "layers/Cast.h"
 #include "layers/Concatenate.h"
-#include "layers/Conv2D.h"
 #include "layers/Dense.h"
 #include "layers/Divide.h"
 #include "layers/Dropout.h"
@@ -36,8 +34,6 @@
 #include "layers/Layer.h"
 #include "layers/LeakyRelu.h"
 #include "layers/Linear.h"
-#include "layers/MaxPooling2D.h"
-#include "layers/MinPooling2D.h"
 #include "layers/Multiply.h"
 #include "layers/Regularization.h"
 #include "layers/Relu.h"
@@ -48,7 +44,6 @@
 #include "layers/Subtract.h"
 #include "layers/Swish.h"
 #include "layers/Tanh.h"
-#include "layers/UpSampling2D.h"
 
 #include "Activations.h"
 #include "Random.h"
@@ -56,9 +51,7 @@
 
 #include "Metric.h"
 #include "Model.h"
-#include "optimizer/Ada.h"
 #include "optimizer/Adam.h"
-#include "optimizer/ExponentialDecay.h"
 #include "optimizer/SGD.h"
 
 #include "Loss.h"

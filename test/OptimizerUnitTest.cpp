@@ -24,14 +24,6 @@ TEST_P(OptimizerSetupTest, SetupAdam) {
 	ASSERT_STREQ(adam.getName().c_str(), "adam");
 }
 
-TEST_P(OptimizerSetupTest, SetupAda) {
-	const auto [learning_rate, y] = GetParam();
-
-	Ada<float> ada(learning_rate, 0.02);
-	ASSERT_EQ(ada.getLearningRate(), learning_rate);
-	ASSERT_STREQ(ada.getName().c_str(), "ada");
-}
-
 INSTANTIATE_TEST_SUITE_P(Optimizer, OptimizerSetupTest, ::testing::Values(std::make_tuple(0.02, 1)));
 
 class OptimizerGradientTest : public ::testing::TestWithParam<std::tuple<float, uint32_t, Ritsu::Shape<uint32_t>>> {};

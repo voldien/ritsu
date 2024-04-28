@@ -149,16 +149,16 @@ namespace Ritsu {
 						  "Type Must Support addition operation.");
 			/*	*/
 			const T sum = Math::sum<T>(list, nrElements);
-			const float averageInverse = static_cast<T>(1) / static_cast<T>(nrElements);
-			return averageInverse * sum;
+			const float averageInverse = static_cast<float>(1) / static_cast<float>(nrElements);
+			return static_cast<T>(averageInverse * sum);
 		}
 
 		template <typename T> constexpr static T mean(const std::vector<T> &list) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			const T sum = Math::sum<T>(list);
-			const float averageInverse = static_cast<T>(1) / static_cast<T>(list.size());
-			return averageInverse * sum;
+			const float averageInverse = static_cast<float>(1) / static_cast<float>(list.size());
+			return static_cast<T>(averageInverse * sum);
 		}
 
 		template <typename T> static T variance(const T *list, const size_t nrElements, const T mean) noexcept {
