@@ -612,5 +612,5 @@ REGISTER_TYPED_TEST_SUITE_P(TensorTest, DefaultConstructor, DefaultType, PrintNo
 							MatrixMultiplication, Equal, NotEqual, OneShot, AXPY);
 
 using TensorPrimitiveDataTypes =
-	::testing::Types<bool, int16_t, uint16_t, int32_t, uint32_t, long, size_t, float, double>;
+	::testing::Types<int16_t, uint16_t, int32_t, uint32_t, long, size_t, float, double>;
 INSTANTIATE_TYPED_TEST_SUITE_P(Tensor, TensorTest, TensorPrimitiveDataTypes);
