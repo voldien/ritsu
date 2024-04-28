@@ -18,7 +18,7 @@ namespace Ritsu {
 
 	/*	*/
 	template class Model<std::float_t>;
-	template class Model<std::double_t>;
+	//template class Model<std::double_t>;
 
 	/*	*/
 	template class Layer<std::float_t>;

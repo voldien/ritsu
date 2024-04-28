@@ -6,6 +6,7 @@
 #include <cstdint>
 #include <initializer_list>
 #include <omp.h>
+#include <optional>
 #include <string>
 #include <typeinfo>
 #include <vector>
@@ -17,7 +18,6 @@ namespace Ritsu {
 	 *
 	 * @tparam T
 	 */
-	// TODO: add training bool
 	template <typename T> class Layer : public Object {
 	  public:
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
@@ -85,14 +85,10 @@ namespace Ritsu {
 		// Dtype
 		const std::type_info &getDType() const noexcept { return typeid(DType); }
 
-		// TODO: add array.
 		// Weights trainable
-
 		virtual std::optional<std::vector<Tensor<DType> *>> getTrainableWeights() noexcept { return {}; }
 
-		// TODO: add array.
 		// non-trainable.
-
 		virtual std::optional<std::vector<Tensor<DType> *>> getVariables() noexcept { return {}; }
 
 		// input
@@ -140,11 +136,7 @@ namespace Ritsu {
 			this->setOutputs(layers);
 		}
 
-	  private:
 	  protected:
 		Shape<IndexType> shape;
-
-		//		std::vector<Layer<DType> *> *input;
-		// std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

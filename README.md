@@ -38,12 +38,6 @@ logo
 - **GuassianNoise**
 - **Flatten**
 - **Reshape**
-- **Concatenate**
-- **Add**
-- **Subtract**
-- **Multiply**
-- **Divide**
-
 
 ## Loss Function
 - **MSE** - Mean Square Error.

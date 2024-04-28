@@ -25,13 +25,10 @@ namespace Ritsu {
 	 * @brief
 	 *
 	 */
-	// TODO add template.
-	// template <typename T>
-	class Loss : public Object {
+	template <typename T> class Loss : public Object {
 	  public:
-		// static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
-		//			  "Must be a decimal type(float/double/half) or integer.");
-		using DType = float;
+		static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
+		using DType = T;
 		const size_t DTypeSize = sizeof(DType);
 
 	  public:
@@ -42,7 +39,6 @@ namespace Ritsu {
 
 		Loss(LossFunction lambda, const std::string &name = "loss") noexcept : Object(name) {
 			this->loss_function = lambda;
-			/*	Cache buffer.	*/ // TODO:
 		}
 
 		virtual Tensor<DType> computeLoss(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const {
@@ -122,7 +118,7 @@ namespace Ritsu {
 		return loss_categorical_crossentropy(evaluated_pre, expected_one_shot, output);
 	}
 
-	class MeanSquareError : public Loss {
+	class MeanSquareError : public Loss<float> {
 	  public:
 		MeanSquareError(const std::string name = "mse") : Loss(loss_mse, name) {}
 
@@ -150,7 +146,7 @@ namespace Ritsu {
 		}
 	};
 
-	class MeanAbsoluterror : public Loss {
+	class MeanAbsoluterror : public Loss<float> {
 	  public:
 		MeanAbsoluterror(const std::string name = "mse") : Loss(loss_msa, name) {}
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
@@ -184,7 +180,7 @@ namespace Ritsu {
 		}
 	};
 
-	class BinaryCrossEntropy : public Loss {
+	class BinaryCrossEntropy : public Loss<float> {
 	  public:
 		BinaryCrossEntropy(const std::string name = "binarycross") : Loss(loss_binary_cross_entropy, name) {}
 
@@ -206,7 +202,7 @@ namespace Ritsu {
 		}
 	};
 
-	class CategoricalCrossentropy : public Loss {
+	class CategoricalCrossentropy : public Loss<float> {
 	  public:
 		CategoricalCrossentropy(bool from_logits = false, const std::string name = "categorical_crossentropy")
 			: Loss(Ritsu::loss_categorical_crossentropy, name), from_logits(from_logits) {}
@@ -235,4 +231,5 @@ namespace Ritsu {
 	  private:
 		bool from_logits;
 	};
+
 } // namespace Ritsu

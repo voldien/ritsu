@@ -63,22 +63,13 @@ namespace Ritsu {
 		void build(const Shape<IndexType> &buildShape) override { this->shape = buildShape; }
 
 		void setOutputs(const std::vector<Layer<DType> *> &layers) override {
-
 			/*	Set input layer */
 			this->outputs = layers;
-
-			// TODO verify flatten
-
-			/*	*/
-			// this->build(this->getInputs()[0]->getShape());
 		}
 
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
 
-			// TODO verify flatten
 			Layer<DType> *inputLayer = layers[0];
-			if (inputLayer->getShape().getNrDimensions() == 1) {
-			}
 
 			this->input = layers[0];
 			this->shape = this->input->getShape();
@@ -117,7 +108,7 @@ namespace Ritsu {
 		}
 
 	  private:
-		// TODO: relocate
+		// TODO: relocate to some util
 		static void computeL1(const Tensor<float> &tensor, const DType L1, Tensor<float> &output) noexcept {
 
 			DType sum = 0;

@@ -1160,22 +1160,26 @@ namespace Ritsu {
 			if (tensorA.getNrElements() == 0) {
 				return {};
 			}
+			if (tensorA.getNrElements() == 1) {
+				return tensorA;
+			}
 
 			Shape<IndexType> dim;
-			size_t dim_size;
+			size_t batch_size;
 
 			if (tensorA.getShape().getNrDimensions() == 1) {
 				dim = {1};
-				dim_size = 1;
+				batch_size = 1;
 			} else {
-				dim = tensorA.getShape().getSubShape({0});
-				dim_size = tensorA.getShape().getAxisDimensions(axis);
+				dim = tensorA.getShape().getSubShape(axis);
+				dim[axis] = 1;
+				batch_size = tensorA.getShape().getAxisDimensions(axis);
 			}
 
 			Tensor result(dim);
 
 			/*	*/
-			for (size_t i = 0; i < dim_size; i++) {
+			for (size_t i = 0; i < batch_size; i++) {
 				const Tensor subset = tensorA.getSubset(
 					{{static_cast<IndexType>(i)},
 					 {0, tensorA.getShape()[0] - 1} /*TODO:remove*/}); // TODO:fix a unit test to make it work.

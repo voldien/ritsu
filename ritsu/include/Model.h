@@ -63,7 +63,7 @@ namespace Ritsu {
 			this->build(this->inputs, this->outputs);
 		}
 
-		// operator
+		// TODO: operator
 		// TODO add array.
 		// TODO add callback.
 		History &fit(const size_t epochs, const Tensor<float> &inputData, const Tensor<float> &expectedData,
@@ -276,7 +276,7 @@ namespace Ritsu {
 			return result;
 		}
 
-		void compile(Optimizer<T> *optimizer, const Loss &loss, const std::vector<Metric *> &compile_metrics = {}) {
+		void compile(Optimizer<T> *optimizer, const Loss<T> &loss, const std::vector<Metric *> &compile_metrics = {}) {
 			this->optimizer = optimizer;
 			this->lossFunction = &loss;
 
@@ -291,13 +291,15 @@ namespace Ritsu {
 			}
 			this->history[this->lossmetric.getName()] = Tensor<float>({1});
 
-			/*	*/ // Cache result tensors.
+			/*	Cache result tensors.*/
+			// TODO: add support for caching tensors.
 			std::vector<Tensor<float> *> tensors;
 			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
-				//(*it)->
 			}
+
 			/*	build optimizer.	*/
-			// this->optimizer->build({Shape<IndexType>({32, 32, 32})});
+			// TODO: add support for caching build.
+			//  this->optimizer->build({Shape<IndexType>({32, 32, 32})});
 		}
 
 		Layer<DType> *getLayer(const std::string &name) { return this->layers[name]; }
@@ -317,7 +319,6 @@ namespace Ritsu {
 
 				const Layer<T> *current = (*it);
 
-				// TODO get type
 				_summary << current->getName() << '\t' << " " << current->getShape() << '\t';
 
 				/*	*/
@@ -536,6 +537,7 @@ namespace Ritsu {
 
 				// TODO add support.
 				if (this->is_junction_layer(current)) {
+					throw NotSupportedException("Junction Layer not Supported");
 				}
 
 				std::optional<std::vector<Tensor<DType> *>> optional_train_variables = current->getTrainableWeights();
@@ -615,7 +617,7 @@ namespace Ritsu {
 
 		/*	*/
 		Optimizer<T> *optimizer;
-		const Loss *lossFunction;
+		const Loss<T> *lossFunction;
 
 		/*	*/
 		std::map<std::string, Layer<T> *> layers;

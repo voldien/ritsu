@@ -22,7 +22,7 @@ int main(int argc, const char **argv) {
 
 	try {
 		/*	*/
-		const unsigned int batchSize = 1;
+		const unsigned int batchSize = 32;
 		const unsigned int epochs = 128;
 		const float learningRate = 0.000001f;
 		bool useBatchNorm = false;
