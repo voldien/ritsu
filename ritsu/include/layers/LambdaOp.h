@@ -8,6 +8,7 @@ namespace Ritsu {
 	 *
 	 */
 	class LambdaOp : public Layer<float> {
+	  public:
 		using CustomLayerOp = void (*)(const Tensor<float> &input, const Tensor<float> &result);
 
 		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override { return tensor; }
@@ -17,6 +18,6 @@ namespace Ritsu {
 			return output;
 		}
 
-	  public:
+	  protected:
 	};
 } // namespace Ritsu

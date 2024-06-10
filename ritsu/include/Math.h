@@ -31,17 +31,6 @@ namespace Ritsu {
 		/**
 		 *
 		 */
-		// #pragma omp declare simd uniform(value) simdlen(4)
-		// #pragma omp declare simd uniform(value, min, max) notinbranch
-		template <typename T> static inline constexpr T clamp(const T value, const T min, const T max) noexcept {
-			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
-						  "Must be a decimal type(float/double/half) or integer.");
-			return Math::max<T>(min, Math::min<T>(max, value));
-		}
-
-		/**
-		 *
-		 */
 		template <typename T> inline constexpr static T abs(const T value) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
@@ -56,11 +45,22 @@ namespace Ritsu {
 		}
 
 		/**
+		 *
+		 */
+		// #pragma omp declare simd uniform(value) simdlen(4)
+		// #pragma omp declare simd uniform(value, min, max) notinbranch
+		template <typename T> static inline constexpr T clamp(const T value, const T min, const T max) noexcept {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value || std::is_enum<T>::value,
+						  "Must be a decimal type(float/double/half) or integer.");
+			return Math::max<T>(min, Math::min<T>(max, value));
+		}
+
+		/**
 		 *	Get max value of a and b.
 		 */
 		// #pragma omp declare simd uniform(value0, value1) notinbranch
 		template <typename T> static inline constexpr T max(const T value0, const T value1) noexcept {
-			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value || std::is_enum<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return (static_cast<T>(value0) < static_cast<T>(value1)) ? static_cast<T>(value1) : static_cast<T>(value0);
 		}
@@ -70,7 +70,7 @@ namespace Ritsu {
 		 */
 		// #pragma omp declare simd uniform(value0, value1) notinbranch
 		template <typename T> static inline constexpr T min(const T value0, const T value1) noexcept {
-			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value || std::is_enum<T>::value,
 						  "Must be a decimal type(float/double/half) or integer.");
 			return (static_cast<T>(value1) < static_cast<T>(value0)) ? static_cast<T>(value1) : static_cast<T>(value0);
 		}
@@ -83,13 +83,13 @@ namespace Ritsu {
 		}
 
 		template <typename T> static inline T sum(const std::vector<T> &list) noexcept {
-			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value || std::is_enum<T>::value,
 						  "Type Must Support addition operation.");
 			return Math::sum<T>(list.data(), list.size());
 		}
 
 		template <typename T> static T sum(const T *list, const size_t nrElements) noexcept {
-			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value || std::is_enum<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
 			T value;
