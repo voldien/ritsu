@@ -1,5 +1,5 @@
-CMAKE_MINIMUM_REQUIRED( VERSION 3.9 )
-PROJECT(ritsu-deep-learning)
+CMAKE_MINIMUM_REQUIRED( VERSION 3.9...3.20 )
+PROJECT(ritsu-deep-learning CXX)
 
 # Project uses C++17
 SET(CMAKE_CXX_STANDARD 17)
@@ -20,14 +20,18 @@ ELSE()
 	MESSAGE(STATUS "Shared libraries enabled")
 ENDIF(NOT BUILD_SHARED_LIBS)
 
-LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
-
 #
 OPTION(RITSU_WITH_MEM_JEMALLOC "Enable malloc replacement (http://www.canonware.com/jemalloc)" ON)
 MARK_AS_ADVANCED(RITSU_WITH_MEM_JEMALLOC)
 
 IF(RITSU_WITH_MEM_JEMALLOC)
 	FIND_PACKAGE(JeMalloc)
+	IF(NOT JeMalloc_FOUND)
+		FIND_PACKAGE(PkgConfig REQUIRED)
+		pkg_check_modules (JEMALLOC jemalloc)
+
+		pkg_search_module(JEMALLOC REQUIRED jemalloc)
+	ENDIF()
 ENDIF()
 
 ######################################

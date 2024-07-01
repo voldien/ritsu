@@ -6,10 +6,9 @@ FIND_PACKAGE(OpenMP REQUIRED)
 FIND_PACKAGE(CUDAToolkit QUIET)
 FIND_PACKAGE(HIP QUIET)
 
-IF(OpenMP_FOUND)
-
-ENDIF()
-
+#########################
+# CPU Ritsu 
+#########################
 ADD_LIBRARY(ritsu ${SOURCE_FILES} ${HEADER_FILES})
 TARGET_COMPILE_FEATURES(ritsu PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
 	cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
@@ -26,8 +25,9 @@ TARGET_INCLUDE_DIRECTORIES(ritsu PUBLIC
 
 INSTALL(TARGETS ritsu DESTINATION lib)
 
-# No OpenMP version.
-#-Wunknown-pragmas
+###################################
+# No OpenMP Version (Single Core)
+###################################
 ADD_LIBRARY(ritsu-no-opm ${SOURCE_FILES} ${HEADER_FILES})
 TARGET_COMPILE_FEATURES(ritsu-no-opm PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
 	cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
@@ -44,6 +44,9 @@ TARGET_INCLUDE_DIRECTORIES(ritsu-no-opm PUBLIC
 )
 
 # Only supported on clang
+##########################
+# ROCM Ritsu version.
+##########################
 IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND HIP_FOUND)
 	MESSAGE(STATUS "HIP found:")
 	ADD_LIBRARY(ritsu-rocm ${SOURCE_FILES} ${HEADER_FILES})
@@ -64,6 +67,9 @@ IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND HIP_FOUND)
 
 ENDIF()
 
+##########################
+# CUDA Ritsu version.
+##########################
 IF(CUDAToolkit_FOUND)
 	MESSAGE(STATUS "CUDA found:")
 	#CMAKE_CUDA_COMPILER
