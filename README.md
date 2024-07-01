@@ -1,4 +1,4 @@
-# Ritsu - リツ
+# Ritsu - リツ - WorkInProgress
 [![Ritsu](https://github.com/voldien/ritsu/actions/workflows/ci.yml/badge.svg)](https://github.com/voldien/ritsu/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/release/voldien/ritsu.svg)](https://github.com/voldien/ritsu/releases)
