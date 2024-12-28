@@ -1,8 +1,6 @@
 #include "layers/Dropout.h"
 #include "layers/Input.h"
 #include <Ritsu.h>
-#include <array>
-#include <cstddef>
 #include <cstdint>
 #include <gtest/gtest.h>
 #include <tuple>

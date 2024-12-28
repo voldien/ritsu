@@ -21,7 +21,7 @@ template <typename T> static inline constexpr T swap_endian(const T value) noexc
 
 static void load_image_dataset(std::ifstream &stream, Ritsu::Tensor<uint8_t> &dataX) {
 	/*	*/
-	int32_t width, height, nr_images, image_magic;
+	int32_t width = 0, height = 0, nr_images = 0, image_magic = 0;
 
 	/*	*/
 	stream.seekg(0, std::ios::beg);
@@ -72,7 +72,7 @@ static void load_image_dataset(std::ifstream &stream, Ritsu::Tensor<uint8_t> &da
 
 static void load_label_dataset(std::ifstream &stream, Ritsu::Tensor<uint8_t> &dataY) {
 
-	uint32_t label_magic, nr_label;
+	uint32_t label_magic = 0, nr_label = 0;
 
 	stream.seekg(0, std::ios::beg);
 
@@ -97,7 +97,7 @@ static void load_label_dataset(std::ifstream &stream, Ritsu::Tensor<uint8_t> &da
 	expected = {static_cast<unsigned int>(nr_label), 1};
 	assert(dataY.getShape() == expected);
 
-	uint8_t label;
+	uint8_t label = 0;
 	for (size_t i = 0; i < nr_label; i++) {
 
 		stream.read(reinterpret_cast<char *>(&label), sizeof(label));

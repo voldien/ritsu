@@ -87,7 +87,7 @@ namespace Ritsu {
 
 #pragma omp parallel for shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				const DType value = Ritsu::computeSigmoidDerivate<DType>(tensor.getValue<DType>(i));
+				const DType value = Ritsu::computeSigmoidDerivative<DType>(tensor.getValue<DType>(i));
 				tensor.getValue<DType>(i) = value;
 			}
 		}
@@ -103,7 +103,7 @@ namespace Ritsu {
 		}
 
 	  private:
-		Layer<DType> *input;
+		Layer<DType> *input = nullptr;
 		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

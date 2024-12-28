@@ -44,8 +44,6 @@ OPTION(RITSU_BUILD_WITH_TSAN "Enable Thread sanitizer" OFF)
 OPTION(RITSU_BUILD_WITH_COVERAGE "Enable Code coverage report analysis." OFF)
 OPTION(RITSU_BUILD_WITH_PROFILER "Enable Code Profiling." OFF)
 
-
-
 # Time profiling
 
 # ASAN

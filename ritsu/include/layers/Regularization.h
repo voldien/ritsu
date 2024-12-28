@@ -40,6 +40,7 @@ namespace Ritsu {
 		Tensor<float> operator>>(Tensor<float> &tensor) override { return tensor; }
 
 		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override {
+
 			if (this->l1 > 0 && !training) {
 				Regularization::computeL1(tensor, this->l1, tensor);
 			}
@@ -51,6 +52,7 @@ namespace Ritsu {
 
 		Tensor<DType> call(const Tensor<DType> &tensor, bool training) override {
 			Tensor<float> tmp = tensor;
+
 			if (this->l1 > 0 && !training) {
 				Regularization::computeL1(tensor, this->l1, tmp);
 			}
@@ -119,20 +121,20 @@ namespace Ritsu {
 			sum *= L1;
 
 			output.assign(output);
-			output = sum + output;
+			output = output + sum;
 		}
 
 		static void computeL2(const Tensor<float> &tensor, const DType L2, Tensor<float> &output) noexcept {
 			const DType value = L2 * tensor.dot(tensor, -1);
 			output.assign(tensor);
-			output = value + output;
+			output = output + value;
 		}
 
 	  private:
 		DType l1;
 		DType l2;
 
-		Layer<DType> *input;
+		Layer<DType> *input{};
 		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

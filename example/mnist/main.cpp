@@ -12,6 +12,7 @@
 #include "mnist_dataset.h"
 #include <Ritsu.h>
 #include <cstdint>
+#include <cxxopts.hpp>
 #include <exception>
 #include <iostream>
 #include <ostream>
@@ -20,17 +21,47 @@ using namespace Ritsu;
 
 int main(int argc, const char **argv) {
 
-	try {
+	/*	Parse argument.	*/
+	cxxopts::Options options("Addition Neural Network");
+	cxxopts::OptionAdder &addr = options.add_options("Addition")("h,help", "helper information.")(
+		"d,debug", "Enable Debugging", cxxopts::value<bool>()->default_value("false"))(
+		"B,batch", "Set the Batch Size", cxxopts::value<int>()->default_value("1"))(
+		"N,use-noise", "Enable the use of noise", cxxopts::value<bool>()->default_value("false"))(
+		"E,epoch", "Set the number of epochs", cxxopts::value<int>()->default_value("8"))(
+		"b,use-bias", "Use Dense Bias", cxxopts::value<bool>()->default_value("false"))(
+		"m,mid-dense-count", "Set Number of neuron in middle layer", cxxopts::value<int>()->default_value("2"))(
+		"l,learning-rate", "Set Learning Rate", cxxopts::value<float>()->default_value("0.00000001"))(
+		"M,optimizer-momentum", "Set Optimizer momentum", cxxopts::value<float>()->default_value("0.1"))(
+		"V,validation", "Set Validation split", cxxopts::value<float>()->default_value("0.1"))(
+		"S,seed", "Set Seed", cxxopts::value<int>()->default_value("1234"))(
+		"T,trainig-size", "Set Training Size", cxxopts::value<size_t>()->default_value("65536"))(
+		"O,optimizer", "Set Optimizer ", cxxopts::value<std::string>()->default_value("sgd"))
+		(
+		"s,use-sigmoid", " ", cxxopts::value<bool>()->default_value("false"));
+
+	/*	Parse the command line input.	*/
+	auto result = options.parse(argc, (char **&)argv);
+
+	/*	*/
+	const bool debug = result["debug"].as<bool>();
+	const unsigned int batchSize = 2; // result["batch"].as<int>();
+	const unsigned int epochs = result["epoch"].as<int>();
+	const float learningRate = result["learning-rate"].as<float>();
+	const bool useBatchNorm = false;
+	const bool useSigmoidAct = result["use-sigmoid"].as<bool>();
+	const bool useDropout = false;
+	const float validationSplit = Math::clamp<float>(result["validation"].as<float>(), 0, 1);
+	const bool useBias = result["use-bias"].as<bool>();
+	const bool useNoise = result["use-noise"].as<bool>();
+	const float momentum = result["optimizer-momentum"].as<float>();
+	const bool useRegulation = false;
+
+	if (debug) {
 		/*	*/
-		const unsigned int batchSize = 64;
-		const unsigned int epochs = 128;
-		const float learningRate = 0.000001f;
-		bool useBatchNorm = false;
-		bool useSigmoidAct = true;
-		bool useDropout = true;
-		const float validationSplit = 0.1f;
-		bool useBias = false;
-		bool useNoise = false;
+		Ritsu::enableDebug();
+	}
+
+	try {
 
 		/*	*/
 		Tensor<uint8_t> inputResY;
@@ -47,24 +78,25 @@ int main(int argc, const char **argv) {
 				  << std::endl;
 
 		/*	*/
-		inputResY = Tensor<uint8_t>::oneShot(inputResY);
-		inputResTestY = Tensor<uint8_t>::oneShot(inputResTestY);
+		inputResY = std::move(Tensor<uint8_t>::oneShot(inputResY));
+		inputResTestY = std::move(Tensor<uint8_t>::oneShot(inputResTestY));
 
 		/*	*/
-		const Tensor<float> inputResYF = inputResY.cast<float>();
-		const Tensor<float> inputResTestYF = inputResTestY.cast<float>();
+		const Tensor<float> inputResYF = std::move(inputResY.cast<float>());
+		const Tensor<float> inputResTestYF = std::move(inputResTestY.cast<float>());
 
 		/*	Extract data shape.	*/
 		Shape<unsigned int> dataShape = inputDataX.getShape().getSubShapeMem(1, 3);
-		Shape<unsigned int> resultShape = inputResY.getShape().getSubShapeMem(1, 1);
+		Shape<unsigned int> resultShape = inputResYF.getShape().getSubShapeMem(1, 1);
 		const unsigned int output_size = 10;
 
-		const Tensor<float> inputDataXF = inputDataX.cast<float>();
-		const Tensor<float> inputTestXF = inputTestX.cast<float>();
+		const Tensor<float> inputDataXF = std::move(inputDataX.cast<float>());
+		const Tensor<float> inputTestXF = std::move(inputTestX.cast<float>());
 
 		/*	*/
 		std::cout << "Train Object Size: " << dataShape << " Expected result Size: " << resultShape << std::endl;
 
+		/*	Creat all layers.	*/
 		Input input0node(dataShape, "input");
 		Cast<uint8_t, float> cast2Float;
 		Rescaling normalizedLayer(1.0f / 255.0f);
@@ -74,25 +106,25 @@ int main(int argc, const char **argv) {
 		Flatten flattenInput("flatten0");
 		Flatten flatten("flatten1");
 
-		Dense fw0(32, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer0");
+		Dense fw0(32, useBias, RandomUniformInitializer<float>(), RandomUniformInitializer<float>(), "layer0");
 		BatchNormalization BN0;
 		Dropout drop0(0.3f);
 		Relu relu0("relu0");
 
-		Dense fw1 = Dense(16, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer1");
+		Dense fw1 = Dense(16, useBias, RandomUniformInitializer<float>(), RandomUniformInitializer<float>(), "layer1");
 		BatchNormalization BN1;
 		Dropout drop1(0.3f);
 		Relu relu1("relu1");
 
 		Dense fw2_output =
-			Dense(output_size, useBias, RandomNormalInitializer<float>(), RandomNormalInitializer<float>(), "layer2");
+			Dense(output_size, useBias, RandomUniformInitializer<float>(), RandomUniformInitializer<float>(), "layer2");
 
 		Regularization regulation(0.00001f, 0.000f);
 
 		Sigmoid sigmoid;
 		SoftMax outputAct;
 
-		/*	*/
+		/*	Connect layers.	*/
 		{
 			Layer<float> *lay = &normalizedLayer(input0node);
 			lay = &flattenInput(*lay);
@@ -122,25 +154,41 @@ int main(int argc, const char **argv) {
 			lay = &relu1(*lay);
 
 			lay = &fw2_output(*lay);
-			lay = &sigmoid(*lay);
 
-			Layer<float> &output = regulation(*lay);
+			if (useSigmoidAct) {
+				lay = &sigmoid(*lay);
+			}
+
+			if (useRegulation) {
+				lay = &regulation(*lay);
+			}
+
+			Layer<float> &output = *lay;
 
 			Model<float> forwardModel({&input0node}, {&output});
 
-			SGD<float> optimizer(learningRate, 0.0008f);
+			SGD<float> optimizer(learningRate, momentum);
+			Adam<float> Adamoptimizer(learningRate);
 
 			MetricAccuracy accuracy;
+
+			Loss<float> *lossfunction = nullptr;
 			CategoricalCrossentropy cross_loss(true);
 			MeanSquareError mse_loss;
-			forwardModel.compile(&optimizer, mse_loss, {&accuracy});
+			if (useSigmoidAct) {
+				lossfunction = &mse_loss;
+			} else {
+				lossfunction = &cross_loss;
+			}
+
+			forwardModel.compile(&Adamoptimizer, *lossfunction, {&accuracy});
 			std::cout << forwardModel.summary() << std::endl;
 
 			forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize, validationSplit);
 
 			forwardModel.saveWeight("mnist_forward_network_model.weight");
 
-			Tensor<float> predict = forwardModel.predict(inputTestXF);
+			Tensor<float> predict = forwardModel.predict<float, float>(inputTestXF);
 
 			/*	*/
 			Tensor<float> predict_result = Tensor<float>::equal(predict, inputResTestYF);

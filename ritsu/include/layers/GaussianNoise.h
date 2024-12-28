@@ -17,7 +17,6 @@
 #include "Layer.h"
 #include "Random.h"
 #include <ctime>
-#include <random>
 
 namespace Ritsu {
 
@@ -27,9 +26,8 @@ namespace Ritsu {
 	 */
 	class GuassianNoise : public Layer<float> {
 	  public:
-		GuassianNoise(const DType mean, const DType stddev, const std::string &name = "noise") : Layer(name) {
-			this->random = new RandomNormal<DType>(stddev, mean);
-		}
+		GuassianNoise(const DType mean, const DType stddev, const std::string &name = "noise")
+			: Layer(name), random(new RandomNormal<DType>(stddev, mean)) {}
 		~GuassianNoise() override { delete this->random; }
 
 		Tensor<float> &operator<<(Tensor<float> &tensor) override {
@@ -80,7 +78,7 @@ namespace Ritsu {
 
 	  private:
 		/*	*/
-		Layer<DType> *input;
+		Layer<DType> *input{};
 		std::vector<Layer<DType> *> outputs;
 
 	  protected:

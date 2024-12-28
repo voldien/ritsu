@@ -15,7 +15,6 @@
  */
 #pragma once
 #include "Optimizer.h"
-#include <functional>
 #include <map>
 
 namespace Ritsu {
@@ -34,24 +33,30 @@ namespace Ritsu {
 			this->beta_2 = beta_2;
 			this->epsilon = epsilon;
 		}
+		virtual ~Adam() = default;
 
 		void update_step(const Tensor<T> &gradient, Tensor<T> &variable) override {
 
 			const size_t uid = variable.getUID();
+			/*	Init */
 			if (m_dw.find(uid) == m_dw.end()) {
 				m_dw[uid] = Tensor<T>::zero(variable.getShape());
 				v_dw[uid] = Tensor<T>::zero(variable.getShape());
 			}
 
+			/*	*/
 			m_dw[uid] = (this->m_dw[uid] * this->beta_1) + gradient * (1 - this->beta_1);
 			v_dw[uid] = (this->v_dw[uid] * this->beta_2) + (gradient * gradient) * (1 - this->beta_2);
 
 			T t = 1;
 
-			Tensor<T> m_dw_corr = this->m_dw[uid] / static_cast<T>(1 - std::pow(this->beta_1, t));
-			Tensor<T> v_dw_corr = this->v_dw[uid] / static_cast<T>(1 - std::pow(this->beta_2, t));
+			/*	*/
+			Tensor<T> m_dw_corr = this->m_dw[uid];
+			Tensor<T> v_dw_corr = this->v_dw[uid];
 
-			this->apply_gradients((m_dw_corr / (this->epsilon + v_dw_corr.sqrt())) * this->getLearningRate(), variable);
+			Tensor<T> gradient_update =
+				(m_dw_corr / (v_dw_corr.sqrt() + this->epsilon)) * gradient * -this->getLearningRate();
+			this->apply_gradients(gradient_update, variable);
 		}
 
 		/**
@@ -64,15 +69,19 @@ namespace Ritsu {
 			assert(gradient.getShape() == variable.getShape());
 
 			if (gradient.getShape() == variable.getShape()) {
-
-				variable -= gradient;
+				variable += gradient;
+			} else {
+				throw RuntimeException("Invalid Variable and Gradient Shape");
 			}
 		}
+
+		void build(std::initializer_list<const Tensor<T> &> &list) override { /*	*/ }
 
 	  private:
 		T beta_1;
 		T beta_2;
 		T epsilon;
+
 		std::map<size_t, Tensor<T>> m_dw;
 		std::map<size_t, Tensor<T>> v_dw;
 	};

@@ -61,8 +61,14 @@ namespace Ritsu {
 		std::vector<Layer<T> *> getInputs() const override { return {input}; }
 		std::vector<Layer<T> *> getOutputs() const override { return outputs; }
 
-		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
-		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override {
+			/* cast backwards*/
+			return tensor;
+		}
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override {
+			/* cast backwards*/
+			return tensor;
+		}
 
 		const std::type_info &getFromCastType() const noexcept { return typeid(A); }
 		const std::type_info &getToCastType() const noexcept { return typeid(T); }

@@ -56,11 +56,17 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
-		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override {
+			Tensor<DType> copy = tensor;
+			const Tensor<DType>::IndexType batchSize = tensor.getShape()[0];
+			return copy; //.reshape(this->input->getShape());
+		}
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override {
+			return tensor; //.reshape(this->input->getShape());
+		}
 
 	  private:
-		Layer<DType> *input;
+		Layer<DType> *input{};
 		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

@@ -1,8 +1,11 @@
+#include "Model.h"
 #include "Random.h"
-#include "Ritsu.h"
 #include "core/Initializers.h"
+#include "layers/Layer.h"
 #include <cmath>
 #include <cstdint>
+#include <optimizer/Adam.h>
+#include <optimizer/SGD.h>
 
 namespace Ritsu {
 
@@ -18,7 +21,7 @@ namespace Ritsu {
 
 	/*	*/
 	template class Model<std::float_t>;
-	//template class Model<std::double_t>;
+	// template class Model<std::double_t>;
 
 	/*	*/
 	template class Layer<std::float_t>;

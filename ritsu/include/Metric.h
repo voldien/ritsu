@@ -26,12 +26,13 @@ namespace Ritsu {
 	 */
 	class Metric : public Object {
 	  public:
+		virtual ~Metric() = default;
 		using DType = float;
-		Metric(const std::string &m_name) : Object(m_name) {}
+		Metric(const std::string &m_name) : Object(m_name){};
 
 		virtual void update_state(const std::initializer_list<const Tensor<DType> *> args) = 0;
 
-		template <typename... Args> void update_state(Args &... args) { return this->update_state({&args...}); }
+		template <typename... Args> void update_state(Args &...args) { return this->update_state({&args...}); }
 
 		virtual void reset_state() = 0;
 

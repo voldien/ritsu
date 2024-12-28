@@ -5,6 +5,7 @@ FILE(GLOB_RECURSE HEADER_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
 FIND_PACKAGE(OpenMP REQUIRED)
 FIND_PACKAGE(CUDAToolkit QUIET)
 FIND_PACKAGE(HIP QUIET)
+FIND_PACKAGE(IntelDPCPP QUIET)
 
 #########################
 # CPU Ritsu 
@@ -17,6 +18,7 @@ TARGET_LINK_LIBRARIES(ritsu PRIVATE m pthread PUBLIC OpenMP::OpenMP_CXX)
 IF(RITSU_WITH_MEM_JEMALLOC)
 	TARGET_LINK_LIBRARIES(ritsu PRIVATE ${JEMALLOC_LIBRARIES})
 ENDIF()
+TARGET_COMPILE_OPTIONS(ritsu PUBLIC -openmp-mapping)
 
 TARGET_INCLUDE_DIRECTORIES(ritsu PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
@@ -42,6 +44,30 @@ TARGET_INCLUDE_DIRECTORIES(ritsu-no-opm PUBLIC
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 	$<INSTALL_INTERFACE:include>
 )
+
+
+##########################
+# OneAPI Ritsu version.
+##########################
+
+IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND IntelDPCPP_FOUND)
+	MESSAGE(STATUS "OneAPI found:")
+	ADD_LIBRARY(ritsu-oneapi ${SOURCE_FILES} ${HEADER_FILES})
+	TARGET_COMPILE_FEATURES(ritsu-rocm PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
+		cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
+		cxx_generic_lambdas cxx_override cxx_noexcept cxx_aggregate_default_initializers)
+
+	TARGET_LINK_LIBRARIES(ritsu-oneapi PRIVATE m pthread PUBLIC OpenMP::OpenMP_CXX)
+
+	TARGET_INCLUDE_DIRECTORIES(ritsu-oneapi PUBLIC
+		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+		$<INSTALL_INTERFACE:include>
+	)
+
+	#TODO: add argument for arch.
+	TARGET_COMPILE_OPTIONS(ritsu-oneapi PUBLIC -target x86_64-pc-linux-gnu -fopenmp -qopenmp -fopenmp-targets=spir64 matmul_offload.c)
+
+ENDIF()
 
 # Only supported on clang
 ##########################
@@ -70,7 +96,7 @@ ENDIF()
 ##########################
 # CUDA Ritsu version.
 ##########################
-IF(CUDAToolkit_FOUND)
+IF(CUDAToolkit_FOUND AND RITSU_CUDA)
 	MESSAGE(STATUS "CUDA found:")
 	#CMAKE_CUDA_COMPILER
 

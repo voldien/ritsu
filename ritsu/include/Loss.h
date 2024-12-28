@@ -27,19 +27,23 @@ namespace Ritsu {
 	 */
 	template <typename T> class Loss : public Object {
 	  public:
+		virtual ~Loss() = default;
 		static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
 		using DType = T;
-		const size_t DTypeSize = sizeof(DType);
+		static constexpr const size_t DTypeSize = sizeof(DType);
 
 	  public:
 		using LossFunction = void (*)(const Tensor<DType> &evaluated_pre_true, const Tensor<DType> &expected_pred,
 									  Tensor<DType> &output_result);
 
 		Loss() : Object("loss") {}
-
 		Loss(LossFunction lambda, const std::string &name = "loss") noexcept : Object(name) {
 			this->loss_function = lambda;
 		}
+		Loss(const Loss &) = delete;
+		Loss(Loss &&) = delete;
+		Loss &operator=(const Loss &) = delete;
+		Loss &operator=(Loss &&) = delete;
 
 		virtual Tensor<DType> computeLoss(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const {
 
@@ -52,6 +56,8 @@ namespace Ritsu {
 			}
 
 			this->loss_function(inputX0_true, inputX1_pred, batchLossResult);
+
+			/*	Validate output shape.	*/
 
 			return batchLossResult;
 		}
@@ -88,12 +94,10 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
-	static void loss_categorical_crossentropy(const Tensor<float> &evaluated_pre, const Tensor<float> &expected_true,
-											  Tensor<float> &output) { // axis = -1
+	static void loss_categorical_crossentropy(const Tensor<float> &expected_true, const Tensor<float> &evaluated_pre,
+											  Tensor<float> &output) {
 
-		Tensor<float> tmp_output = evaluated_pre;
-
-		output = -(expected_true * Tensor<float>::log10(tmp_output));
+		output = -(expected_true * Tensor<float>::log10(evaluated_pre));
 
 		const int batchIndex = 0;
 		output = output.mean(batchIndex);
@@ -102,8 +106,8 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
-	static void sparse_categorical_crossentropy(const Tensor<float> &evaluated_pre, const Tensor<float> &expected,
-												Tensor<float> &output) { // axis = -1
+	static void sparse_categorical_crossentropy(const Tensor<float> &expected_true, const Tensor<float> &evaluated_pre,
+												Tensor<float> &output) {
 
 		const Tensor<float> expected_one_shot = Tensor<float>::zero(evaluated_pre.getShape());
 
@@ -123,7 +127,8 @@ namespace Ritsu {
 		MeanSquareError(const std::string name = "mse") : Loss(loss_mse, name) {}
 
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
-			Tensor<float> output_result = (inputX0_true - inputX1_pred) * -2;
+			/*	-2(D - P)	*/
+			Tensor<float> output_result = (inputX0_true - inputX1_pred) * static_cast<DType>(-2);
 			/*	Mean for each batch index.	*/
 			const int batchIndex = 0;
 			output_result = output_result.mean(batchIndex);
@@ -151,9 +156,11 @@ namespace Ritsu {
 		MeanAbsoluterror(const std::string name = "mse") : Loss(loss_msa, name) {}
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
 
+			//inputX0_true.equal();
+			//TODO: fix
 			const DType cons = static_cast<DType>(1.0 / -2);
 			Tensor<float> output_result =
-				Tensor<float>::abs(inputX0_true - inputX1_pred) * static_cast<DType>(1.0 / -2);
+				Tensor<float>::abs(inputX0_true - inputX1_pred) * cons;
 
 			/*	Mean for each batch index.	*/
 			const int batchIndex = 0;
@@ -164,12 +171,11 @@ namespace Ritsu {
 		/**
 		 * @brief
 		 */
-		static void loss_msa(const Tensor<float> &evaluated_pre, const Tensor<float> &expected,
+		static void loss_msa(const Tensor<float> &inputX0_true, const Tensor<float> &evaluated_pre,
 							 Tensor<float> &output_result) {
 
 			/*	(A - B)	*/
-			output_result = evaluated_pre - expected;
-			output_result = output_result * output_result;
+			output_result = inputX0_true - evaluated_pre;
 
 			/*	*/
 			output_result = Tensor<float>::abs(output_result);
@@ -185,7 +191,9 @@ namespace Ritsu {
 		BinaryCrossEntropy(const std::string name = "binarycross") : Loss(loss_binary_cross_entropy, name) {}
 
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
-			Tensor<float> output_result = (inputX0_true - inputX1_pred) * -2;
+
+			Tensor<DType> output_result = -(inputX0_true / inputX1_pred) + (1 - inputX0_true) / (1 - inputX1_pred);
+
 			/*	Mean for each batch index.	*/
 			const int batchIndex = 0;
 			output_result = output_result.mean(batchIndex);
@@ -214,14 +222,22 @@ namespace Ritsu {
 				batchLossResult = Ritsu::softMax(batchLossResult);
 			} else {
 				batchLossResult = batchLossResult / batchLossResult.sum(0);
-				batchLossResult.clip(1e-7, 1 - 1e-7);
+				batchLossResult.clip(std::numeric_limits<DType>::epsilon(), 1 - std::numeric_limits<DType>::epsilon());
 			}
 
 			return Loss::computeLoss(inputX0_true, batchLossResult);
 		}
 
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
-			Tensor<DType> output_result = (inputX0_true - inputX1_pred) * -2;
+
+			Tensor<DType> output_result;
+			if (this->from_logits) {
+				output_result = inputX1_pred - inputX0_true;
+			} else {
+				// ?
+				output_result = inputX1_pred - inputX0_true;
+			}
+
 			/*	Mean for each batch index.	*/
 			const int batchIndex = 0;
 			output_result = output_result.mean(batchIndex);

@@ -16,6 +16,7 @@
 #pragma once
 #include "Tensor.h"
 #include <cmath>
+#include <limits>
 
 namespace Ritsu {
 
@@ -28,7 +29,7 @@ namespace Ritsu {
 	}
 
 #pragma omp declare simd uniform(value) simdlen(4)
-	template <typename T> inline static T computeSigmoidDerivate(const T value) noexcept {
+	template <typename T> inline static T computeSigmoidDerivative(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		const T sig = computeSigmoid(value);
@@ -43,7 +44,7 @@ namespace Ritsu {
 	}
 
 #pragma omp declare simd uniform(value) simdlen(4)
-	template <typename T> inline static constexpr T reluDeriviate(const T value) noexcept {
+	template <typename T> inline static constexpr T reluDerivative(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		if (value >= 0) {
@@ -80,7 +81,7 @@ namespace Ritsu {
 	}
 
 #pragma omp declare simd uniform(value) simdlen(4)
-	template <typename T> inline static constexpr T computeTanhDerivate(const T value) noexcept {
+	template <typename T> inline static constexpr T computeTanhDerivative(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		return 1.0 - (computeTanh<T>(value) * computeTanh<T>(value));
@@ -155,9 +156,30 @@ namespace Ritsu {
 			tensor.template getValue<T>(i) = static_cast<T>(std::exp(tensor.template getValue<T>(i))) * Inversesum;
 		}
 		/*	*/
-		return tensor.clip(1e-7, 1 - 1e-7);
+		return tensor.clip(static_cast<T>(std::numeric_limits<T>::epsilon()),
+						   static_cast<T>(1 - std::numeric_limits<T>::epsilon()));
 	}
 
-	template <typename T> Tensor<float> &softMaxDerivative(Tensor<float> &tensor) { return tensor; }
+	template <typename T> Tensor<T> softMax(const Tensor<T> &tensor, const int axis = -1) noexcept {
+		Tensor<T> copy = tensor;
+		return softMax(const_cast<Tensor<T> &>(tensor), axis);
+	}
+
+	template <typename T> Tensor<float> softMaxDerivative(const Tensor<float> &tensor) {
+		Tensor<T> diag = Tensor<T>::diag(tensor);
+
+#pragma omp for simd
+		for (unsigned int i = 0; i < diag.getShape().getAxisDimensions(0); i++) {
+			for (unsigned int j = 0; j < diag.getShape().getAxisDimensions(1); j++) {
+				if (i == j) {
+					diag.getValue({i, j}) = tensor.getValue(i) * (1 - tensor.getValue(i));
+				} else {
+					diag.getValue({i, j}) = -tensor.getValue(i) * (1 - tensor.getValue(j));
+				}
+			}
+		}
+
+		return diag;
+	}
 
 } // namespace Ritsu

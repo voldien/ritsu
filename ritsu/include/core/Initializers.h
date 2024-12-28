@@ -29,9 +29,10 @@ namespace Ritsu {
 
 	  public:
 		using DType = T;
-		const size_t DTypeSize = sizeof(DType);
+		static constexpr const size_t DTypeSize = sizeof(DType);
 
-		Initializer() {}
+		Initializer() = default;
+		virtual ~Initializer() = default;
 
 		virtual Tensor<DType> get(const Shape<unsigned int> &shape) = 0;
 		virtual Tensor<DType> &set(Tensor<DType> &tensor) = 0;
@@ -42,7 +43,8 @@ namespace Ritsu {
 
 	template <typename T> class RandomNormalInitializer : public Initializer<T> {
 	  public:
-		RandomNormalInitializer(T mean = 0.0, T stddev = 1.0, int seed = 0) : random(RandomNormal<T>(mean, stddev)) {}
+		RandomNormalInitializer(const T mean = 0.0, const T stddev = 1.0, const int seed = 0)
+			: random(RandomNormal<T>(mean, stddev)) {}
 
 		Tensor<T> get(const Shape<unsigned int> &shape) override {
 
@@ -65,7 +67,8 @@ namespace Ritsu {
 
 	template <typename T> class RandomUniformInitializer : public Initializer<T> {
 	  public:
-		RandomUniformInitializer(T min = 0.0, T max = 1.0, int seed = 0) : random(RandomUniform<T>(min, max, seed)) {}
+		RandomUniformInitializer(const T min = 0.0, const T max = 1.0, const int seed = ::rand())
+			: random(RandomUniform<T>(min, max, seed)) {}
 
 		Tensor<T> get(const Shape<unsigned int> &shape) override {
 
@@ -90,7 +93,7 @@ namespace Ritsu {
 
 	template <typename T> class ZeroInitializer : public Initializer<T> {
 	  public:
-		ZeroInitializer() {}
+		ZeroInitializer() = default;
 
 		Tensor<T> get(const Shape<unsigned int> &shape) override {
 

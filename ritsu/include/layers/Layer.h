@@ -24,13 +24,13 @@ namespace Ritsu {
 					  "Must be a decimal type(float/double/half) or integer.");
 
 		using IndexType = std::uint32_t;
-		static constexpr unsigned int IndexTypeSize = sizeof(IndexType);
+		static constexpr size_t IndexTypeSize = sizeof(IndexType);
 		using DType = T;
-		const unsigned int DTypeSize = sizeof(DType);
+		static const constexpr size_t DTypeSize = sizeof(DType);
 
 	  public:
 		Layer(const std::string &name) noexcept : Object(name) { this->shape = std::move(Shape<IndexType>()); }
-		virtual ~Layer() noexcept {}
+		virtual ~Layer() noexcept = default;
 
 		/**
 		 * @brief

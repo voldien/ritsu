@@ -28,6 +28,8 @@ namespace Ritsu {
 		return std::strcmp(std::getenv("RITSU_DEBUG"), "1") == 0;
 	}
 
+	static void enableDebug() { setenv("RITSU_DEBUG", "1", 0); }
+
 	/*	*/
 	template <typename U = float> std::ostream &debug_print_layer(std::ostream &stream, Layer<U> &layer) noexcept {
 
@@ -60,7 +62,7 @@ namespace Ritsu {
 	template <typename U = std::float_t>
 	std::ostream &debug_print_tensor_layer(std::ostream &stream, const Layer<U> &layer, Tensor<U> &tensor) noexcept {
 		if (isDebugEnabled()) {
-			stream << std::endl << layer.getName() << " " << tensor << std::endl << std::endl;
+			stream << std::endl << layer.getName() << " " << tensor.getShape() << std::endl << tensor << std::endl << std::endl;
 		}
 		return stream;
 	}

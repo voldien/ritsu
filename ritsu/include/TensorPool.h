@@ -18,6 +18,8 @@
 
 namespace Ritsu {
 
-	class MemoryAllocationPool : Object {};
+	class MemoryAllocator : Object {
+	  public:
+	};
 
 }; // namespace Ritsu

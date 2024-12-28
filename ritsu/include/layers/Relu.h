@@ -15,6 +15,7 @@
  */
 #pragma once
 #include "Activaction.h"
+#include "Activations.h"
 #include "Tensor.h"
 #include "layers/Layer.h"
 #include <cassert>
@@ -74,12 +75,12 @@ namespace Ritsu {
 
 		Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) override {
 			Tensor<float> output = tensorLoss;
-			computeDeriviate(output);
+			computeDerivative(output);
 			return output;
 		}
 
 		Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const override {
-			computeDeriviate(tensorLoss);
+			computeDerivative(tensorLoss);
 			return tensorLoss;
 		}
 
@@ -94,16 +95,16 @@ namespace Ritsu {
 			}
 		}
 
-		static void computeDeriviate(Tensor<float> &tensor) {
+		static void computeDerivative(Tensor<float> &tensor) {
 			const size_t nrElements = tensor.getNrElements();
 #pragma omp parallel for shared(tensor)
 			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = Ritsu::reluDeriviate(tensor.getValue<DType>(i));
+				tensor.getValue<DType>(i) = Ritsu::reluDerivative(tensor.getValue<DType>(i));
 			}
 		}
 
 	  private:
-		Layer<DType> *input;
+		Layer<DType> *input{};
 		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

@@ -1,10 +1,6 @@
 #include <Ritsu.h>
 #include <cstdint>
 #include <cstdio>
-#include <fstream>
-#include <iostream>
-#include <istream>
-#include <ostream>
 
 namespace RitsuDataSet {
 

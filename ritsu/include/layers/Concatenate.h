@@ -28,8 +28,8 @@ namespace Ritsu {
 	  public:
 		Concatenate(Layer<DType> &a, Layer<DType> &b, const std::string &name = "concatenate")
 			: Concatenate({&a, &b}, name) {}
-		Concatenate(const std::vector<Layer<DType> *> &layers, const std::string &name) : Layer<float>(name) {
-			this->inputs = layers;
+		Concatenate(const std::vector<Layer<DType> *> &layers, const std::string &name) : Layer<float>(name), inputs(layers) {
+			
 		}
 
 		Tensor<DType> &call(Tensor<DType> &tensor, bool training) override { return tensor; }

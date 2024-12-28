@@ -15,6 +15,7 @@
  */
 #pragma once
 #include "Activaction.h"
+#include "Activations.h"
 #include <cmath>
 
 namespace Ritsu {
@@ -79,7 +80,7 @@ namespace Ritsu {
 		}
 
 	  private:
-		Layer<DType> *input;
+		Layer<DType> *input = nullptr;
 		std::vector<Layer<DType> *> outputs;
 		DType coff;
 	};

@@ -24,9 +24,7 @@ namespace Ritsu {
 	 */
 	class Rescaling : public Layer<float> {
 	  public:
-		Rescaling(const DType scale, const std::string &name = "rescaling") : Layer<float>(name) {
-			this->scale = scale;
-		}
+		Rescaling(const DType scale, const std::string &name = "rescaling") : Layer<float>(name), scale(scale) {}
 
 		Tensor<float> &operator<<(Tensor<float> &tensor) override {
 			this->computeScale(tensor);
@@ -67,15 +65,17 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
 		/*	*/
-		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
-		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor * (1.0f / this->scale); }
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override {
+			return tensor * (1.0f / this->scale);
+		}
 
 	  protected:
 		inline void computeScale(Tensor<float> &tensor) const noexcept { tensor = tensor * this->scale; }
 
 	  private:
 		DType scale;
-		Layer<DType> *input;
+		Layer<DType> *input{};
 		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

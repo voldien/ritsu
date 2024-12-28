@@ -14,7 +14,6 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
-#include "../Math.h"
 #include "Layer.h"
 #include "Tensor.h"
 #include "core/Initializers.h"
@@ -81,7 +80,7 @@ namespace Ritsu {
 			Tensor<DType> batch_mean = Tensor<DType>::mean(input, axis);
 			Tensor<DType> batch_variance = Tensor<DType>::variance(input, batch_mean, axis);
 
-			Tensor<DType> inv = (epsilon + batch_variance).sqrt();
+			Tensor<DType> inv = (batch_variance + epsilon).sqrt();
 			inv *= gamma;
 
 			/*	*/ // TOOD:fix
@@ -94,7 +93,7 @@ namespace Ritsu {
 
 		/*	*/
 		/*	*/
-		Layer<DType> *input;
+		Layer<DType> *input{};
 		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

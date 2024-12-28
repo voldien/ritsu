@@ -47,13 +47,14 @@ namespace Ritsu {
 		static_assert(std::is_integral<T>::value, "Type must be a integral type.");
 
 		using IndexType = T;
-		static constexpr unsigned int IndexTypeSize = sizeof(IndexType);
+		static constexpr size_t IndexTypeSize = sizeof(IndexType);
 
 	  public:
 		Shape() = default;
 		Shape(const std::vector<IndexType> &shape) noexcept { this->dims = shape; }
 		Shape(const Shape &shape) noexcept { this->dims = shape.dims; }
 		Shape(Shape &&shape) noexcept { this->dims = std::move(shape.dims); }
+		~Shape() = default;
 
 		Shape &operator=(const Shape &shape) noexcept {
 			this->dims = shape.dims;
@@ -215,6 +216,8 @@ namespace Ritsu {
 		 */
 		explicit operator const std::vector<IndexType> &() const noexcept { return this->dims; }
 
+		bool isEmpty() const noexcept { return this->dims.empty(); }
+
 		/**
 		 * @brief
 		 */
@@ -226,6 +229,9 @@ namespace Ritsu {
 					this->dims.erase(std::next(this->dims.begin(), i));
 					i = -1; /*	reset index counter.	*/
 				}
+			}
+			if (this->dims.empty()) {
+				this->dims.resize(1, 1);
 			}
 
 			return *this;

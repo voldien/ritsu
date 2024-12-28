@@ -27,7 +27,7 @@ namespace Ritsu {
 	class SoftMax : public Activaction {
 	  public:
 		SoftMax(const std::string &name = "softmax") : Activaction(name) {}
-		~SoftMax() override {}
+		~SoftMax() override = default;
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 			Tensor<DType> tmp = tensor;
@@ -59,12 +59,17 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor<float> compute_derivative(const Tensor<float> &tensor) override { return tensor; }
-		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override { return tensor; }
+		Tensor<float> compute_derivative(const Tensor<float> &tensor) override {
+			return softMaxDerivative<DType>(tensor);
+		}
+		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override {
+			tensor = softMaxDerivative<DType>(tensor);
+			return tensor;
+		}
 
 	  private:
 		/*	*/
-		Layer<DType> *input;
+		Layer<DType> *input = nullptr;
 		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

@@ -1,8 +1,8 @@
 # Ritsu - リツ - WorkInProgress
+
 [![Ritsu](https://github.com/voldien/ritsu/actions/workflows/ci.yml/badge.svg)](https://github.com/voldien/ritsu/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/release/voldien/ritsu.svg)](https://github.com/voldien/ritsu/releases)
-
 
 ```cpp
 Input input({2}, "input");
@@ -12,12 +12,12 @@ Dense outputDense(1, false);
 RandomUniformInitializer<float> random(0, 2, 10052);
 Tensor<float> dataX = random(Shape<unsigned int>({128, 2}));
 
-/*	Sum.	*/
+/* Sum. */
 Tensor<float> dataY({128, 1});
 for (unsigned int i = 0; i < dataY.getNrElements(); i++) {
 
-	const float value = dataX.getValue({i, 0}) + dataX.getValue({i, 1});
-	dataY.getValue(i) = value;
+ const float value = dataX.getValue({i, 0}) + dataX.getValue({i, 1});
+ dataY.getValue(i) = value;
 }
 
 Layer<float> &output = outputDense(dense0(input));
@@ -53,6 +53,7 @@ Model<float>::History *result = &forwardModel.fit(8, dataX, dataY, 1, 0, false, 
 - **Linear**
 
 ### Layer
+
 - **Dense**
 - **Batch Normalization**
 - **Dropout**
@@ -61,10 +62,11 @@ Model<float>::History *result = &forwardModel.fit(8, dataX, dataY, 1, 0, false, 
 - **Reshape**
 
 ## Loss Function
+
 - **MSE** - Mean Square Error.
 - **MSA** - Mean Square Absolute.
-- **CrossEntropy** - 
-- **CatagorialCrossEntropy** - 
+- **CrossEntropy** -
+- **CatagorialCrossEntropy** -
 
 ## Optimizer
 

@@ -31,13 +31,9 @@ namespace Ritsu {
 	class Dense : public Layer<float> {
 	  public:
 		Dense(uint32_t units, bool use_bias = true,
-			  const Initializer<DType> &weight_init = RandomUniformInitializer<DType>(),
-			  const Initializer<DType> &bias_init = RandomUniformInitializer<DType>(),
-			  const std::string &name = "dense")
-			: Layer(name) {
-
-			/*	*/
-			this->units = units;
+			  const Initializer<DType> &weight_init = RandomUniformInitializer<DType>(-0.15, 0.15),
+			  const Initializer<DType> &bias_init = ZeroInitializer<DType>(), const std::string &name = "dense")
+			: Layer(name), units(units) {
 
 			/*	*/
 			if (use_bias) {
@@ -109,11 +105,13 @@ namespace Ritsu {
 		void setInputs(const std::vector<Layer<DType> *> &layers) override {
 
 			assert(layers.size() == 1);
-			// TODO verify flatten
+
 			if (layers.size() > 1) {
 				/*	*/
-				throw InvalidArgumentException("");
+				throw InvalidArgumentException("Must only have a single input layer");
 			}
+
+			// TODO verify flatten
 
 			this->input = layers[0];
 		}
@@ -134,7 +132,7 @@ namespace Ritsu {
 
 	  private:
 		/*	*/
-		Layer<DType> *input;
+		Layer<DType> *input{};
 		std::vector<Layer<DType> *> outputs;
 
 	  protected:

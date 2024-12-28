@@ -1,5 +1,4 @@
 #include "Loss.h"
-#include "RitsuUnitTest.h"
 #include "core/Initializers.h"
 #include "core/Shape.h"
 #include <Ritsu.h>
@@ -110,14 +109,14 @@ TEST(ModelTest, DenseAddition) {
 	}
 
 	Layer<float> &output = outputDense(dense0(input));
-	SGD<float> optimizer(0.0001, 0.0);
+	SGD<float> optimizer(0.0001f, 0.0);
 
 	MetricAccuracy accuracy;
 	Model<float> forwardModel = Model<float>({&input}, {&output});
 	MeanSquareError mse_loss = MeanSquareError();
 	forwardModel.compile(&optimizer, mse_loss, {dynamic_cast<Metric *>(&accuracy)});
 
-	Model<float>::History *result;
+	Model<float>::History *result = nullptr;
 	ASSERT_NO_FATAL_FAILURE(result = &forwardModel.fit(8, dataX, dataY, 1, 0, false, false));
 
 	// EXPECT_NEAR((*result)["loss"].getValue((*result)["loss"].getNrElements() - 1), 0, 0.2);

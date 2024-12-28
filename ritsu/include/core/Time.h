@@ -28,7 +28,7 @@ namespace Ritsu {
 	class Time : public Object {
 	  public:
 		Time() : Object("time") {}
-
+		
 		/**
 		 * @brief
 		 */
@@ -88,6 +88,6 @@ namespace Ritsu {
 	  private: /*  */
 		steady_clock::time_point start_timestamp;
 		steady_clock::time_point ticks;
-		duration<float> delta_data;
+		duration<float> delta_data = {};
 	};
 } // namespace Ritsu

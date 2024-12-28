@@ -93,13 +93,33 @@ namespace Ritsu {
 						  "Type Must Support addition operation.");
 			T sum = 0;
 			T value;
-			size_t index;
-			// #pragma omp simd reduction(+ : sum) private(value) simdlen(4) linear(index : 1)
+			size_t index = 0;
+#pragma omp simd reduction(+ : sum) private(value) simdlen(4) linear(index : 1)
 			for (index = 0; index < nrElements; index++) {
 				value = list[index];
 				sum += value;
 			}
 			return sum;
+		}
+
+		template <typename T> static inline T sum_abs(const std::vector<T> &list) noexcept {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value || std::is_enum<T>::value,
+						  "Type Must Support addition operation.");
+			return Math::sum_abs<T>(list.data(), list.size());
+		}
+
+		template <typename T> static T sum_abs(const T *list, const size_t nrElements) noexcept {
+			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value || std::is_enum<T>::value,
+						  "Type Must Support addition operation.");
+			T abs_sum = 0;
+			T value;
+			size_t index = 0;
+#pragma omp simd reduction(+ : abs_sum) private(value) simdlen(4) linear(index : 1)
+			for (index = 0; index < nrElements; index++) {
+				value = list[index];
+				abs_sum += std::abs(value);
+			}
+			return abs_sum;
 		}
 
 		template <typename T> static inline T product(const std::vector<T> &list) noexcept {
@@ -112,7 +132,7 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T product_combined = 1;
-			size_t index;
+			size_t index = 0;
 
 #pragma omp simd reduction(* : product_combined) simdlen(4) linear(index : 1)
 			for (index = 0; index < nrElements; index++) {
@@ -125,7 +145,7 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
-			size_t index;
+			size_t index = 0;
 #pragma omp simd reduction(+ : sum) simdlen(4) linear(index : 1)
 			for (index = 0; index < nrElements; index++) {
 				sum += listA[index] * listB[index];
@@ -137,7 +157,7 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			/*	*/
-			size_t index;
+			size_t index = 0;
 #pragma omp simd simdlen(4) linear(index : 1)
 			for (index = 0; index < nrElements; index++) {
 				list[index] = static_cast<T>(std::pow(list[index], exponent));
@@ -165,7 +185,7 @@ namespace Ritsu {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 						  "Type Must Support addition operation.");
 			T sum = 0;
-			size_t index;
+			size_t index = 0;
 #pragma omp simd reduction(+ : sum) simdlen(4) linear(index : 1)
 			for (index = 0; index < nrElements; index++) {
 				sum += (list[index] - mean) * (list[index] - mean);
@@ -361,10 +381,6 @@ namespace Ritsu {
 
 			for (unsigned int y = 0; y < height; y++) {
 				for (unsigned int x = 0; x < width; x++) {
-
-					// TODO: add offset
-					// const T exp_num_sqrt = (i - theta + offset);
-
 					const T exponent = exp_inverse * -(x * x + y * y);
 
 					guassian[y * width + x] = sqr_2_pi_inverse * std::exp(exponent);

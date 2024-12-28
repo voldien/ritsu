@@ -16,6 +16,7 @@
 #pragma once
 #include "Layer.h"
 #include "core/Shape.h"
+#include<Openmp/omp-tools.h>
 
 namespace Ritsu {
 
@@ -73,11 +74,19 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor<DType> compute_derivative(const Tensor<DType> &tensor) override { return tensor; }
-		Tensor<DType> &compute_derivative(Tensor<DType> &tensor) const override { return tensor; }
+		Tensor<DType> compute_derivative(const Tensor<DType> &tensor) override {
+			Tensor<DType> copy = tensor;
+			const Tensor<DType>::IndexType batchSize = tensor.getShape()[0];
+			return copy.reshape(this->input->getShape());
+		}
+
+		Tensor<DType> &compute_derivative(Tensor<DType> &tensor) const override {
+			const Tensor<DType>::IndexType batchSize = tensor.getShape()[0];
+			return tensor.reshape(this->input->getShape());
+		}
 
 	  private:
-		Layer<DType> *input;
+		Layer<DType> *input = nullptr;
 		std::vector<Layer<DType> *> outputs;
 		Shape<IndexType> newShape;
 	};

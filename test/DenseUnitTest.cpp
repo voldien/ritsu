@@ -11,7 +11,7 @@ TEST_P(DenseOutShape, Setup) {
 	auto [xUnit, denseUnit, expected] = GetParam();
 
 	Input input({xUnit});
-	Dense *dense;
+	Dense *dense = nullptr;
 	ASSERT_NO_THROW(dense = new Dense(denseUnit));
 
 	Layer<float> *output = nullptr;
@@ -52,9 +52,9 @@ TEST_P(DenseParameterTest, WeightSize) {
 	Layer<float> &output = (*dense)(input);
 	dense->build(input.getShape());
 
-	//TODO:
-	//ASSERT_EQ(dense->getTrainableWeights()->getShape(), expectedWeightShape);
-	//ASSERT_EQ(dense->getVariables()->getShape(), Ritsu::Shape<uint32_t>({1, denseUnit}));
+	// TODO:
+	// ASSERT_EQ(dense->getTrainableWeights()->getShape(), expectedWeightShape);
+	// ASSERT_EQ(dense->getVariables()->getShape(), Ritsu::Shape<uint32_t>({1, denseUnit}));
 
 	ASSERT_NO_THROW(delete dense);
 }

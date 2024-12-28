@@ -15,6 +15,7 @@
  */
 #pragma once
 #include "Activaction.h"
+#include "Activations.h"
 
 namespace Ritsu {
 
@@ -84,8 +85,8 @@ namespace Ritsu {
 		}
 
 	  private:
-		Layer<DType> *input;
-		const float beta;
+		Layer<DType> *input = nullptr;
+		const float beta = 0;
 		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

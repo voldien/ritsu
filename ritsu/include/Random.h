@@ -31,7 +31,7 @@ namespace Ritsu {
 		using DType = T;
 		const size_t DTypeSize = sizeof(DType);
 
-		Random() {}
+		Random() = default;
 		virtual ~Random() = default;
 
 		virtual DType rand() noexcept = 0;
@@ -116,12 +116,27 @@ namespace Ritsu {
 		}
 
 		U rand() noexcept override { return this->distribution(this->generator); }
-		void reset() noexcept override {
-			this->distribution.reset();
-		}
+		void reset() noexcept override { this->distribution.reset(); }
 
 	  private:
 		std::binomial_distribution<> distribution;
+		std::mt19937 generator;
+	};
+
+	template <typename U> class RandomPoisson : public Random<U> {
+	  public:
+		RandomPoisson(const U perc = 0.5, const size_t seed = 123456) {
+			this->distribution = std::poisson_distribution<>(seed, perc);
+			std::random_device random_device;
+			this->generator = std::mt19937(random_device());
+			this->generator.seed(seed);
+		}
+
+		U rand() noexcept override { return this->distribution(this->generator); }
+		void reset() noexcept override { this->distribution.reset(); }
+
+	  private:
+		std::poisson_distribution<> distribution;
 		std::mt19937 generator;
 	};
 

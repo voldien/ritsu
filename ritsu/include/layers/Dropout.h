@@ -27,9 +27,7 @@ namespace Ritsu {
 
 	  public:
 		Dropout(const DType perc = 0.5f, const size_t seed = 12345679, const std::string &name = "dropout")
-			: Layer(name), perc(perc) {
-			this->random = new RandomBernoulli<DType>(perc, seed);
-		}
+			: Layer(name), perc(perc), random(new RandomBernoulli<DType>(perc, seed)) {}
 		~Dropout() override { delete this->random; }
 
 		Tensor<float> &operator<<(Tensor<float> &tensor) override {
@@ -88,7 +86,8 @@ namespace Ritsu {
 
 #pragma omp parallel for shared(tensor)
 			for (IndexType i = 0; i < nrElements; i++) {
-				const DType value = tensor.getValue<DType>(i) * this->random->rand() * (1.0f / (1.0 - this->perc));
+				const DType value = tensor.getValue<DType>(i) * this->random->rand() *
+									(static_cast<DType>(1) / (static_cast<DType>(1) - this->perc));
 				tensor.getValue<DType>(i) = value;
 			}
 		}
@@ -96,7 +95,7 @@ namespace Ritsu {
 		/*	*/
 		DType perc;
 		Random<DType> *random;
-		Layer<DType> *input;
+		Layer<DType> *input{};
 		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

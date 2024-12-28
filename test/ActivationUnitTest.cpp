@@ -21,7 +21,7 @@ class ReluDerivativeActivationFunctionTest : public ActivationFunctionTest {};
 TEST_P(ReluDerivativeActivationFunctionTest, Relu) {
 	auto [x, expected_activation] = GetParam();
 
-	EXPECT_FLOAT_EQ(reluDeriviate(x), expected_activation);
+	EXPECT_FLOAT_EQ(reluDerivative(x), expected_activation);
 }
 INSTANTIATE_TEST_SUITE_P(Relu, ReluDerivativeActivationFunctionTest,
 						 ::testing::Values(std::make_tuple(5, 1), std::make_tuple(3, 1), std::make_tuple(-1000, 0)));
@@ -64,7 +64,7 @@ class SigmoidDerivativeActivationFunctionTest : public ActivationFunctionTest {}
 TEST_P(SigmoidDerivativeActivationFunctionTest, Sigmoid) {
 	auto [x, expected_activation] = GetParam();
 
-	EXPECT_FLOAT_EQ(computeSigmoidDerivate(x), expected_activation);
+	EXPECT_FLOAT_EQ(computeSigmoidDerivative(x), expected_activation);
 }
 
 // TODO:
@@ -132,7 +132,7 @@ class TanhDerivativeActivationFunctionTest : public ActivationFunctionTest {};
 TEST_P(TanhDerivativeActivationFunctionTest, Tahn) {
 	const auto [x, expected_activation] = GetParam();
 
-	EXPECT_FLOAT_EQ(computeTanhDerivate(x), expected_activation);
+	EXPECT_FLOAT_EQ(computeTanhDerivative(x), expected_activation);
 }
 INSTANTIATE_TEST_SUITE_P(ActivationTahn, TanhDerivativeActivationFunctionTest,
 						 ::testing::Values(std::make_tuple(5, 0.000181583230943),
@@ -167,6 +167,20 @@ TEST_P(SoftMaxActivationFunctionTest, Softmax) {
 	}
 }
 
+TEST_P(SoftMaxActivationFunctionTest, Softmax_deriviate) {
+
+	const auto [input, expected] = GetParam();
+
+	Tensor<float> copy = input.copy();
+	const Tensor<float> result = Ritsu::softMax<float>(copy);
+
+	ASSERT_EQ(result.getShape(), expected.getShape());
+	/*	*/
+	for (size_t i = 0; i < result.getNrElements(); i++) {
+		ASSERT_NEAR(result.getValue(i), expected.getValue(i), 0.001);
+	}
+}
+
 INSTANTIATE_TEST_SUITE_P(
 	ActivationSoftmax, SoftMaxActivationFunctionTest,
 	::testing::Values(std::make_tuple(Tensor<float>::fromArray({5.0f, 5.0f, 5.0f, 5.0f, 5.0f}),
@@ -175,3 +189,4 @@ INSTANTIATE_TEST_SUITE_P(
 					  std::make_tuple(Tensor<float>::fromArray({5, 5, 5}),
 									  Tensor<float>::fromArray({0.33333333333333, 0.3333333333333333,
 																0.3333333333333333}))));
+// TODO: add softmax deriviate

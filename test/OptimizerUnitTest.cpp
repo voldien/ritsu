@@ -1,4 +1,3 @@
-#include "RitsuUnitTest.h"
 #include <Ritsu.h>
 #include <cstdint>
 #include <gtest/gtest.h>

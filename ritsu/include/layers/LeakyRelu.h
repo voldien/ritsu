@@ -17,7 +17,6 @@
 #include "../Activations.h"
 #include "Layer.h"
 #include <ctime>
-#include <random>
 
 namespace Ritsu {
 
@@ -102,7 +101,7 @@ namespace Ritsu {
 
 	  private:
 		DType alpha;
-		Layer<DType> *input;
+		Layer<DType> *input{};
 		std::vector<Layer<DType> *> outputs;
 	};
 } // namespace Ritsu

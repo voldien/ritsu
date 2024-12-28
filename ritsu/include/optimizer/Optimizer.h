@@ -28,12 +28,17 @@ namespace Ritsu {
 	  public:
 		static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half)");
 		using DType = T;
-		const unsigned int DTypeSize = sizeof(DType);
+		static constexpr const size_t DTypeSize = sizeof(DType);
 
 	  public:
+		Optimizer(const Optimizer &) = delete;
+		Optimizer(Optimizer &&) = delete;
+		Optimizer &operator=(const Optimizer &) = delete;
+		Optimizer &operator=(Optimizer &&) = delete;
 		Optimizer(const T learningRate, const std::string &name) noexcept : Object(name) {
 			this->setLearningRate(learningRate);
 		}
+		virtual ~Optimizer() = default;
 
 		/**
 		 * @brief
@@ -48,7 +53,7 @@ namespace Ritsu {
 		/**
 		 * @brief
 		 */
-		template <typename... Args> void update_step(const Tensor<T> &gradient, Args &... args) {
+		template <typename... Args> void update_step(const Tensor<T> &gradient, Args &...args) {
 			// this->update_step(gradient, {&args...});
 		}
 
@@ -62,14 +67,12 @@ namespace Ritsu {
 		/**
 		 * @brief
 		 */
-		template <typename... Args> void build(Args &... args) { this->build({&args...}); }
+		template <typename... Args> void build(Args &...args) { this->build({&args...}); }
 
 		/**
 		 * @brief
 		 */
-		virtual void build(std::initializer_list<const Tensor<void> &> &list) {}
-
-		// Variables.
+		virtual void build(std::initializer_list<const Tensor<T> &> &list) = 0;
 
 	  private:
 		T learningRate;
