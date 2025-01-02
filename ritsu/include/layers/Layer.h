@@ -126,6 +126,11 @@ namespace Ritsu {
 		virtual Tensor<float> compute_derivative(const Tensor<float> &tensorLoss) = 0;
 		virtual Tensor<float> &compute_derivative(Tensor<float> &tensorLoss) const = 0;
 
+		virtual Tensor<float> compute_gradient(const IndexType parameter_index, const Tensor<float> &deriv_z,
+											   const Tensor<float> &Q) {
+			return {};
+		}
+
 		void addInputLayers(const std::vector<Layer<DType> *> &layers) {
 			/*	*/
 			this->setInputs(layers);

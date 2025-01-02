@@ -35,16 +35,16 @@ int main(int argc, const char **argv) {
 		"V,validation", "Set Validation split", cxxopts::value<float>()->default_value("0.1"))(
 		"S,seed", "Set Seed", cxxopts::value<int>()->default_value("1234"))(
 		"T,trainig-size", "Set Training Size", cxxopts::value<size_t>()->default_value("65536"))(
-		"O,optimizer", "Set Optimizer ", cxxopts::value<std::string>()->default_value("sgd"))
-		(
-		"s,use-sigmoid", " ", cxxopts::value<bool>()->default_value("false"));
+		"O,optimizer", "Set Optimizer ", cxxopts::value<std::string>()->default_value("sgd"))(
+		"s,use-sigmoid", " ", cxxopts::value<bool>()->default_value("false"))(
+		"L,loss-funciton", " ", cxxopts::value<std::string>()->default_value("mse"));
 
 	/*	Parse the command line input.	*/
 	auto result = options.parse(argc, (char **&)argv);
 
 	/*	*/
 	const bool debug = result["debug"].as<bool>();
-	const unsigned int batchSize = 2; // result["batch"].as<int>();
+	const unsigned int batchSize = result["batch"].as<int>();
 	const unsigned int epochs = result["epoch"].as<int>();
 	const float learningRate = result["learning-rate"].as<float>();
 	const bool useBatchNorm = false;
@@ -55,6 +55,9 @@ int main(int argc, const char **argv) {
 	const bool useNoise = result["use-noise"].as<bool>();
 	const float momentum = result["optimizer-momentum"].as<float>();
 	const bool useRegulation = false;
+
+	const std::string use_optimizer = result["optimizer"].as<std::string>();
+	const std::string use_loss_function = result["loss-funciton"].as<std::string>();
 
 	if (debug) {
 		/*	*/
@@ -175,13 +178,14 @@ int main(int argc, const char **argv) {
 			Loss<float> *lossfunction = nullptr;
 			CategoricalCrossentropy cross_loss(true);
 			MeanSquareError mse_loss;
+
 			if (useSigmoidAct) {
 				lossfunction = &mse_loss;
 			} else {
 				lossfunction = &cross_loss;
 			}
 
-			forwardModel.compile(&Adamoptimizer, *lossfunction, {&accuracy});
+			forwardModel.compile(&optimizer, *lossfunction, {&accuracy});
 			std::cout << forwardModel.summary() << std::endl;
 
 			forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize, validationSplit);

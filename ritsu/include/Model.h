@@ -249,7 +249,7 @@ namespace Ritsu {
 					}
 
 					/*	*/
-					this->backPropagation(loss_deriv, cachedResult);
+					this->backPropagation(loss_deriv, cachedResult, batch_size);
 
 					/*	*/
 					if (verbose) {
@@ -448,6 +448,10 @@ namespace Ritsu {
 			Tensor<float> layerResult = inputData;
 			const bool is_training = cacheResult != nullptr;
 
+			if (cacheResult) {
+				(*cacheResult)["inputData"] = inputData;
+			}
+
 			for (auto it = this->forwardSequence.begin(); it != this->forwardSequence.end(); it++) {
 				Layer<T> *current = (*it);
 
@@ -488,6 +492,7 @@ namespace Ritsu {
 				/*	Assign result if memory provided.	*/
 				if (cacheResult != nullptr) {
 					(*cacheResult)[(*current).getName()] = layerResult;
+					(*cacheResult)[(*current).getName()].transpose();
 				}
 			}
 
@@ -496,89 +501,109 @@ namespace Ritsu {
 		}
 
 		// TODO: improve and fix for all sizes and all layers.
-		void backPropagation(const Tensor<float> &error, std::map<std::string, Tensor<float>> &cacheResult) {
-
-			Tensor<float> &current_layer_z = cacheResult[(*this->forwardSequence.rbegin())->getName()];
-			const IndexType batch_size = current_layer_z.getShape()[0];
-			const float batch_inverse = 1.0f / batch_size;
-
-			Tensor<float> differental_error = error;
-
-			/*	TODO: determine.	*/
-			for (unsigned int i = 0; i < batch_size - 1; i++) {
-				differental_error.concatenate(error);
-			}
-			// TODO:
-			Shape<IndexType> diffShape;
-			diffShape.insert(0, {(IndexType)batch_size});
-			diffShape.insert(1, error.getShape().getSubShape(1));
-
-			differental_error.reshape(diffShape);
+		void backPropagation(const Tensor<float> &error, std::map<std::string, Tensor<float>> &cacheResult,
+							 const size_t batchSize) {
 
 			/*	*/
+			Tensor<float> &current_layer_q = cacheResult[(*this->forwardSequence.rbegin())->getName()];
+			Tensor<float> &previous_layer_q = cacheResult[(*this->forwardSequence.rbegin()++)->getName()];
+
+			const float batch_inverse = 1.0f / batchSize;
+
+			Tensor<float> differental_z_error = error;
+			Tensor<float> prev_layer_deriv;
+
+			/*	TODO: determine.	*/
+			for (unsigned int i = 0; i < batchSize - 1; i++) {
+				differental_z_error.concatenate(error);
+			}
+
+			// TODO:
+			Shape<IndexType> diffShape;
+			diffShape.insert(0, {(IndexType)batchSize});
+			diffShape.insert(1, error.getShape().getSubShape(1));
+
+			differental_z_error.reshape(diffShape);
+			differental_z_error.transpose();
+
+			/*	*/
+			Layer<T> *current = nullptr;
+			Layer<T> *prev = nullptr;
 			for (auto it = this->forwardSequence.rbegin(); it != this->forwardSequence.rend(); it++) {
 
-				Layer<T> *current = (*it);
+				/*	*/
+				current = (*it);
+				prev = *(std::next(it));
 
-				auto tmpIt = it;
-				tmpIt++;
-				Layer<T> *prev = (*(tmpIt));
+				/*	Finished.	*/
+				if (current == this->inputs[0]) {
+					return;
+				}
 
-				current_layer_z = cacheResult[current->getName()];
+				/*	*/
+				if (cacheResult.find(current->getName()) != cacheResult.end()) {
+					current_layer_q = cacheResult[current->getName()];
+				} else {
+					current_layer_q = cacheResult["inputData"];
+				}
+				if (std::next(it) != this->forwardSequence.rend() &&
+					cacheResult.find(prev->getName()) != cacheResult.end()) {
+					previous_layer_q = cacheResult[prev->getName()];
+				}
 
-				/*	Only apply if */
+				/*	Extract if any trainable.	 */
 				std::optional<std::vector<Tensor<DType> *>> optional_train_variables = current->getTrainableWeights();
 
 				/*	*/
 				debug_print_layer<DType>(std::cout, *current);
 
+				debug_print_tensor(std::cout, differental_z_error, "dZ");
+
 				/*	*/
 				if (optional_train_variables.has_value() && !optional_train_variables.value().empty()) {
 					std::vector<Tensor<DType> *> train_variables = optional_train_variables.value();
 
-					Tensor<float> layer_ahead_z = cacheResult[prev->getName()];
-					Tensor<float> partial_error = differental_error;
+					/*	*/
+					Tensor<float> differental_q_error =
+						current->compute_derivative(static_cast<const Tensor<float> &>(differental_z_error));
+					prev_layer_deriv = differental_q_error;
 
-					/*	Add batch dim.	*/
-					if (partial_error.getShape().getNrDimensions() == 1) {
-						partial_error.reshape({1, partial_error.getShape().getAxisDimensions(0)});
-					}
+					debug_print_tensor(std::cout, previous_layer_q, "Q-1");
 
-					Tensor<float> weightGradient = layer_ahead_z.transpose().dot(partial_error);
+					debug_print_tensor(std::cout, differental_q_error, "DQ");
 
+					/*	*/
 					for (size_t i_var = 0; i_var < train_variables.size(); i_var++) {
 						Tensor<DType> *variable = train_variables[i_var];
 
-						if (variable) {
-							this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(weightGradient.transpose()),
-														 reinterpret_cast<Tensor<T> &>(*variable));
-						}
+						Tensor<float> gradient =
+							current->compute_gradient(i_var, differental_z_error, previous_layer_q);
+
+						debug_print_tensor(std::cout, gradient, "Gradient");
+
+						/*	*/
+						//if (batchSize > 1) {
+							//const int batchIndex = 0;
+							gradient = gradient * batch_inverse; // std::move(gradient.mean(batchIndex));
+						//}
+
+						this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(gradient),
+													 reinterpret_cast<Tensor<T> &>(*variable));
 					}
 
 					/*	*/
-					differental_error =
-						current->compute_derivative(static_cast<const Tensor<float> &>(current_layer_z));
-					/*	*/
-					debug_print_tensor_layer<T>(std::cout, *current, reinterpret_cast<Tensor<T> &>(differental_error));
+					differental_z_error = prev_layer_deriv;
 
-					// this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(weightGradient.transpose()),
-					//							 reinterpret_cast<Tensor<T> &>(*train_variables));
-
-					// partial_error = Tensor<float>::mean(partial_error, 1);
-					// if (partial_error.getShape().getNrDimensions() == 1) {
-					//	partial_error.reshape({1, partial_error.getShape().getAxisDimensions(0)});
-					// }
-					//					this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(partial_error),
-					//												 reinterpret_cast<Tensor<T> &>(*_variables));
 				} else {
 
 					/*	Update delta.	*/
 					Tensor<float> z_derv =
-						current->compute_derivative(static_cast<const Tensor<float> &>(current_layer_z));
-					differental_error = differental_error.dot(z_derv);
+						current->compute_derivative(static_cast<const Tensor<float> &>(current_layer_q));
+					differental_z_error = z_derv.dot(prev_layer_deriv);
 
 					/*	*/
-					debug_print_tensor_layer<T>(std::cout, *current, reinterpret_cast<Tensor<T> &>(differental_error));
+					debug_print_tensor_layer<T>(std::cout, *current,
+												reinterpret_cast<Tensor<T> &>(differental_z_error));
 				}
 			}
 		}
@@ -628,17 +653,6 @@ namespace Ritsu {
 					}
 				}
 
-				// if (!train_variables.empty()) {
-				//	for (size_t i = 0; i < current->getVariables().size(); i++) {
-				//		Tensor<DType> *variable = current->getVariables()[i];
-				//		this->noneTrainableWeightSizeInBytes += variable->getDatSize();
-				//	}
-				//	//
-				//}
-				// TODO add support
-
-				// TODO verify the shape.
-
 				std::vector<Layer<T> *> layers = current->getOutputs();
 				/*	*/
 				if (!layers.empty()) {
@@ -686,6 +700,15 @@ namespace Ritsu {
 		}
 
 		bool is_junction_layer(const Layer<DType> *layer) const noexcept { return layer->getInputs().size() > 1; }
+
+		bool is_input_layer(Layer<T> *layer) {
+			for (size_t i = 0; i < inputs.size(); i++) {
+				if (layer == inputs[i]) {
+					return true;
+				}
+			}
+			return false;
+		}
 
 	  protected:
 		/*	*/

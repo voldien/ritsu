@@ -41,10 +41,11 @@ namespace Ritsu {
 			}
 			this->use_bias = use_bias;
 
-			this->variables.reserve(2);
-			this->variables = {&this->weight};
+			this->variables_reference.reserve(2);
+			this->variables_reference = {&this->weight};
+			/*	*/
 			if (this->use_bias) {
-				this->variables.push_back(&this->bias);
+				this->variables_reference.push_back(&this->bias);
 			}
 		}
 
@@ -75,7 +76,9 @@ namespace Ritsu {
 			return output;
 		}
 
-		std::optional<std::vector<Tensor<DType> *>> getTrainableWeights() noexcept override { return this->variables; }
+		std::optional<std::vector<Tensor<DType> *>> getTrainableWeights() noexcept override {
+			return this->variables_reference;
+		}
 
 		void build(const Shape<IndexType> &buildShape) override {
 
@@ -130,6 +133,17 @@ namespace Ritsu {
 			return tensor;
 		}
 
+		Tensor<float> compute_gradient(const IndexType parameter_index, const Tensor<float> &deriv_z,
+									   const Tensor<float> &Q) override {
+			if (parameter_index == 0) {
+				return deriv_z.dot(Q.transpose());
+			}
+			if (parameter_index == 1) {
+				return deriv_z.transpose().sum(0);
+			}
+			return {};
+		}
+
 	  private:
 		/*	*/
 		Layer<DType> *input{};
@@ -146,7 +160,7 @@ namespace Ritsu {
 
 		inline void computeDerivative(const Tensor<float> &value, Tensor<float> &result) const {
 			/*	E*W^T*/
-			value.dot(this->weight, result);
+			this->weight.transpose().dot(value, result);
 		}
 
 		void initweight() noexcept {
@@ -176,9 +190,7 @@ namespace Ritsu {
 		uint32_t units;
 		Tensor<DType> weight;
 		bool use_bias;
-		std::vector<Tensor<float> *> variables;
-		// Initializer<DType> &weight_init;
-		// Initializer<DType> &bias_init;
+		std::vector<Tensor<float> *> variables_reference; /*	*/
 	};
 
 } // namespace Ritsu

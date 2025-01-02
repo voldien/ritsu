@@ -629,12 +629,12 @@ namespace Ritsu {
 
 		inline DType dot(const Tensor &tensor, const int axis) const noexcept { return Tensor::dot(*this, tensor); }
 
-		inline Tensor dot(const Tensor &tensor) const noexcept {
-			if (!Tensor::isMatrixOperationSupported(this->getShape(), tensor.getShape())) {
-				return *this * tensor;
+		inline Tensor dot(const Tensor &tensor_rightside) const noexcept {
+			if (!Tensor::isMatrixOperationSupported(this->getShape(), tensor_rightside.getShape())) {
+				return *this * tensor_rightside;
 			}
 			Tensor out;
-			return Tensor::dot(*this, tensor, out);
+			return Tensor::dot(*this, tensor_rightside, out);
 		}
 
 		void dot(const Tensor &tensorB, Tensor &output) const { Tensor::dot(*this, tensorB, output); }

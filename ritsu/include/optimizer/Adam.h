@@ -37,6 +37,10 @@ namespace Ritsu {
 
 		void update_step(const Tensor<T> &gradient, Tensor<T> &variable) override {
 
+			if (gradient.getShape() != variable.getShape()) {
+				throw RuntimeException("Invalid Variable and Gradient Shape");
+			}
+
 			const size_t uid = variable.getUID();
 			/*	Init */
 			if (m_dw.find(uid) == m_dw.end()) {

@@ -19,7 +19,7 @@ int main(int argc, const char **argv) {
 		"B,batch", "Set the Batch Size", cxxopts::value<int>()->default_value("1"))(
 		"N,use-noise", "Enable the use of noise", cxxopts::value<bool>()->default_value("false"))(
 		"E,epoch", "Set the number of epochs", cxxopts::value<int>()->default_value("8"))(
-		"b,use-bias", "Use Dense Bias", cxxopts::value<bool>()->default_value("false"))(
+		"b,use-bias", "Use Dense Bias", cxxopts::value<bool>()->default_value("true"))(
 		"m,mid-dense-count", "Set Number of neuron in middle layer", cxxopts::value<int>()->default_value("2"))(
 		"l,learning-rate", "Set Learning Rate", cxxopts::value<float>()->default_value("0.00000001"))(
 		"M,optimizer-momentum", "Set Optimizer momentum", cxxopts::value<float>()->default_value("0.1"))(
@@ -33,7 +33,7 @@ int main(int argc, const char **argv) {
 
 	/*	*/
 	const bool debug = result["debug"].as<bool>();
-	const unsigned int batchSize = result["batch"].as<int>();
+	const unsigned int batchSize = 2;// result["batch"].as<int>();
 	const unsigned int epochs = result["epoch"].as<int>();
 	const float learningRate = result["learning-rate"].as<float>();
 	const size_t trainingDataSize = result["trainig-size"].as<size_t>();
@@ -42,6 +42,11 @@ int main(int argc, const char **argv) {
 	const bool useNoise = result["use-noise"].as<bool>();
 	const unsigned int dense_size = result["mid-dense-count"].as<int>();
 	const float momentum = result["optimizer-momentum"].as<float>();
+
+	if (debug) {
+		/*	*/
+		Ritsu::enableDebug();
+	}
 
 	/*	*/
 	const unsigned int input_size = 2;

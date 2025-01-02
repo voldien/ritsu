@@ -53,7 +53,7 @@ namespace Ritsu {
 	template <typename U = std::float_t>
 	std::ostream &debug_print_tensor(std::ostream &stream, Tensor<U> &tensor, const std::string &name = "") noexcept {
 		if (isDebugEnabled()) {
-			stream << std::endl << name << tensor << std::endl << std::endl;
+			stream << std::endl << name << " " << tensor.getShape() << " " << tensor << std::endl << std::endl;
 		}
 		return stream;
 	}
@@ -62,7 +62,10 @@ namespace Ritsu {
 	template <typename U = std::float_t>
 	std::ostream &debug_print_tensor_layer(std::ostream &stream, const Layer<U> &layer, Tensor<U> &tensor) noexcept {
 		if (isDebugEnabled()) {
-			stream << std::endl << layer.getName() << " " << tensor.getShape() << std::endl << tensor << std::endl << std::endl;
+			stream << std::endl
+				   << layer.getName() << " " << tensor.getShape() << std::endl
+				   << tensor << std::endl
+				   << std::endl;
 		}
 		return stream;
 	}
