@@ -51,7 +51,7 @@ TEST_P(ModelTest, Compile) {
 	// Loss& mse_loss(sparse_categorical_crossentropy);
 	// forwardModel->compile(&optimizer, sparse_categorical_crossentropy, {dynamic_cast<Metric *>(&accuracy)});
 
-	// ASSERT_NO_THROW(delete forwardModel);
+	ASSERT_NO_THROW(delete forwardModel);
 }
 
 TEST_P(ModelTest, Fit) {
@@ -85,7 +85,7 @@ TEST_P(ModelTest, Predict) {
 	ASSERT_NO_THROW(forwardModel = new Model<float>({&input0node}, {&output}));
 	EXPECT_EQ(output.getShape(), expected);
 	ASSERT_NO_THROW(delete forwardModel);
-	// Check size.
+
 }
 
 INSTANTIATE_TEST_SUITE_P(Model, ModelTest,

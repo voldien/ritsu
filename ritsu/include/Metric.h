@@ -99,7 +99,7 @@ namespace Ritsu {
 		}
 
 		void reset_state() override {
-			this->m_result = Tensor<DType>({1});
+			this->m_result = std::move(Tensor<DType>({1}));
 			this->m_result.getValue<DType>(0) = 10000000;
 		}
 

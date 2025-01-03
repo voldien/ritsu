@@ -742,9 +742,9 @@ namespace Ritsu {
 
 	  private: /*	Internal data.	*/
 		std::list<Layer<DType> *> forwardSequence;
-		size_t nr_weights{};
-		size_t trainableWeightSizeInBytes{};
-		size_t noneTrainableWeightSizeInBytes{};
+		size_t nr_weights = 0;
+		size_t trainableWeightSizeInBytes = 0;
+		size_t noneTrainableWeightSizeInBytes = 0;
 
 	}; // namespace Ritsu
 } // namespace Ritsu

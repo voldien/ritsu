@@ -51,6 +51,11 @@ namespace Ritsu {
 			}
 		}
 
+		~Dense() override {
+			delete this->bias_init;
+			delete this->weight_init;
+		}
+
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 
 			Tensor<float> output({this->units}, DTypeSize);

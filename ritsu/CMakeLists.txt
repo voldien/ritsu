@@ -1,6 +1,6 @@
 # Define all file lists.
-FILE(GLOB_RECURSE SOURCE_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
-FILE(GLOB_RECURSE HEADER_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+FILE(GLOB_RECURSE RITSU_SOURCE_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp)
+FILE(GLOB_RECURSE RITSU_HEADER_FILES  ${CMAKE_CURRENT_SOURCE_DIR}/include/*.h)
 
 FIND_PACKAGE(OpenMP REQUIRED)
 FIND_PACKAGE(CUDAToolkit QUIET)
@@ -10,7 +10,7 @@ FIND_PACKAGE(IntelDPCPP QUIET)
 #########################
 # CPU Ritsu 
 #########################
-ADD_LIBRARY(ritsu ${SOURCE_FILES} ${HEADER_FILES})
+ADD_LIBRARY(ritsu ${RITSU_SOURCE_FILES})
 TARGET_COMPILE_FEATURES(ritsu PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
 	cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
 	cxx_generic_lambdas cxx_override cxx_noexcept cxx_aggregate_default_initializers)
@@ -30,7 +30,7 @@ INSTALL(TARGETS ritsu DESTINATION lib)
 ###################################
 # No OpenMP Version (Single Core)
 ###################################
-ADD_LIBRARY(ritsu-no-opm ${SOURCE_FILES} ${HEADER_FILES})
+ADD_LIBRARY(ritsu-no-opm ${RITSU_SOURCE_FILES})
 TARGET_COMPILE_FEATURES(ritsu-no-opm PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
 	cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
 	cxx_generic_lambdas cxx_override cxx_noexcept cxx_aggregate_default_initializers)
@@ -52,7 +52,7 @@ TARGET_INCLUDE_DIRECTORIES(ritsu-no-opm PUBLIC
 
 IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND IntelDPCPP_FOUND)
 	MESSAGE(STATUS "OneAPI found:")
-	ADD_LIBRARY(ritsu-oneapi ${SOURCE_FILES} ${HEADER_FILES})
+	ADD_LIBRARY(ritsu-oneapi ${RITSU_SOURCE_FILES})
 	TARGET_COMPILE_FEATURES(ritsu-rocm PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
 		cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
 		cxx_generic_lambdas cxx_override cxx_noexcept cxx_aggregate_default_initializers)
@@ -75,7 +75,7 @@ ENDIF()
 ##########################
 IF (CMAKE_CXX_COMPILER_ID STREQUAL "Clang" AND HIP_FOUND)
 	MESSAGE(STATUS "HIP found:")
-	ADD_LIBRARY(ritsu-rocm ${SOURCE_FILES} ${HEADER_FILES})
+	ADD_LIBRARY(ritsu-rocm ${RITSU_SOURCE_FILES})
 	TARGET_COMPILE_FEATURES(ritsu-rocm PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
 		cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
 		cxx_generic_lambdas cxx_override cxx_noexcept cxx_aggregate_default_initializers)
@@ -100,7 +100,7 @@ IF(CUDAToolkit_FOUND AND RITSU_CUDA)
 	MESSAGE(STATUS "CUDA found:")
 	#CMAKE_CUDA_COMPILER
 
-	ADD_LIBRARY(ritsu-nv ${SOURCE_FILES} ${HEADER_FILES})
+	ADD_LIBRARY(ritsu-nv ${RITSU_SOURCE_FILES})
 	
 	TARGET_COMPILE_FEATURES(ritsu-nv PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
 		cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
