@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2023 Valdemar Lindberg
+ * Copyright (c) 2025 Valdemar Lindberg
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -14,13 +14,11 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
-#include "../Random.h"
 #include "../core/Initializers.h"
 #include "Layer.h"
 #include "RitsuDef.h"
 #include "Tensor.h"
 #include <cassert>
-#include <cstddef>
 #include <ctime>
 #include <vector>
 
@@ -30,10 +28,14 @@ namespace Ritsu {
 	 */
 	class Dense : public Layer<float> {
 	  public:
-		Dense(uint32_t units, bool use_bias = true,
-			  const Initializer<DType> &weight_init = RandomUniformInitializer<DType>(-0.15, 0.15),
-			  const Initializer<DType> &bias_init = ZeroInitializer<DType>(), const std::string &name = "dense")
-			: Layer(name), units(units) {
+		template <typename U = RandomUniformInitializer<DType>, typename B = ZeroInitializer<DType>>
+		Dense(uint32_t units, bool use_bias = true, const U &weight_init2 = RandomUniformInitializer<DType>(-1.0, 1.0),
+			  const B &bias_init2 = ZeroInitializer<DType>(), const std::string &name = "dense")
+			: Layer(name), units(units), weight_init(new U), bias_init(new B) {
+
+			/*	Assign initilizer.	*/
+			*this->weight_init = weight_init2;
+			*this->bias_init = bias_init2;
 
 			/*	*/
 			if (use_bias) {
@@ -114,8 +116,6 @@ namespace Ritsu {
 				throw InvalidArgumentException("Must only have a single input layer");
 			}
 
-			// TODO verify flatten
-
 			this->input = layers[0];
 		}
 
@@ -159,28 +159,17 @@ namespace Ritsu {
 		}
 
 		inline void computeDerivative(const Tensor<float> &value, Tensor<float> &result) const {
-			/*	E*W^T*/
+			/*	Dz = W^T*value	*/
 			this->weight.transpose().dot(value, result);
 		}
 
-		void initweight() noexcept {
-			// TODO improve
-			RandomNormalInitializer<DType> init(0, 2);
-			RandomNormal<DType> random(0, 2);
-
-#pragma omp parallel for simd shared(weight)
-			for (size_t i = 0; i < this->weight.getNrElements(); i++) {
-				this->weight.getValue<DType>(i) = random.rand();
-			}
-		}
+		void initweight() noexcept { this->weight_init->set(this->weight); }
 
 		void initbias() noexcept {
-			// TODO improve
-			if (this->bias.getNrElements() > 0) {
-				ZeroInitializer<DType> init;
-				RandomUniform<DType> random(-1, 1);
 
-				init.set(this->bias);
+			if (this->bias.getNrElements() > 0) {
+
+				this->bias_init->set(this->bias);
 				this->bias.reshape({1, this->bias.getShape().getAxisDimensions(-1)});
 			}
 		}
@@ -191,6 +180,8 @@ namespace Ritsu {
 		Tensor<DType> weight;
 		bool use_bias;
 		std::vector<Tensor<float> *> variables_reference; /*	*/
+		Initializer<DType> *weight_init = nullptr;
+		Initializer<DType> *bias_init = nullptr;
 	};
 
 } // namespace Ritsu

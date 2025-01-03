@@ -80,8 +80,8 @@ int main(int argc, const char **argv) {
 
 		/*	Create layers.	*/
 		Input input({input_size}, "input");
-		Dense dense0(dense_size, useBias);
-		Dense outputDense(output_size, useBias);
+		Dense dense0 = Dense(dense_size, useBias);
+		Dense outputDense = Dense(output_size, useBias);
 		Regularization regulation(useRegulation, 0.000f);
 
 		/*	Connect layers.	*/

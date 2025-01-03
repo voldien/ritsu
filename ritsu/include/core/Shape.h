@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2023 Valdemar Lindberg
+ * Copyright (c) 2025 Valdemar Lindberg
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -449,7 +449,8 @@ namespace Ritsu {
 			return (index % axisDim) * depthSlice + (index / axisDim);
 		}
 
-		static bool canShapeMerge(const Shape<IndexType> &shapeA, const Shape<IndexType> &shapeB, const int axis) noexcept {
+		static bool canShapeMerge(const Shape<IndexType> &shapeA, const Shape<IndexType> &shapeB,
+								  const int axis) noexcept {
 			// verify if operation is possible.
 			if (shapeA.getNrDimensions() != shapeB.getNrDimensions()) {
 				return false;
@@ -521,7 +522,7 @@ namespace Ritsu {
 		 */
 		template <typename U = IndexType> static inline U computeNrElements(const std::vector<U> &dims) noexcept {
 			static_assert(std::is_integral<U>::value, "Type must be a integral type.");
-			return Math::product(dims);
+			return dims.empty() ? 0 : Math::product(dims);
 		}
 
 	  private:

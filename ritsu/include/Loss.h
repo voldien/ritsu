@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2023 Valdemar Lindberg
+ * Copyright (c) 2025 Valdemar Lindberg
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -124,7 +124,7 @@ namespace Ritsu {
 
 	class MeanSquareError : public Loss<float> {
 	  public:
-		MeanSquareError(const std::string name = "mse") : Loss(loss_mse, name) {}
+		MeanSquareError(const std::string name = "MSE") : Loss(loss_mse, name) {}
 
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
 			/*	-2(D - P)	*/
@@ -153,7 +153,7 @@ namespace Ritsu {
 
 	class MeanAbsoluterror : public Loss<float> {
 	  public:
-		MeanAbsoluterror(const std::string name = "mse") : Loss(loss_msa, name) {}
+		MeanAbsoluterror(const std::string name = "MSA") : Loss(loss_msa, name) {}
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
 
 			// TODO: fix
@@ -186,7 +186,7 @@ namespace Ritsu {
 
 	class BinaryCrossEntropy : public Loss<float> {
 	  public:
-		BinaryCrossEntropy(const std::string name = "binarycross") : Loss(loss_binary_cross_entropy, name) {}
+		BinaryCrossEntropy(const std::string name = "Binary Cross") : Loss(loss_binary_cross_entropy, name) {}
 
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
 
@@ -210,7 +210,7 @@ namespace Ritsu {
 
 	class CategoricalCrossentropy : public Loss<float> {
 	  public:
-		CategoricalCrossentropy(bool from_logits = false, const std::string name = "categorical_crossentropy")
+		CategoricalCrossentropy(bool from_logits = false, const std::string name = "Ccategorical Crossentropy")
 			: Loss(Ritsu::loss_categorical_crossentropy, name), from_logits(from_logits) {}
 
 		Tensor<DType> computeLoss(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {

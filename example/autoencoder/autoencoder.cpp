@@ -74,9 +74,13 @@ int main(int argc, const char **argv) {
 		std::cout << "Loaded MNIST Data Set: " << inputDataX.getShape() << " Labels: " << inputResY.getShape()
 				  << std::endl;
 
+		/*	Release unused dataset.	*/
+		inputResY.release();
+		inputResTestY.release();
+
 		/*	Extract data shape.	*/
 		Shape<unsigned int> dataShape = inputDataX.getShape().getSubShapeMem(1, 3);
-		Shape<unsigned int> resultShape = inputResY.getShape().getSubShapeMem(1, 1);
+		Shape<unsigned int> resultShape = dataShape;
 
 		const Tensor<float> inputDataXF = inputDataX.cast<float>() * (1.0f / 255.0f);
 		const Tensor<float> inputTestXF = inputTestX.cast<float>() * (1.0f / 255.0f);
@@ -206,7 +210,6 @@ int main(int argc, const char **argv) {
 			Layer<float> *decoderLayer = lay;
 
 			Model<float> autoencoder({&input0node}, {decoderLayer});
-			std::cout << autoencoder.summary();
 
 			Model<float> encoderModel({&input0node}, {encoderLayer});
 			Model<float> decoderModel({encoderLayer}, {decoderLayer});
@@ -220,6 +223,8 @@ int main(int argc, const char **argv) {
 			MeanSquareError mse_loss;
 
 			autoencoder.compile(&Adamoptimizer, mse_loss, {&accuracy});
+
+			std::cout << autoencoder.summary();
 
 			autoencoder.fit(epochs, inputDataXF, inputDataXF, batchSize, validationSplit);
 

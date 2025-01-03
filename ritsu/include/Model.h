@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2023 Valdemar Lindberg
+ * Copyright (c) 2025 Valdemar Lindberg
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,6 +21,7 @@
 #include "RitsuDebug.h"
 #include "RitsuDef.h"
 #include "Tensor.h"
+#include "Util.h"
 #include "core/Shape.h"
 #include "core/Time.h"
 #include "layers/Layer.h"
@@ -35,69 +36,11 @@
 #include <map>
 #include <ostream>
 #include <sstream>
+#include <stdexcept>
 #include <string>
 #include <utility>
 
 namespace Ritsu {
-
-	template <typename T> void shuffle_data(Tensor<T> &data, const int axis = 0, const size_t seed = 0) {
-
-		const size_t count = data.getShape()[0];
-		const Shape<typename Tensor<T>::IndexType> shape = data.getShape().getSubShape(1);
-
-		RandomUniform<float> randomGenerator(0, 1, seed);
-
-		for (size_t i = 0; i < count / 2; i++) {
-
-			const typename Tensor<T>::IndexType swap0 = std::floor(randomGenerator.rand() * count);
-			const typename Tensor<T>::IndexType swap1 = std::floor(randomGenerator.rand() * count);
-
-			auto A =
-				std::move(data.getSubset(swap0 * shape.getNrElements(), (swap0 + 1) * shape.getNrElements(), shape));
-			auto B =
-				std::move(data.getSubset(swap1 * shape.getNrElements(), (swap1 + 1) * shape.getNrElements(), shape));
-
-			std::swap(A, B);
-		}
-	}
-
-	// Split
-	template <typename T>
-	std::tuple<Tensor<T>, Tensor<T>> split_dataset(const Tensor<T> &dataset, const float left_side = 0.5f,
-												   bool shuffle = false, int seed = 0, const bool parent = true) {
-		const size_t left_size_count = dataset.getShape()[0] * left_side;
-		const size_t right_size_count = dataset.getShape()[0] - left_size_count;
-
-		assert(left_size_count + right_size_count == dataset.getShape()[0]);
-
-		if (left_side <= 0) {
-			return {dataset, {}};
-		}
-
-		Shape<typename Tensor<T>::IndexType> leftShape = dataset.getShape();
-		leftShape[0] = left_size_count;
-
-		Shape<typename Tensor<T>::IndexType> rightShape = dataset.getShape();
-		rightShape[0] = right_size_count;
-
-		Tensor<T> leftSplit;
-		Tensor<T> rightSplit;
-
-		if (parent) {
-			leftSplit = dataset.getSubset(0, leftShape.getNrElements(), leftShape);
-			rightSplit = dataset.getSubset(leftShape.getNrElements(),
-										   leftShape.getNrElements() + rightShape.getNrElements(), rightShape);
-		} else {
-			//		Tensor<T>(dataset.getRawData(), leftShape.getNrElements() * dataset.getElementSize(), leftShape );
-		}
-
-		if (shuffle) {
-			shuffle_data(leftSplit, 0, seed);
-			shuffle_data(rightSplit, 0, seed);
-		}
-
-		return {leftSplit, rightSplit};
-	}
 
 	/**
 	 * @brief
@@ -134,7 +77,7 @@ namespace Ritsu {
 			const size_t batch_shape_index = 0;
 
 			/*	*/
-			if (!this->is_built()) {
+			if (!this->is_built_and_compiled()) {
 				/*	Invalid state.	*/
 				throw RuntimeException("Model not built and compiled");
 			}
@@ -153,10 +96,13 @@ namespace Ritsu {
 			const size_t nrValidationBatches = std::floor(nrTrainBatches * validation_split);
 			nrTrainBatches -= nrValidationBatches;
 
-			// TODO verify shape and etc.
 			/*	Verify Shapes and etc*/
-
-			{}
+			{
+				const Shape expected_shape = expectedData.getShape().getSubShape(1);
+				if (getOutputLayer().getShape() != expected_shape) {
+					throw std::runtime_error("Expected Data shape does not match Output Layer Shape size");
+				}
+			}
 
 			/*	*/
 			auto [data_train, input_validation] = split_dataset<float>(inputData, 1 - validation_split, false, 0, true);
@@ -264,18 +210,14 @@ namespace Ritsu {
 						const float averageTime = Tensor<float>::mean<float>(timeSample);
 
 						const size_t nrBatchPerSecond = 1.0f / averageTime;
-						const float expectedEpochTime = (nrTrainBatches - ibatch) * averageTime;
+						const float expectedEpochTime = static_cast<float>(nrTrainBatches - ibatch) * averageTime;
 
 						using fsec = duration<float>;
-						auto p = round<nanoseconds>(fsec{expectedEpochTime});
-
-						// time.getElapsed<std::chrono::seconds>();
-
-						std::chrono::duration_cast<std::chrono::seconds>(p);
+						auto duration_time = round<nanoseconds>(fsec{expectedEpochTime});
 
 						std::cout << "\33[2K\r" << "Batch: " << (ibatch + 1) << "/"
 								  << nrTrainBatches // << " " << nrBatchPerSecond << "batch/Sec"
-								  << " ETA: " << std::chrono::duration_cast<std::chrono::seconds>(p).count()
+								  << " ETA: " << std::chrono::duration_cast<std::chrono::seconds>(duration_time).count()
 								  << " - lr: " << this->optimizer->getLearningRate();
 						std::cout << " loss: " << this->lossmetric.result().getValue(0);
 
@@ -292,6 +234,7 @@ namespace Ritsu {
 				}
 
 				/*	Validation Pass. Only compute, no backpropgation.	*/
+				time.start();
 				for (size_t batch_index = 0; batch_index < nrValidationBatches && validation_split > 0; batch_index++) {
 
 					/*	Extract subset of the data.	*/
@@ -310,9 +253,8 @@ namespace Ritsu {
 					/*	Compute network forward.	*/
 					this->forwardPropgation(subsetBatchX, batchPredictedResult, batch_size, nullptr);
 
-					/*	*/
 					loss_error = std::move(this->lossFunction->computeLoss(subsetExpectedBatch, batchPredictedResult));
-					
+
 					/*	Apply metric update.	*/
 					{
 						this->lossmetric.update_state({&loss_error});
@@ -320,25 +262,43 @@ namespace Ritsu {
 						assert(!std::isnan(this->lossmetric.result().getValue(0)));
 						assert(!std::isinf(this->lossmetric.result().getValue(0)));
 
-						for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
+						for (size_t m_index = 0; m_index < validation_metric.size(); m_index++) {
 							this->metrics[m_index]->update_state(subsetExpectedBatch, batchPredictedResult);
 						}
 
-						/*	Update history, using all metrics.	*/
-						for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
-							/*	*/
-							this->history[this->metrics[m_index]->getName()].concatenate(
-								this->metrics[m_index]->result().template getValue<float>(0));
+						/*	*/
+						if (verbose) {
+							this->print_status(std::cout);
 						}
-						this->history[this->lossmetric.getName()].concatenate(this->lossmetric.result().getValue(0));
-					}
-				}
 
-				/*	Update history, using all metrics.	*/
-				for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
-					/*	*/
-					// this->history[this->metrics[m_index]->getName()].concatenate(
-					//	this->metrics[m_index]->result().template getValue<float>(0));
+						if (verbose) {
+							/*	*/
+							timeSample.getValue<float>(timeIndex) = time.deltaTime<float>();
+							timeIndex = (timeIndex + 1) % timeSample.getNrElements();
+							const float averageTime = Tensor<float>::mean<float>(timeSample);
+
+							const size_t nrBatchPerSecond = 1.0f / averageTime;
+							const float expectedEpochTime =
+								static_cast<float>(nrValidationBatches - batch_index) * averageTime;
+
+							using fsec = duration<float>;
+							auto duration_time = round<nanoseconds>(fsec{expectedEpochTime});
+
+							std::cout << "\33[2K\r" << "Batch: " << (batch_index + 1) << "/"
+									  << nrValidationBatches // << " " << nrBatchPerSecond << "batch/Sec"
+									  << " ETA: ";
+							std::cout << " loss-val: " << this->lossmetric.result().getValue(0);
+
+							for (size_t m_index = 0; m_index < validation_metric.size(); m_index++) {
+								std::cout << " - " << validation_metric[m_index]->getName() << ": "
+										  << Tensor<float>::mean<DType>(validation_metric[m_index]->result());
+							}
+						}
+						if (verbose) {
+							std::cout << std::flush;
+						}
+					}
+					time.update();
 				}
 
 				if (verbose) {
@@ -351,6 +311,10 @@ namespace Ritsu {
 
 		template <typename U, typename Y>
 		Tensor<Y> predict(const Tensor<U> &inputTensor, const size_t batch = 1, const bool verbose = false) {
+
+			if (!this->is_built()) {
+				throw std::runtime_error("Must be built before it can run through the network");
+			}
 
 			Tensor<float> result;
 
@@ -398,6 +362,10 @@ namespace Ritsu {
 
 		virtual std::string summary() const {
 			std::stringstream _summary;
+
+			if (!this->is_built_and_compiled()) {
+				throw std::runtime_error("Model must have been compiled before it can summarized");
+			}
 
 			// TODO: add support for aligned summary.
 			size_t maxSpaceForTab = 0;
@@ -717,16 +685,33 @@ namespace Ritsu {
 			//			  << " -  accuracy: " << accuracy << std::flush;
 		}
 
+	  protected:
 		bool is_built() const noexcept {
-			return layers.size() > 0 && optimizer && lossFunction && inputs.size() > 0 && outputs.size() > 0 &&
-				   forwardSequence.size() > 0;
+			return this->layers.size() > 0 && this->inputs.size() > 0 && this->outputs.size() > 0 &&
+				   this->forwardSequence.size() > 0;
 		}
 
+		bool is_built_and_compiled() const noexcept { return this->is_built() && this->is_compiled(); }
+
+		bool is_compiled() const noexcept { return this->optimizer && this->lossFunction; }
+
 		bool is_junction_layer(const Layer<DType> *layer) const noexcept { return layer->getInputs().size() > 1; }
+
+		Layer<float> &getInputLayer() const noexcept { return *this->inputs[0]; }
+		Layer<float> &getOutputLayer() const noexcept { return *this->outputs[0]; }
 
 		bool is_input_layer(const Layer<T> *layer) const noexcept {
 			for (size_t i = 0; i < inputs.size(); i++) {
 				if (layer == inputs[i]) {
+					return true;
+				}
+			}
+			return false;
+		}
+
+		bool is_output_layer(const Layer<T> *layer) const noexcept {
+			for (size_t i = 0; i < inputs.size(); i++) {
+				if (layer == outputs[i]) {
 					return true;
 				}
 			}

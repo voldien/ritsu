@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2023 Valdemar Lindberg
+ * Copyright (c) 2025 Valdemar Lindberg
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -72,7 +72,7 @@ namespace Ritsu {
 		RandomNormal(const U mean = 0.0, const U stddev = 1.0, const size_t seed = 118284) {
 			this->distribution = std::normal_distribution<U>(mean, stddev);
 			std::random_device random_device;
-			this->gen = std::mt19937(random_device()); // Standard mersenne_twister_engine seeded with rd()
+			this->gen = std::mt19937(random_device());
 			this->gen.seed(seed);
 		}
 
@@ -94,7 +94,7 @@ namespace Ritsu {
 		RandomBernoulli(const U perc = 1.0, const size_t seed = 512523) {
 			this->distribution = std::bernoulli_distribution(perc);
 			std::random_device random_device;
-			this->generator = std::mt19937(random_device()); // Standard mersenne_twister_engine seeded with rd()
+			this->generator = std::mt19937(random_device());
 			this->generator.seed(seed);
 		}
 

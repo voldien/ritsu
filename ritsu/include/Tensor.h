@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2023 Valdemar Lindberg
+ * Copyright (c) 2025 Valdemar Lindberg
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -114,11 +114,13 @@ namespace Ritsu {
 		}
 
 		Tensor(const Tensor &other) {
-			this->resizeBuffer(other.getShape(), other.memoryBuffer.element_size);
+			if (other.getShape().getNrElements() > 0) {
+				this->resizeBuffer(other.getShape(), other.memoryBuffer.element_size);
 
-			/*	Transfer data.	*/
-			const size_t dataSizeInBytes = other.getDatSize();
-			std::memcpy(this->memoryBuffer.buffer.data, other.memoryBuffer.buffer.data, dataSizeInBytes);
+				/*	Transfer data.	*/
+				const size_t dataSizeInBytes = other.getDatSize();
+				std::memcpy(this->memoryBuffer.buffer.data, other.memoryBuffer.buffer.data, dataSizeInBytes);
+			}
 
 			this->typeinfo = other.typeinfo;
 		}
@@ -161,13 +163,14 @@ namespace Ritsu {
 		}
 
 		auto &operator=(const Tensor &other) {
-
 			/*	*/
-			this->resizeBuffer(other.getShape(), other.memoryBuffer.element_size);
+			if (other.getShape().getNrElements() > 0) {
+				this->resizeBuffer(other.getShape(), other.memoryBuffer.element_size);
 
-			const size_t dataSizeInBytes = other.getDatSize();
-			std::memcpy(this->memoryBuffer.buffer.data, other.memoryBuffer.buffer.data, dataSizeInBytes);
-			this->typeinfo = other.typeinfo;
+				const size_t dataSizeInBytes = other.getDatSize();
+				std::memcpy(this->memoryBuffer.buffer.data, other.memoryBuffer.buffer.data, dataSizeInBytes);
+				this->typeinfo = other.typeinfo;
+			}
 
 			return *this;
 		}

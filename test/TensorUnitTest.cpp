@@ -84,7 +84,7 @@ TYPED_TEST_P(TensorTest, NotEqual) {
 
 	ASSERT_NE(tensorA, tensorB);
 
-	Tensor<TypeParam>::notEqual(tensorA, tensorB);
+	ASSERT_NO_THROW(Tensor<TypeParam>::notEqual(tensorA, tensorB));
 }
 
 TYPED_TEST_P(TensorTest, Less) {
@@ -96,7 +96,9 @@ TYPED_TEST_P(TensorTest, Less) {
 	tensorB.assignInitValue(1);
 	tensorA.assignInitValue(0);
 
-	Tensor<TypeParam>::less(tensorA, tensorB);
+	ASSERT_NE(tensorA, tensorB);
+
+	ASSERT_NO_THROW(Tensor<TypeParam>::less(tensorA, tensorB));
 }
 
 TYPED_TEST_P(TensorTest, Greater) {
@@ -108,7 +110,9 @@ TYPED_TEST_P(TensorTest, Greater) {
 	tensorB.assignInitValue(1);
 	tensorA.assignInitValue(0);
 
-	Tensor<TypeParam>::greater(tensorA, tensorB);
+	ASSERT_NE(tensorA, tensorB);
+
+	ASSERT_NO_THROW(Tensor<TypeParam>::greater(tensorA, tensorB));
 }
 
 TYPED_TEST_P(TensorTest, DataSize) {

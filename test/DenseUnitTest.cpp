@@ -104,12 +104,12 @@ TEST_P(DenseShapeTest, ComputeDerivativeResult) {
 	output.build(dense.getInputs()[0]->getShape());
 
 	Tensor<float> result;
-	ASSERT_NO_THROW(result = dense.compute_derivative(inputData));
+	ASSERT_NO_THROW(result = dense.compute_derivative(inputData.transpose()));
 
 	ASSERT_EQ(result.getShape(), expected);
 }
 
 INSTANTIATE_TEST_SUITE_P(Dense, DenseShapeTest,
-						 ::testing::Values(std::make_tuple(16, 32, Ritsu::Shape<uint32_t>({1, 16})),
-										   std::make_tuple(32, 32, Ritsu::Shape<uint32_t>({1, 32})),
-										   std::make_tuple(1024, 10, Ritsu::Shape<uint32_t>({1, 1024}))));
+						 ::testing::Values(std::make_tuple(16, 32, Ritsu::Shape<uint32_t>({16, 1})),
+										   std::make_tuple(32, 32, Ritsu::Shape<uint32_t>({32, 1})),
+										   std::make_tuple(1024, 10, Ritsu::Shape<uint32_t>({1024, 1}))));
