@@ -17,31 +17,43 @@ int main(int argc, const char **argv) {
 	cxxopts::OptionAdder &addr = options.add_options("Addition")("h,help", "helper information.")(
 		"d,debug", "Enable Debugging", cxxopts::value<bool>()->default_value("false"))(
 		"B,batch", "Set the Batch Size", cxxopts::value<int>()->default_value("1"))(
-		"N,use-noise", "Enable the use of noise", cxxopts::value<bool>()->default_value("false"))(
 		"E,epoch", "Set the number of epochs", cxxopts::value<int>()->default_value("8"))(
 		"b,use-bias", "Use Dense Bias", cxxopts::value<bool>()->default_value("true"))(
 		"m,mid-dense-count", "Set Number of neuron in middle layer", cxxopts::value<int>()->default_value("2"))(
 		"l,learning-rate", "Set Learning Rate", cxxopts::value<float>()->default_value("0.00000001"))(
-		"M,optimizer-momentum", "Set Optimizer momentum", cxxopts::value<float>()->default_value("0.1"))(
+		"M,optimizer-momentum", "Set Optimizer momentum", cxxopts::value<float>()->default_value("0.0"))(
 		"V,validation", "Set Validation split", cxxopts::value<float>()->default_value("0.1"))(
 		"S,seed", "Set Seed", cxxopts::value<int>()->default_value("1234"))(
 		"T,trainig-size", "Set Training Size", cxxopts::value<size_t>()->default_value("65536"))(
-		"O,optimizer", "Set Optimizer ", cxxopts::value<std::string>()->default_value("sgd"));
+		"O,optimizer", "Set Optimizer ", cxxopts::value<std::string>()->default_value("sgd"))(
+		"L,loss-funciton", " ", cxxopts::value<std::string>()->default_value("mse"))(
+		"r,regulation", " ", cxxopts::value<float>()->default_value("0.00000"))(
+		"t,threads", "Set number of threads (Core) to use", cxxopts::value<int>()->default_value("-1"));
 
 	/*	Parse the command line input.	*/
 	auto result = options.parse(argc, (char **&)argv);
 
 	/*	*/
 	const bool debug = result["debug"].as<bool>();
-	const unsigned int batchSize = 2;// result["batch"].as<int>();
+	const unsigned int batchSize = result["batch"].as<int>();
 	const unsigned int epochs = result["epoch"].as<int>();
 	const float learningRate = result["learning-rate"].as<float>();
 	const size_t trainingDataSize = result["trainig-size"].as<size_t>();
 	const float validationSplit = Math::clamp<float>(result["validation"].as<float>(), 0, 1);
 	const bool useBias = result["use-bias"].as<bool>();
-	const bool useNoise = result["use-noise"].as<bool>();
 	const unsigned int dense_size = result["mid-dense-count"].as<int>();
 	const float momentum = result["optimizer-momentum"].as<float>();
+	const float useRegulation = result["regulation"].as<float>();
+	const int threads = result["threads"].as<int>();
+
+	const std::string use_optimizer = result["optimizer"].as<std::string>();
+	const std::string use_loss_function = result["loss-funciton"].as<std::string>();
+
+	if (threads == -1) {
+		omp_set_num_threads(omp_get_num_procs());
+	} else {
+		omp_set_num_threads(threads);
+	}
 
 	if (debug) {
 		/*	*/
@@ -70,9 +82,14 @@ int main(int argc, const char **argv) {
 		Input input({input_size}, "input");
 		Dense dense0(dense_size, useBias);
 		Dense outputDense(output_size, useBias);
+		Regularization regulation(useRegulation, 0.000f);
 
 		/*	Connect layers.	*/
 		Layer<float> &output = outputDense(dense0(input));
+
+		if (useRegulation > 0) {
+			output = regulation(output);
+		}
 
 		/*	Setup optimizer.	*/
 		Optimizer<float> *optimizer = nullptr;

@@ -24,6 +24,7 @@
 #include "core/Shape.h"
 #include "core/Time.h"
 #include "layers/Layer.h"
+#include "layers/Reshape.h"
 #include "optimizer/Optimizer.h"
 #include <cassert>
 #include <chrono>
@@ -179,9 +180,9 @@ namespace Ritsu {
 			/*	TODO: setup cache.	*/
 			std::map<std::string, Tensor<float>> cachedResult;
 
-			/*	Preallocate.	*/
-			Tensor<float> loss_error;
-			Tensor<float> loss_deriv;
+			/*	Preallocate.	*/ // TODO:
+			Tensor<float> loss_error = Tensor<float>(this->outputs[0]->getShape());
+			Tensor<float> loss_deriv = Tensor<float>(this->outputs[0]->getShape());
 
 			Tensor<float> timeSample({8});
 			uint32_t timeIndex = 0;
@@ -311,6 +312,26 @@ namespace Ritsu {
 
 					/*	*/
 					loss_error = std::move(this->lossFunction->computeLoss(subsetExpectedBatch, batchPredictedResult));
+					
+					/*	Apply metric update.	*/
+					{
+						this->lossmetric.update_state({&loss_error});
+
+						assert(!std::isnan(this->lossmetric.result().getValue(0)));
+						assert(!std::isinf(this->lossmetric.result().getValue(0)));
+
+						for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
+							this->metrics[m_index]->update_state(subsetExpectedBatch, batchPredictedResult);
+						}
+
+						/*	Update history, using all metrics.	*/
+						for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
+							/*	*/
+							this->history[this->metrics[m_index]->getName()].concatenate(
+								this->metrics[m_index]->result().template getValue<float>(0));
+						}
+						this->history[this->lossmetric.getName()].concatenate(this->lossmetric.result().getValue(0));
+					}
 				}
 
 				/*	Update history, using all metrics.	*/
@@ -407,13 +428,15 @@ namespace Ritsu {
 				_summary << std::endl;
 			}
 
+			const size_t train_in_bytes = static_cast<size_t>(this->trainableWeightSizeInBytes / 1024.0f);
+			const size_t none_train_in_bytes = static_cast<size_t>(this->noneTrainableWeightSizeInBytes / 1024.0f);
+
 			/*	Summary of number of parameters and size.	*/
 			_summary << "number of weights: " << std::to_string(this->nr_weights) << std::endl;
-			_summary << "Trainable in Bytes: "
-					 << std::to_string(static_cast<size_t>(this->trainableWeightSizeInBytes / 1024.0f)) << " KB"
-					 << std::endl;
-			_summary << "None-Trainable in Bytes: "
-					 << std::to_string(static_cast<size_t>(this->noneTrainableWeightSizeInBytes / 1024.0f)) << " KB";
+			_summary << "Trainable in Bytes: " << std::to_string(train_in_bytes) << " KB" << std::endl;
+			_summary << "None-Trainable in Bytes: " << std::to_string(none_train_in_bytes) << " KB" << std::endl;
+			_summary << "Loss Function: " << this->lossFunction->getName() << std::endl;
+			_summary << "Optimizer: " << this->optimizer->getName() << std::endl;
 			return _summary.str();
 		}
 
@@ -500,7 +523,6 @@ namespace Ritsu {
 			result = std::move(layerResult);
 		}
 
-		// TODO: improve and fix for all sizes and all layers.
 		void backPropagation(const Tensor<float> &error, std::map<std::string, Tensor<float>> &cacheResult,
 							 const size_t batchSize) {
 
@@ -508,14 +530,13 @@ namespace Ritsu {
 			Tensor<float> &current_layer_q = cacheResult[(*this->forwardSequence.rbegin())->getName()];
 			Tensor<float> &previous_layer_q = cacheResult[(*this->forwardSequence.rbegin()++)->getName()];
 
-			const float batch_inverse = 1.0f / batchSize;
+			const float batch_inverse = 1.0f / static_cast<float>(batchSize);
 
-			Tensor<float> differental_z_error = error;
-			Tensor<float> prev_layer_deriv;
+			Tensor<float> differental_z_error = error.transpose();
 
-			/*	TODO: determine.	*/
+			/*	Duplicate the loss to match the batch size.	*/
 			for (unsigned int i = 0; i < batchSize - 1; i++) {
-				differental_z_error.concatenate(error);
+				differental_z_error.concatenate(error.transpose());
 			}
 
 			// TODO:
@@ -525,6 +546,8 @@ namespace Ritsu {
 
 			differental_z_error.reshape(diffShape);
 			differental_z_error.transpose();
+
+			Tensor<float> prev_layer_deriv = differental_z_error;
 
 			/*	*/
 			Layer<T> *current = nullptr;
@@ -536,7 +559,7 @@ namespace Ritsu {
 				prev = *(std::next(it));
 
 				/*	Finished.	*/
-				if (current == this->inputs[0]) {
+				if (is_input_layer(current)) {
 					return;
 				}
 
@@ -582,10 +605,7 @@ namespace Ritsu {
 						debug_print_tensor(std::cout, gradient, "Gradient");
 
 						/*	*/
-						//if (batchSize > 1) {
-							//const int batchIndex = 0;
-							gradient = gradient * batch_inverse; // std::move(gradient.mean(batchIndex));
-						//}
+						gradient *= batch_inverse;
 
 						this->optimizer->update_step(reinterpret_cast<Tensor<T> &>(gradient),
 													 reinterpret_cast<Tensor<T> &>(*variable));
@@ -597,10 +617,14 @@ namespace Ritsu {
 				} else {
 
 					/*	Update delta.	*/
-					Tensor<float> z_derv =
-						current->compute_derivative(static_cast<const Tensor<float> &>(current_layer_q));
-					differental_z_error = z_derv.dot(prev_layer_deriv);
-
+					if (typeid(*current) == typeid(Reshape)) {
+						differental_z_error.reshape(current->getInputs().at(0)->getShape());
+					} else {
+						Tensor<float> z_derv =
+							current->compute_derivative(static_cast<const Tensor<float> &>(current_layer_q));
+						differental_z_error = z_derv.dot(prev_layer_deriv);
+					}
+					prev_layer_deriv = differental_z_error;
 					/*	*/
 					debug_print_tensor_layer<T>(std::cout, *current,
 												reinterpret_cast<Tensor<T> &>(differental_z_error));
@@ -661,7 +685,6 @@ namespace Ritsu {
 					current = nullptr;
 				}
 			}
-			// this->forwardSequence.reverse();
 		}
 
 		void init_unique_name() {
@@ -679,7 +702,7 @@ namespace Ritsu {
 					newName = name + "_" + (*it)->getDType().name();
 					newName += static_cast<char>('0' + static_cast<char>(index));
 
-					index++; /*	*/
+					index++; /*	Keep track of nth version of the name*/
 				}
 
 				(*it)->setName(newName);
@@ -701,7 +724,7 @@ namespace Ritsu {
 
 		bool is_junction_layer(const Layer<DType> *layer) const noexcept { return layer->getInputs().size() > 1; }
 
-		bool is_input_layer(Layer<T> *layer) {
+		bool is_input_layer(const Layer<T> *layer) const noexcept {
 			for (size_t i = 0; i < inputs.size(); i++) {
 				if (layer == inputs[i]) {
 					return true;
@@ -721,13 +744,13 @@ namespace Ritsu {
 
 		/*	*/
 		std::map<std::string, Layer<T> *> layers;
-
 		/*	*/
 		std::map<std::string, Tensor<float>> history;
 
 		/*	*/
 		std::vector<Metric *> metrics;
 		MetricMean lossmetric;
+
 		/*	TODO: impl	*/
 		std::map<std::string, Object *> batchCache;
 		std::map<std::string, Object *> backPropagationCache;

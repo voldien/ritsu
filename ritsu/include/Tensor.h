@@ -245,6 +245,8 @@ namespace Ritsu {
 		Tensor &operator-=(const Tensor &tensor) {
 			const IndexType nrElements = this->getNrElements();
 
+			assert(nrElements == tensor.getNrElements());
+
 #pragma omp parallel for shared(tensor)
 			for (IndexType index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) -= tensor.getValue<DType>(index);
@@ -254,6 +256,8 @@ namespace Ritsu {
 
 		Tensor &operator+=(const Tensor &tensor) {
 			const IndexType nrElements = this->getNrElements();
+
+			assert(nrElements == tensor.getNrElements());
 
 #pragma omp parallel for shared(tensor)
 			for (IndexType index = 0; index < nrElements; index++) {
@@ -265,6 +269,8 @@ namespace Ritsu {
 		Tensor &operator*=(const Tensor &tensor) {
 			const IndexType nrElements = this->getNrElements();
 
+			assert(nrElements == tensor.getNrElements());
+
 #pragma omp parallel for shared(tensor)
 			for (IndexType index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) *= tensor.getValue<DType>(index);
@@ -272,8 +278,20 @@ namespace Ritsu {
 			return *this;
 		}
 
+		Tensor &operator*=(const DType &value) {
+			const IndexType nrElements = this->getNrElements();
+
+#pragma omp parallel for
+			for (IndexType index = 0; index < nrElements; index++) {
+				this->getValue<DType>(index) *= value;
+			}
+			return *this;
+		}
+
 		Tensor &operator/=(const Tensor &tensor) {
 			const IndexType nrElements = this->getNrElements();
+
+			assert(nrElements == tensor.getNrElements());
 
 #pragma omp parallel for shared(tensor)
 			for (IndexType index = 0; index < nrElements; index++) {
@@ -377,24 +395,6 @@ namespace Ritsu {
 			return *this;
 		}
 
-		// 		template <typename U, typename H> friend Tensor &operator+(const U &value, Tensor<H> &tensor) noexcept {
-		// 			const IndexType nrElements = tensor.getNrElements();
-
-		// 			if constexpr (std::is_fundamental<U>::value) {
-		// #pragma omp parallel for simd simdlen(4)
-		// 				for (IndexType index = 0; index < nrElements; index++) {
-		// 					tensor.getValue<H>(index) = value + tensor.getValue<H>(index);
-		// 				}
-		// 			} else if constexpr (std::is_base_of_v<U, Tensor<>>) {
-		// #pragma omp parallel for simd shared(tensor)
-		// 				for (IndexType index = 0; index < nrElements; index++) {
-		// 					tensor.getValue<H>(index) = tensor.getValue<H>(index) + value.template getValue<H>(index);
-		// 				}
-		// 			}
-
-		//	return tensor;
-		//}
-
 		Tensor &operator-() noexcept {
 			const IndexType nrElements = this->getNrElements();
 
@@ -421,6 +421,8 @@ namespace Ritsu {
 		Tensor &operator-(const Tensor &tensor) noexcept {
 			const IndexType nrElements = this->getNrElements();
 
+			assert(nrElements == tensor.getNrElements());
+
 #pragma omp parallel for shared(tensor)
 			for (IndexType index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = this->getValue<DType>(index) - tensor.getValue<DType>(index);
@@ -432,6 +434,8 @@ namespace Ritsu {
 		Tensor operator-(const Tensor &tensor) const noexcept {
 			Tensor tmp = Tensor(tensor.getShape());
 			IndexType nrElements = this->getNrElements();
+
+			assert(nrElements == tensor.getNrElements());
 
 #pragma omp parallel for shared(tensor)
 			for (IndexType index = 0; index < nrElements; index++) {
@@ -465,6 +469,8 @@ namespace Ritsu {
 		Tensor &operator*(const Tensor &tensor) noexcept {
 			const IndexType nrElements = this->getNrElements();
 
+			assert(nrElements == tensor.getNrElements());
+
 #pragma omp parallel for shared(tensor)
 			for (IndexType index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = this->getValue<DType>(index) * tensor.getValue<DType>(index);
@@ -477,6 +483,8 @@ namespace Ritsu {
 
 			Tensor output(tensorA.getShape());
 			const IndexType nrElements = tensorA.getNrElements();
+
+			assert(nrElements == tensorB.getNrElements());
 
 #pragma omp parallel for shared(tensorA, tensorB, output)
 			for (IndexType index = 0; index < nrElements; index++) {
@@ -531,6 +539,8 @@ namespace Ritsu {
 		Tensor &operator/(const Tensor &tensor) {
 			const size_t nrElements = this->getNrElements();
 
+			assert(nrElements == tensor.getNrElements());
+
 #pragma omp parallel for shared(tensor)
 			for (size_t index = 0; index < nrElements; index++) {
 				this->getValue<DType>(index) = this->getValue<DType>(index) / tensor.template getValue<DType>(index);
@@ -564,13 +574,14 @@ namespace Ritsu {
 			return *this;
 		}
 
-		template <typename U = DType> void assignInitValue(const U initValue) noexcept {
+		template <typename U = DType> Tensor<DType> &assignInitValue(const U initValue) noexcept {
 			const IndexType nrElements = this->getNrElements();
 
 #pragma omp parallel for simd
 			for (IndexType i = 0; i < nrElements; i++) {
 				this->getValue<DType>(i) = static_cast<DType>(initValue);
 			}
+			return *this;
 		}
 
 		/**
@@ -1353,7 +1364,7 @@ namespace Ritsu {
 			const IndexType K = A_col;
 
 #pragma omp target teams distribute parallel for collapse(2) shared(tensorALeft, tensorBRight, output)                 \
-	map(to : tensorALeft, tensorBRight) map(tofrom : output) thread_limit(128)
+	thread_limit(128) schedule(static)
 			for (IndexType a_row_index = 0; a_row_index < A_row; a_row_index++) {
 
 				for (IndexType b_col_index = 0; b_col_index < B_col; b_col_index++) {
@@ -1361,8 +1372,9 @@ namespace Ritsu {
 					const IndexType indexOutput = a_row_index * output_col + b_col_index;
 
 					DType sum = 0;
-#pragma omp simd reduction(+ : sum) simdlen(4)
-					for (IndexType k = 0; k < K; k++) {
+					IndexType k = 0;
+#pragma omp simd reduction(+ : sum) simdlen(4) private(k)
+					for (k = 0; k < K; k++) {
 
 						const IndexType indexA = k * A_row + a_row_index;
 						const IndexType indexB = b_col_index * K + k;

@@ -52,7 +52,7 @@ namespace Ritsu {
 		}
 
 		void build(const Shape<IndexType> &shape) override { /*	Validate */
-			// TODO: fix
+			// TODO: impl
 			Shape<IndexType> weight_shape = shape;
 
 			this->beta = Tensor<DType>(weight_shape);

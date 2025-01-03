@@ -131,6 +131,8 @@ namespace Ritsu {
 			return {};
 		}
 
+		virtual bool has_derivative() const noexcept { return true; }
+
 		void addInputLayers(const std::vector<Layer<DType> *> &layers) {
 			/*	*/
 			this->setInputs(layers);

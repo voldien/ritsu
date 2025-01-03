@@ -4,6 +4,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![GitHub release](https://img.shields.io/github/release/voldien/ritsu.svg)](https://github.com/voldien/ritsu/releases)
 
+A machine learning library, created for personal educational purposes. Is not recommended for product development. But only as educational material.
+
 ```cpp
 Input input({2}, "input");
 Dense dense0(2, false);
@@ -55,9 +57,9 @@ Model<float>::History *result = &forwardModel.fit(8, dataX, dataY, 1, 0, false, 
 ### Layer
 
 - **Dense**
-- **Batch Normalization**
-- **Dropout**
-- **GuassianNoise**
+- **Batch Normalization** - WIP
+- **Dropout** - WIP
+- **GuassianNoise** - WIP
 - **Flatten**
 - **Reshape**
 
@@ -71,7 +73,7 @@ Model<float>::History *result = &forwardModel.fit(8, dataX, dataY, 1, 0, false, 
 ## Optimizer
 
 - **SGD** - Stochastic Gradient Descent
-- **Adam** - Adaptive Moment estimation
+- **Adam** - Adaptive Moment Estimation
 
 ## Dependencies
 
@@ -83,11 +85,13 @@ In order to compile the program on Linux based machine, the following Debian pac
 
 ## Building
 
-### ROCM
+The OpenMP can be built with other graphic framework, to be executed on the graphic devices. However, no supported yet added.
 
-### CUDA
+### AMD - ROCM
 
-### Intel
+### NVIDIA - CUDA
+
+### Intel - OneAPI
 
 ## Installation
 

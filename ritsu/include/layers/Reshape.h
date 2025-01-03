@@ -16,7 +16,6 @@
 #pragma once
 #include "Layer.h"
 #include "core/Shape.h"
-#include<Openmp/omp-tools.h>
 
 namespace Ritsu {
 
@@ -77,12 +76,14 @@ namespace Ritsu {
 		Tensor<DType> compute_derivative(const Tensor<DType> &tensor) override {
 			Tensor<DType> copy = tensor;
 			const Tensor<DType>::IndexType batchSize = tensor.getShape()[0];
-			return copy.reshape(this->input->getShape());
+			copy.assignInitValue(1);
+			return copy;
 		}
 
 		Tensor<DType> &compute_derivative(Tensor<DType> &tensor) const override {
 			const Tensor<DType>::IndexType batchSize = tensor.getShape()[0];
-			return tensor.reshape(this->input->getShape());
+			tensor.assignInitValue(1);
+			return tensor;
 		}
 
 	  private:

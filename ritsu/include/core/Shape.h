@@ -351,7 +351,7 @@ namespace Ritsu {
 		 */
 		Shape<IndexType> &append(const Shape<IndexType> &additionalDims, const int axis = -1) {
 
-			if (!canMerge(*this, additionalDims, axis)) {
+			if (!canShapeMerge(*this, additionalDims, axis)) {
 				throw RuntimeException("Invalid Shape");
 			}
 			const unsigned int axisMod = Math::mod<int>(axis, this->getNrDimensions());
@@ -373,7 +373,7 @@ namespace Ritsu {
 
 		Shape<IndexType> append(const Shape<IndexType> &additionalDims, const int axis = -1) const {
 
-			if (!canMerge(*this, additionalDims, axis)) {
+			if (!canShapeMerge(*this, additionalDims, axis)) {
 				throw RuntimeException("Invalid Shape");
 			}
 
@@ -397,7 +397,7 @@ namespace Ritsu {
 
 		Shape<IndexType> &erase(const Shape<IndexType> &additionalDims, int axis = -1) {
 
-			if (!canMerge(*this, additionalDims, axis)) {
+			if (!canShapeMerge(*this, additionalDims, axis)) {
 				throw RuntimeException("Invalid");
 			}
 
@@ -409,7 +409,7 @@ namespace Ritsu {
 
 		Shape<IndexType> erase(const Shape<IndexType> &additionalDims, int axis = -1) const {
 
-			if (!canMerge(*this, additionalDims, axis)) {
+			if (!canShapeMerge(*this, additionalDims, axis)) {
 				throw RuntimeException("Invalid");
 			}
 
@@ -437,7 +437,7 @@ namespace Ritsu {
 		 * Memory is row. thus the result is itself.
 		 */
 		static inline IndexType getIndexMemoryOffset(const Shape<IndexType> &shape, IndexType index,
-													 unsigned int orderAxis = 0) noexcept {
+													 const unsigned int orderAxis = 0) noexcept {
 			if (orderAxis == 0) {
 				return index;
 			}
@@ -449,8 +449,7 @@ namespace Ritsu {
 			return (index % axisDim) * depthSlice + (index / axisDim);
 		}
 
-		// TODO: rename
-		static bool canMerge(const Shape<IndexType> &shapeA, const Shape<IndexType> &shapeB, int axis) noexcept {
+		static bool canShapeMerge(const Shape<IndexType> &shapeA, const Shape<IndexType> &shapeB, const int axis) noexcept {
 			// verify if operation is possible.
 			if (shapeA.getNrDimensions() != shapeB.getNrDimensions()) {
 				return false;

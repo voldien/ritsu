@@ -181,7 +181,7 @@ namespace Ritsu {
 				RandomUniform<DType> random(-1, 1);
 
 				init.set(this->bias);
-				this->bias.reshape({1, this->bias.getShape().getAxisDimensions(0)});
+				this->bias.reshape({1, this->bias.getShape().getAxisDimensions(-1)});
 			}
 		}
 

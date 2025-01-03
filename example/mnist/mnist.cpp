@@ -6,7 +6,6 @@
 #include "layers/Layer.h"
 #include "layers/Regularization.h"
 #include "layers/Relu.h"
-#include "layers/Rescaling.h"
 #include "layers/Sigmoid.h"
 #include "layers/SoftMax.h"
 #include "mnist_dataset.h"
@@ -28,7 +27,7 @@ int main(int argc, const char **argv) {
 		"B,batch", "Set the Batch Size", cxxopts::value<int>()->default_value("1"))(
 		"N,use-noise", "Enable the use of noise", cxxopts::value<bool>()->default_value("false"))(
 		"E,epoch", "Set the number of epochs", cxxopts::value<int>()->default_value("8"))(
-		"b,use-bias", "Use Dense Bias", cxxopts::value<bool>()->default_value("false"))(
+		"b,use-bias", "Use Dense Bias", cxxopts::value<bool>()->default_value("true"))(
 		"m,mid-dense-count", "Set Number of neuron in middle layer", cxxopts::value<int>()->default_value("2"))(
 		"l,learning-rate", "Set Learning Rate", cxxopts::value<float>()->default_value("0.00000001"))(
 		"M,optimizer-momentum", "Set Optimizer momentum", cxxopts::value<float>()->default_value("0.1"))(
@@ -37,7 +36,9 @@ int main(int argc, const char **argv) {
 		"T,trainig-size", "Set Training Size", cxxopts::value<size_t>()->default_value("65536"))(
 		"O,optimizer", "Set Optimizer ", cxxopts::value<std::string>()->default_value("sgd"))(
 		"s,use-sigmoid", " ", cxxopts::value<bool>()->default_value("false"))(
-		"L,loss-funciton", " ", cxxopts::value<std::string>()->default_value("mse"));
+		"L,loss-funciton", " ", cxxopts::value<std::string>()->default_value("mse"))(
+		"r,regulation", " ", cxxopts::value<float>()->default_value("0.00000"))(
+		"t,threads", "Set number of threads (Core) to use", cxxopts::value<int>()->default_value("-1"));
 
 	/*	Parse the command line input.	*/
 	auto result = options.parse(argc, (char **&)argv);
@@ -54,10 +55,17 @@ int main(int argc, const char **argv) {
 	const bool useBias = result["use-bias"].as<bool>();
 	const bool useNoise = result["use-noise"].as<bool>();
 	const float momentum = result["optimizer-momentum"].as<float>();
-	const bool useRegulation = false;
+	const float useRegulation = result["regulation"].as<float>();
+	const int threads = result["threads"].as<int>();
 
 	const std::string use_optimizer = result["optimizer"].as<std::string>();
 	const std::string use_loss_function = result["loss-funciton"].as<std::string>();
+
+	if (threads == -1) {
+		omp_set_num_threads(omp_get_num_procs());
+	} else {
+		omp_set_num_threads(threads);
+	}
 
 	if (debug) {
 		/*	*/
@@ -85,16 +93,16 @@ int main(int argc, const char **argv) {
 		inputResTestY = std::move(Tensor<uint8_t>::oneShot(inputResTestY));
 
 		/*	*/
-		const Tensor<float> inputResYF = std::move(inputResY.cast<float>());
-		const Tensor<float> inputResTestYF = std::move(inputResTestY.cast<float>());
+		const Tensor<float> inputResYF = std::move(inputResY.cast<float>() * (1.0 / 255.0f));
+		const Tensor<float> inputResTestYF = std::move(inputResTestY.cast<float>() * (1.0 / 255.0f));
 
 		/*	Extract data shape.	*/
 		Shape<unsigned int> dataShape = inputDataX.getShape().getSubShapeMem(1, 3);
 		Shape<unsigned int> resultShape = inputResYF.getShape().getSubShapeMem(1, 1);
 		const unsigned int output_size = 10;
 
-		const Tensor<float> inputDataXF = std::move(inputDataX.cast<float>());
-		const Tensor<float> inputTestXF = std::move(inputTestX.cast<float>());
+		const Tensor<float> inputDataXF = std::move(inputDataX.cast<float>() * (1.0 / 255.0f));
+		const Tensor<float> inputTestXF = std::move(inputTestX.cast<float>() * (1.0 / 255.0f));
 
 		/*	*/
 		std::cout << "Train Object Size: " << dataShape << " Expected result Size: " << resultShape << std::endl;
@@ -102,7 +110,6 @@ int main(int argc, const char **argv) {
 		/*	Creat all layers.	*/
 		Input input0node(dataShape, "input");
 		Cast<uint8_t, float> cast2Float;
-		Rescaling normalizedLayer(1.0f / 255.0f);
 
 		GuassianNoise noise(0, 0.8f);
 
@@ -122,15 +129,14 @@ int main(int argc, const char **argv) {
 		Dense fw2_output =
 			Dense(output_size, useBias, RandomUniformInitializer<float>(), RandomUniformInitializer<float>(), "layer2");
 
-		Regularization regulation(0.00001f, 0.000f);
+		Regularization regulation(useRegulation, 0.000f);
 
 		Sigmoid sigmoid;
 		SoftMax outputAct;
 
 		/*	Connect layers.	*/
 		{
-			Layer<float> *lay = &normalizedLayer(input0node);
-			lay = &flattenInput(*lay);
+			Layer<float> *lay = &flattenInput(input0node);
 
 			if (useNoise) {
 				lay = &noise(*lay);
@@ -162,7 +168,7 @@ int main(int argc, const char **argv) {
 				lay = &sigmoid(*lay);
 			}
 
-			if (useRegulation) {
+			if (useRegulation > 0) {
 				lay = &regulation(*lay);
 			}
 

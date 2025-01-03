@@ -156,11 +156,9 @@ namespace Ritsu {
 		MeanAbsoluterror(const std::string name = "mse") : Loss(loss_msa, name) {}
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
 
-			//inputX0_true.equal();
-			//TODO: fix
+			// TODO: fix
 			const DType cons = static_cast<DType>(1.0 / -2);
-			Tensor<float> output_result =
-				Tensor<float>::abs(inputX0_true - inputX1_pred) * cons;
+			Tensor<float> output_result = Tensor<float>::abs(inputX0_true - inputX1_pred) * cons;
 
 			/*	Mean for each batch index.	*/
 			const int batchIndex = 0;

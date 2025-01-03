@@ -20,14 +20,17 @@ int main(int argc, const char **argv) {
 		"B,batch", "Set the Batch Size", cxxopts::value<int>()->default_value("1"))(
 		"N,use-noise", "Enable the use of noise", cxxopts::value<bool>()->default_value("false"))(
 		"E,epoch", "Set the number of epochs", cxxopts::value<int>()->default_value("8"))(
-		"b,use-bias", "Use Dense Bias", cxxopts::value<bool>()->default_value("false"))(
+		"b,use-bias", "Use Dense Bias", cxxopts::value<bool>()->default_value("true"))(
 		"m,mid-dense-count", "Set Number of neuron in middle layer", cxxopts::value<int>()->default_value("2"))(
 		"l,learning-rate", "Set Learning Rate", cxxopts::value<float>()->default_value("0.00000001"))(
-		"M,optimizer-momentum", "Set Optimizer momentum", cxxopts::value<float>()->default_value("0.1"))(
+		"M,optimizer-momentum", "Set Optimizer momentum", cxxopts::value<float>()->default_value("0.0"))(
 		"V,validation", "Set Validation split", cxxopts::value<float>()->default_value("0.1"))(
 		"S,seed", "Set Seed", cxxopts::value<int>()->default_value("1234"))(
 		"T,trainig-size", "Set Training Size", cxxopts::value<size_t>()->default_value("65536"))(
-		"O,optimizer", "Set Optimizer ", cxxopts::value<std::string>()->default_value("sgd"));
+		"O,optimizer", "Set Optimizer ", cxxopts::value<std::string>()->default_value("sgd"))(
+		"L,loss-funciton", " ", cxxopts::value<std::string>()->default_value("mse"))(
+		"r,regulation", " ", cxxopts::value<float>()->default_value("0.00000"))(
+		"t,threads", "Set number of threads (Core) to use", cxxopts::value<int>()->default_value("-1"));
 
 	/*	Parse the command line input.	*/
 	auto result = options.parse(argc, (char **&)argv);
@@ -39,11 +42,18 @@ int main(int argc, const char **argv) {
 		const float learningRate = result["learning-rate"].as<float>();
 		bool useBatchNorm = false;
 		bool useDropout = false;
-		bool useReg = false;
 		const float validationSplit = Math::clamp<float>(result["validation"].as<float>(), 0, 1);
 		const bool useBias = result["use-bias"].as<bool>();
 		const bool useNoise = result["use-noise"].as<bool>();
 		const float momentum = result["optimizer-momentum"].as<float>();
+		const float useRegulation = result["regulation"].as<float>();
+		const int threads = result["threads"].as<int>();
+
+		if (threads == -1) {
+			omp_set_num_threads(omp_get_num_procs());
+		} else {
+			omp_set_num_threads(threads);
+		}
 
 		if (debug) {
 			/*	*/
@@ -68,14 +78,13 @@ int main(int argc, const char **argv) {
 		Shape<unsigned int> dataShape = inputDataX.getShape().getSubShapeMem(1, 3);
 		Shape<unsigned int> resultShape = inputResY.getShape().getSubShapeMem(1, 1);
 
-		const Tensor<float> inputDataXF = inputDataX.cast<float>();
-		const Tensor<float> inputTestXF = inputTestX.cast<float>();
+		const Tensor<float> inputDataXF = inputDataX.cast<float>() * (1.0f / 255.0f);
+		const Tensor<float> inputTestXF = inputTestX.cast<float>() * (1.0f / 255.0f);
 
 		/*	*/
 		std::cout << "Train Object Size: " << dataShape << " Expected result Size: " << resultShape << std::endl;
 
 		Input input0node(dataShape, "input");
-		Rescaling normalizedLayer(1.0f / 255.0f);
 		Flatten flattenInput("flatten0");
 
 		Dense dense_0(128, useBias, RandomUniformInitializer<float>(), RandomUniformInitializer<float>(), "layer0");
@@ -95,7 +104,7 @@ int main(int argc, const char **argv) {
 
 		/*	*/
 		Dense latent(8, useBias, RandomUniformInitializer<float>(), RandomUniformInitializer<float>(), "latent");
-		Regularization regularization(0.01, 0.02);
+		Regularization regularization(useRegulation, 0);
 
 		/*	*/
 		Dense dense_3(32, useBias, RandomUniformInitializer<float>(), RandomUniformInitializer<float>(), "layer3");
@@ -121,8 +130,7 @@ int main(int argc, const char **argv) {
 		/*	*/
 		{
 
-			Layer<float> *lay = &normalizedLayer(input0node);
-			lay = &flattenInput(*lay);
+			Layer<float> *lay = &flattenInput(input0node);
 
 			/*	Layer0	*/
 			lay = &dense_0(*lay);
@@ -154,9 +162,9 @@ int main(int argc, const char **argv) {
 			}
 			lay = &relu_2(*lay);
 
-			/*	*/
+			/*	Latent Space Layer*/
 			lay = &latent(*lay);
-			if (useReg) {
+			if (useRegulation > 0) {
 				lay = &regularization(*lay);
 			}
 			Layer<float> *encoderLayer = lay;
@@ -205,12 +213,13 @@ int main(int argc, const char **argv) {
 
 			Optimizer<float> *optimizer = nullptr;
 			SGD<float> optimizerSGD(learningRate, momentum);
+			Adam<float> Adamoptimizer(learningRate);
 
 			MetricAccuracy accuracy;
 			MetricMean lossmetric("loss");
 			MeanSquareError mse_loss;
 
-			autoencoder.compile(&optimizerSGD, mse_loss, {&accuracy});
+			autoencoder.compile(&Adamoptimizer, mse_loss, {&accuracy});
 
 			autoencoder.fit(epochs, inputDataXF, inputDataXF, batchSize, validationSplit);
 

@@ -59,10 +59,10 @@ namespace Ritsu {
 		Tensor<float> compute_derivative(const Tensor<float> &tensor) override {
 			Tensor<DType> copy = tensor;
 			const Tensor<DType>::IndexType batchSize = tensor.getShape()[0];
-			return copy; //.reshape(this->input->getShape());
+			return copy.assignInitValue(1); //.reshape(this->input->getShape());
 		}
 		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override {
-			return tensor; //.reshape(this->input->getShape());
+			return tensor.assignInitValue(1); //.reshape(this->input->getShape());
 		}
 
 	  private:
