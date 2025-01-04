@@ -20,7 +20,7 @@
 
 namespace Ritsu {
 
-#pragma omp declare simd uniform(value) simdlen(4)
+#pragma omp declare simd uniform(value)
 	template <typename T> inline static T computeSigmoid(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -28,7 +28,7 @@ namespace Ritsu {
 							  static_cast<T>(1));
 	}
 
-#pragma omp declare simd uniform(value) simdlen(4)
+#pragma omp declare simd uniform(value)
 	template <typename T> inline static T computeSigmoidDerivative(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -36,14 +36,14 @@ namespace Ritsu {
 		return sig * (static_cast<T>(1) - sig);
 	}
 
-#pragma omp declare simd uniform(value) simdlen(4)
+#pragma omp declare simd uniform(value)
 	template <typename T> inline static constexpr T relu(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		return Math::max<T>(0, value);
 	}
 
-#pragma omp declare simd uniform(value) simdlen(4)
+#pragma omp declare simd uniform(value)
 	template <typename T> inline static constexpr T reluDerivative(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -53,7 +53,7 @@ namespace Ritsu {
 		return 0;
 	}
 
-#pragma omp declare simd uniform(value, alpha) simdlen(4)
+#pragma omp declare simd uniform(value, alpha)
 	template <typename T> inline static constexpr T leakyRelu(const T alpha, const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -63,7 +63,7 @@ namespace Ritsu {
 		return std::max<T>(0, value);
 	}
 
-#pragma omp declare simd uniform(value, alpha) simdlen(4)
+#pragma omp declare simd uniform(value, alpha)
 	template <typename T> inline static constexpr T leakyReluDerivative(const T alpha, const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -73,35 +73,35 @@ namespace Ritsu {
 		return alpha;
 	}
 
-#pragma omp declare simd uniform(value) simdlen(4)
+#pragma omp declare simd uniform(value)
 	template <typename T> inline static constexpr T computeTanh(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		return std::tanh(value);
 	}
 
-#pragma omp declare simd uniform(value) simdlen(4)
+#pragma omp declare simd uniform(value)
 	template <typename T> inline static constexpr T computeTanhDerivative(const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		return 1.0 - (computeTanh<T>(value) * computeTanh<T>(value));
 	}
 
-#pragma omp declare simd uniform(coeff, value) simdlen(4)
+#pragma omp declare simd uniform(coeff, value)
 	template <typename T> inline static constexpr T computeLinear(const T coeff, const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		return coeff * value;
 	}
 
-#pragma omp declare simd uniform(coeff) simdlen(4)
+#pragma omp declare simd uniform(coeff)
 	template <typename T> inline static constexpr T computeLinearDerivative(const T coeff) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		return coeff;
 	}
 
-#pragma omp declare simd uniform(coeff, value) simdlen(4)
+#pragma omp declare simd uniform(coeff, value)
 	template <typename T> inline static constexpr T computeExpLinear(const T coeff, const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -111,7 +111,7 @@ namespace Ritsu {
 		return coeff * (std::exp(value) - 1);
 	}
 
-#pragma omp declare simd uniform(coeff, value) simdlen(4)
+#pragma omp declare simd uniform(coeff, value)
 	template <typename T> inline static constexpr T computeExpLinearDerivative(const T coeff, const T value) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -121,14 +121,14 @@ namespace Ritsu {
 		return coeff * std::exp(value);
 	}
 
-#pragma omp declare simd uniform(value, beta) simdlen(4)
+#pragma omp declare simd uniform(value, beta)
 	template <typename T> inline static constexpr T computeSwish(const T value, const T beta) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
 		return value * computeSigmoid<T>(beta * value);
 	}
 
-#pragma omp declare simd uniform(value, beta) simdlen(4)
+#pragma omp declare simd uniform(value, beta)
 	template <typename T> inline static constexpr T computeSwishDerivative(const T value, const T beta) noexcept {
 		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -144,7 +144,7 @@ namespace Ritsu {
 		T Inversesum = 0;
 		const size_t nrElements = tensor.getNrElements();
 
-		// #pragma omp for simd
+#pragma omp simd reduction(+ : Inversesum)
 		for (size_t i = 0; i < nrElements; i++) {
 			const T value = tensor.template getValue<T>(i);
 			Inversesum += static_cast<T>(std::exp(value));
@@ -155,6 +155,7 @@ namespace Ritsu {
 		for (size_t i = 0; i < nrElements; i++) {
 			tensor.template getValue<T>(i) = static_cast<T>(std::exp(tensor.template getValue<T>(i))) * Inversesum;
 		}
+
 		/*	*/
 		return tensor.clip(static_cast<T>(std::numeric_limits<T>::epsilon()),
 						   static_cast<T>(1 - std::numeric_limits<T>::epsilon()));

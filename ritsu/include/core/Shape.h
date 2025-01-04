@@ -192,6 +192,7 @@ namespace Ritsu {
 				const int sign_diff = static_cast<int>(pair.start0) - static_cast<int>(pair.end0);
 
 				const int diff = Math::abs<int>(sign_diff);
+
 				if (diff == 0) {
 					copy[i] = 1;
 				} else {
@@ -395,7 +396,7 @@ namespace Ritsu {
 			return *this;
 		}
 
-		Shape<IndexType> &erase(const Shape<IndexType> &additionalDims, int axis = -1) {
+		Shape<IndexType> &erase(const Shape<IndexType> &additionalDims, const int axis = -1) {
 
 			if (!canShapeMerge(*this, additionalDims, axis)) {
 				throw RuntimeException("Invalid");
@@ -407,7 +408,7 @@ namespace Ritsu {
 			return *this;
 		}
 
-		Shape<IndexType> erase(const Shape<IndexType> &additionalDims, int axis = -1) const {
+		Shape<IndexType> erase(const Shape<IndexType> &additionalDims, const int axis = -1) const {
 
 			if (!canShapeMerge(*this, additionalDims, axis)) {
 				throw RuntimeException("Invalid");
