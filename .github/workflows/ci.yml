@@ -45,6 +45,8 @@ jobs:
           cmake $GITHUB_WORKSPACE -DCMAKE_BUILD_TYPE=$BUILD_TYPE -DRITSU_BUILD_WITH_TEST=ON
 
       - name: Build Library
+        env:
+          CC: ${{ matrix.compiler }}
         working-directory: ${{runner.workspace}}/build
         shell: bash
         # Execute the build.  You can specify a specific target with "--target <NAME>"
