@@ -15,7 +15,6 @@ jobs:
         os: [ubuntu-latest]
         platform: [x32, x64]
         compiler: [gcc, clang]
-        flavor: [ RelWithDebInfo, Coverage ]
     name: C++ Ritsu - Linux (${{matrix.os}}, ${{matrix.platform}}, ${{matrix.compiler}})
     steps:
       - uses: actions/checkout@v4
@@ -49,7 +48,7 @@ jobs:
         working-directory: ${{runner.workspace}}/build
         shell: bash
         # Execute the build.  You can specify a specific target with "--target <NAME>"
-        run: cmake --build . --config $BUILD_TYPE
+        run: cmake --build .
 
       - name: Test
         working-directory: ${{runner.workspace}}/build
