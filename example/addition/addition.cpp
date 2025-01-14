@@ -105,7 +105,7 @@ int main(int argc, const char **argv) {
 
 		Model<float>::History *result = &forwardModel.fit(epochs, dataX, dataY, batchSize, validationSplit, true, true);
 
-		forwardModel.saveWeight("mnist_forward_network_model.weight");
+		forwardModel.saveWeight("addition_network_model.weight");
 
 		const Tensor<float> predict = forwardModel.predict<float, float>(testX);
 

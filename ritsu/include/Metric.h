@@ -30,13 +30,17 @@ namespace Ritsu {
 		using DType = float;
 		Metric(const std::string &m_name) : Object(m_name){};
 
-		virtual void update_state(const std::initializer_list<const Tensor<DType> *> args) = 0;
+		virtual void update_state(const std::initializer_list<const Tensor<DType> *>& args) = 0;
 
 		template <typename... Args> void update_state(Args &...args) { return this->update_state({&args...}); }
 
 		virtual void reset_state() = 0;
 
 		virtual const Tensor<DType> &result() const noexcept = 0;
+
+		virtual void operator()(const std::initializer_list<const Tensor<DType> *> &args) {
+			return this->update_state(args);
+		}
 
 	  protected:
 	};
@@ -49,7 +53,7 @@ namespace Ritsu {
 	  public:
 		MetricAccuracy(const std::string &name = "accuracy") : Metric(name) { this->reset_state(); }
 
-		void update_state(const std::initializer_list<const Tensor<DType> *> args) override { /*	*/
+		void update_state(const std::initializer_list<const Tensor<DType> *> &args) override { /*	*/
 
 			assert(args.size() >= 2);
 
@@ -86,7 +90,7 @@ namespace Ritsu {
 	  public:
 		MetricMean(const std::string &name = "mean") : Metric(name) { this->reset_state(); }
 
-		void update_state(const std::initializer_list<const Tensor<DType> *> args) override {
+		void update_state(const std::initializer_list<const Tensor<DType> *> &args) override {
 
 			assert(args.size() >= 1);
 

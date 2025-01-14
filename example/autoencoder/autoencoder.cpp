@@ -61,6 +61,9 @@ int main(int argc, const char **argv) {
 		}
 
 		/*	*/
+		srand(time(nullptr));
+
+		/*	*/
 		Tensor<uint8_t> inputResY;
 		Tensor<uint8_t> inputResTestY;
 
@@ -228,7 +231,19 @@ int main(int argc, const char **argv) {
 
 			autoencoder.fit(epochs, inputDataXF, inputDataXF, batchSize, validationSplit);
 
-			Tensor<float> encodeded = encoderModel.predict<float, float>(inputDataXF);
+			encoderModel.saveWeight("autoencoder_network_model.weight");
+			decoderModel.saveWeight("autoencoder_network_model.weight");
+
+			Tensor<float> predicted = autoencoder.predict<float, float>(inputTestXF);
+			/*	*/
+			Tensor<float> testLoss = mse_loss.computeLoss(inputTestXF, predicted);
+
+			MetricAccuracy test_accuracy;
+			test_accuracy.update_state({&predicted, &inputTestXF});
+
+			/*	*/
+			std::cout << "Average Test Loss: " << testLoss.mean() << std::endl;
+			std::cout << "Accuracy Test: " << test_accuracy.result() << std::endl;
 		}
 	}
 

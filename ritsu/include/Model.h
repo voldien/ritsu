@@ -133,12 +133,15 @@ namespace Ritsu {
 			Tensor<float> timeSample({8});
 			uint32_t timeIndex = 0;
 
-			auto validation_metric = this->metrics;
-
 			Time time;
 			time.start();
 
 			for (size_t nthEpoch = 0; nthEpoch < epochs; nthEpoch++) {
+
+				/*	*/
+				for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
+					this->metrics[m_index]->reset_state();
+				}
 
 				if (verbose) {
 					std::cout << "Epoch: " << nthEpoch << " / " << epochs << std::endl << std::flush;
@@ -233,76 +236,88 @@ namespace Ritsu {
 					time.update();
 				}
 
-				/*	Validation Pass. Only compute, no backpropgation.	*/
-				time.start();
-				for (size_t batch_index = 0; batch_index < nrValidationBatches && validation_split > 0; batch_index++) {
-
-					/*	Extract subset of the data.	*/
-					const size_t baseBatch = batch_index;
-
-					/*	Extract subset of the data.	*/
-					const Tensor<float> subsetBatchX =
-						input_validation.getSubset({{static_cast<unsigned int>(baseBatch * batch_size),
-													 static_cast<unsigned int>((baseBatch + 1) * batch_size) - 1}});
-
-					/*	*/
-					const Tensor<float> subsetExpectedBatch =
-						expected_validation.getSubset({{static_cast<unsigned int>(baseBatch * batch_size),
-														static_cast<unsigned int>((baseBatch + 1) * batch_size) - 1}});
-
-					/*	Compute network forward.	*/
-					this->forwardPropgation(subsetBatchX, batchPredictedResult, batch_size, nullptr);
-
-					loss_error = std::move(this->lossFunction->computeLoss(subsetExpectedBatch, batchPredictedResult));
-
-					/*	Apply metric update.	*/
-					{
-						this->lossmetric.update_state({&loss_error});
-
-						assert(!std::isnan(this->lossmetric.result().getValue(0)));
-						assert(!std::isinf(this->lossmetric.result().getValue(0)));
-
-						for (size_t m_index = 0; m_index < validation_metric.size(); m_index++) {
-							this->metrics[m_index]->update_state(subsetExpectedBatch, batchPredictedResult);
-						}
-
-						/*	*/
-						if (verbose) {
-							this->print_status(std::cout);
-						}
-
-						if (verbose) {
-							/*	*/
-							timeSample.getValue<float>(timeIndex) = time.deltaTime<float>();
-							timeIndex = (timeIndex + 1) % timeSample.getNrElements();
-							const float averageTime = Tensor<float>::mean<float>(timeSample);
-
-							const size_t nrBatchPerSecond = 1.0f / averageTime;
-							const float expectedEpochTime =
-								static_cast<float>(nrValidationBatches - batch_index) * averageTime;
-
-							using fsec = duration<float>;
-							auto duration_time = round<nanoseconds>(fsec{expectedEpochTime});
-
-							std::cout << "\33[2K\r" << "Batch: " << (batch_index + 1) << "/"
-									  << nrValidationBatches // << " " << nrBatchPerSecond << "batch/Sec"
-									  << " ETA: ";
-							std::cout << " loss-val: " << this->lossmetric.result().getValue(0);
-
-							for (size_t m_index = 0; m_index < validation_metric.size(); m_index++) {
-								std::cout << " - " << validation_metric[m_index]->getName() << ": "
-										  << Tensor<float>::mean<DType>(validation_metric[m_index]->result());
-							}
-						}
-						if (verbose) {
-							std::cout << std::flush;
-						}
-					}
-					time.update();
-				}
-
 				if (verbose) {
 					std::cout << std::endl << std::flush;
+				}
+
+				if (validation_split > 0) {
+					/*	*/
+					for (size_t m_index = 0; m_index < this->metrics.size(); m_index++) {
+						this->metrics[m_index]->reset_state();
+					}
+
+					/*	Validation Pass. Only compute, no backpropgation.	*/
+					time.start();
+					for (size_t batch_index = 0; batch_index < nrValidationBatches && validation_split > 0;
+						 batch_index++) {
+
+						/*	Extract subset of the data.	*/
+						const size_t baseBatch = batch_index;
+
+						/*	Extract subset of the data.	*/
+						const Tensor<float> subsetBatchX =
+							input_validation.getSubset({{static_cast<unsigned int>(baseBatch * batch_size),
+														 static_cast<unsigned int>((baseBatch + 1) * batch_size) - 1}});
+
+						/*	*/
+						const Tensor<float> subsetExpectedBatch = expected_validation.getSubset(
+							{{static_cast<unsigned int>(baseBatch * batch_size),
+							  static_cast<unsigned int>((baseBatch + 1) * batch_size) - 1}});
+
+						/*	Compute network forward.	*/
+						this->forwardPropgation(subsetBatchX, batchPredictedResult, batch_size, nullptr);
+
+						loss_error =
+							std::move(this->lossFunction->computeLoss(subsetExpectedBatch, batchPredictedResult));
+
+						/*	Apply metric update.	*/
+						{
+							this->lossmetric.update_state({&loss_error});
+
+							assert(!std::isnan(this->lossmetric.result().getValue(0)));
+							assert(!std::isinf(this->lossmetric.result().getValue(0)));
+
+							for (size_t m_index = 0; m_index < metrics.size(); m_index++) {
+								this->metrics[m_index]->update_state(subsetExpectedBatch, batchPredictedResult);
+							}
+
+							/*	*/
+							if (verbose) {
+								this->print_status(std::cout);
+							}
+
+							if (verbose) {
+								/*	*/
+								timeSample.getValue<float>(timeIndex) = time.deltaTime<float>();
+								timeIndex = (timeIndex + 1) % timeSample.getNrElements();
+								const float averageTime = Tensor<float>::mean<float>(timeSample);
+
+								const size_t nrBatchPerSecond = 1.0f / averageTime;
+								const float expectedEpochTime =
+									static_cast<float>(nrValidationBatches - batch_index) * averageTime;
+
+								using fsec = duration<float>;
+								auto duration_time = round<nanoseconds>(fsec{expectedEpochTime});
+
+								std::cout << "\33[2K\r" << "Batch: " << (batch_index + 1) << "/"
+										  << nrValidationBatches // << " " << nrBatchPerSecond << "batch/Sec"
+										  << " ETA: ";
+								std::cout << " loss-val: " << this->lossmetric.result().getValue(0);
+
+								for (size_t m_index = 0; m_index < metrics.size(); m_index++) {
+									std::cout << " - " << metrics[m_index]->getName() << ": "
+											  << Tensor<float>::mean<DType>(metrics[m_index]->result());
+								}
+							}
+							if (verbose) {
+								std::cout << std::flush;
+							}
+						}
+						time.update();
+					}
+					if (verbose) {
+						std::cout << std::endl << std::flush;
+					}
 				}
 			}
 
@@ -310,7 +325,7 @@ namespace Ritsu {
 		}
 
 		template <typename U, typename Y>
-		Tensor<Y> predict(const Tensor<U> &inputTensor, const size_t batch = 1, const bool verbose = false) {
+		Tensor<Y> predict(const Tensor<U> &inputTensor, const size_t batchSize = 1, const bool verbose = false) {
 
 			if (!this->is_built()) {
 				throw std::runtime_error("Must be built before it can run through the network");
@@ -319,10 +334,9 @@ namespace Ritsu {
 			Tensor<float> result;
 
 			Time time;
-
 			time.start();
 
-			this->forwardPropgation(inputTensor, result, batch);
+			this->forwardPropgation(inputTensor, result, inputTensor.getShape()[0], nullptr);
 
 			time.getElapsed<float>();
 

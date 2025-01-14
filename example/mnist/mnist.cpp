@@ -29,7 +29,7 @@ int main(int argc, const char **argv) {
 		"E,epoch", "Set the number of epochs", cxxopts::value<int>()->default_value("8"))(
 		"b,use-bias", "Use Dense Bias", cxxopts::value<bool>()->default_value("true"))(
 		"m,mid-dense-count", "Set Number of neuron in middle layer", cxxopts::value<int>()->default_value("2"))(
-		"l,learning-rate", "Set Learning Rate", cxxopts::value<float>()->default_value("0.00000001"))(
+		"l,learning-rate", "Set Learning Rate", cxxopts::value<float>()->default_value("0.00001"))(
 		"M,optimizer-momentum", "Set Optimizer momentum", cxxopts::value<float>()->default_value("0.1"))(
 		"V,validation", "Set Validation split", cxxopts::value<float>()->default_value("0.1"))(
 		"S,seed", "Set Seed", cxxopts::value<int>()->default_value("1234"))(
@@ -71,6 +71,9 @@ int main(int argc, const char **argv) {
 		/*	*/
 		Ritsu::enableDebug();
 	}
+
+	/*	*/
+	srand(time(nullptr));
 
 	try {
 
@@ -181,31 +184,38 @@ int main(int argc, const char **argv) {
 
 			MetricAccuracy accuracy;
 
+			/*	*/
 			Loss<float> *lossfunction = nullptr;
 			CategoricalCrossentropy cross_loss(true);
 			MeanSquareError mse_loss;
 
+			/*	*/
 			if (useSigmoidAct) {
 				lossfunction = &mse_loss;
 			} else {
 				lossfunction = &cross_loss;
 			}
 
+			/*	*/
 			forwardModel.compile(&optimizer, *lossfunction, {&accuracy});
 			std::cout << forwardModel.summary() << std::endl;
 
-			forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize, validationSplit);
-
-			forwardModel.saveWeight("mnist_forward_network_model.weight");
-
-			Tensor<float> predict = forwardModel.predict<float, float>(inputTestXF);
+			/*	*/
+			Model<float>::History &history =
+				forwardModel.fit(epochs, inputDataXF, inputResYF, batchSize, validationSplit);
 
 			/*	*/
-			Tensor<float> predict_result = Tensor<float>::equal(predict, inputResTestYF);
-			std::cout << predict_result << std::endl;
+			forwardModel.saveWeight("mnist_forward_network_model.weight");
 
-			// TODO Accuracy.
-			std::cout << "Predict " << predict << std::endl;
+			/*	Calculate test Loss.	*/
+			Tensor<float> predict = forwardModel.predict<float, float>(inputTestXF);
+			Tensor<float> predicted_loss = lossfunction->computeLoss(inputResTestYF, predict);
+			MetricAccuracy test_accuracy;
+			test_accuracy.update_state({&predict, &inputResTestYF});
+
+			/*	*/
+			std::cout << std::endl << "Average Test Loss: " << predicted_loss.mean() << std::endl;
+			std::cout << std::endl << "Accuracy Test: " << test_accuracy.result() << std::endl;
 		}
 
 	} catch (std::exception &ex) {

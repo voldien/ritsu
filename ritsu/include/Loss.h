@@ -210,7 +210,7 @@ namespace Ritsu {
 
 	class CategoricalCrossentropy : public Loss<float> {
 	  public:
-		CategoricalCrossentropy(bool from_logits = false, const std::string name = "Ccategorical Crossentropy")
+		CategoricalCrossentropy(bool from_logits = false, const std::string name = "Categorical Crossentropy")
 			: Loss(Ritsu::loss_categorical_crossentropy, name), from_logits(from_logits) {}
 
 		Tensor<DType> computeLoss(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
