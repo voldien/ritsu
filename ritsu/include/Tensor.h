@@ -649,7 +649,9 @@ namespace Ritsu {
 			return *this;
 		}
 
-		inline DType dot(const Tensor &tensor, const int axis) const noexcept { return Tensor::dot(*this, tensor); }
+		inline DType dot(const Tensor &tensor, const int axis) const noexcept {
+			return Tensor::innerProduct(*this, tensor);
+		}
 
 		Tensor dot(const Tensor &tensor_rightside) const noexcept {
 			if (!Tensor::isMatrixOperationSupported(this->getShape(), tensor_rightside.getShape())) {
@@ -1032,7 +1034,8 @@ namespace Ritsu {
 		/**
 		 * @brief
 		 */
-		static inline DType dot(const Tensor &tensorA, const Tensor &tensorB) noexcept {
+		static inline DType innerProduct(const Tensor &tensorA, const Tensor &tensorB) noexcept {
+			assert(tensorA.getNrElements() == tensorB.getNrElements());
 			return Math::dot<DType>(tensorA.getRawData<DType>(), tensorB.getRawData<DType>(), tensorA.getNrElements());
 		}
 
@@ -1376,7 +1379,7 @@ namespace Ritsu {
 			assert(A_col == B_row);
 			const IndexType K = A_col;
 
-#pragma omp target teams distribute parallel for collapse(2) shared(tensorALeft, tensorBRight, output)            \
+#pragma omp target teams distribute parallel for collapse(2) shared(tensorALeft, tensorBRight, output)                 \
 	thread_limit(128) schedule(static)
 			for (IndexType a_row_index = 0; a_row_index < A_row; a_row_index++) {
 

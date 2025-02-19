@@ -147,12 +147,14 @@ namespace Ritsu {
 						  "Type Must Support addition operation.");
 			T sum = 0;
 			size_t index = 0;
-#pragma omp simd reduction(+ : sum) linear(listA : 1) linear(listB : 1)
+
+#pragma omp simd reduction(+ : sum)
 			for (index = 0; index < nrElements; index++) {
 				sum += listA[index] * listB[index];
 			}
 			return sum;
 		}
+
 #pragma omp declare simd uniform(exponent)
 		template <typename T> static void pow(const T exponent, T *list, const size_t nrElements) noexcept {
 			static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,

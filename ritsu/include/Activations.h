@@ -140,20 +140,23 @@ namespace Ritsu {
 #pragma omp declare simd
 	template <typename T> Tensor<T> &softMax(Tensor<T> &tensor, const int axis = -1) noexcept {
 
-		/*	Iterate through each all elements.    */
-		T Inversesum = 0;
 		const size_t nrElements = tensor.getNrElements();
 
-#pragma omp simd reduction(+ : Inversesum)
-		for (size_t i = 0; i < nrElements; i++) {
-			const T value = tensor.template getValue<T>(i);
-			Inversesum += static_cast<T>(std::exp(value));
-		}
-		Inversesum = static_cast<T>(1) / Inversesum;
-
+		/*	Compute exponential for each element.	*/
 #pragma omp for simd
 		for (size_t i = 0; i < nrElements; i++) {
-			tensor.template getValue<T>(i) = static_cast<T>(std::exp(tensor.template getValue<T>(i))) * Inversesum;
+			tensor.template getValue<T>(i) = static_cast<T>(std::exp(tensor.template getValue<T>(i)));
+		}
+
+		/*	Compute inverse sum.	*/
+		T Inversesum = 0;
+		Inversesum = Math::sum(tensor.getRawData(), nrElements);
+		Inversesum = static_cast<T>(1) / Inversesum;
+
+		/*	Apply inverse sum.	*/
+#pragma omp for simd
+		for (size_t i = 0; i < nrElements; i++) {
+			tensor.template getValue<T>(i) *= Inversesum;
 		}
 
 		/*	*/
