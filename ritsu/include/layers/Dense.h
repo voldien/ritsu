@@ -20,7 +20,6 @@
 #include "Tensor.h"
 #include <cassert>
 #include <ctime>
-#include <vector>
 
 namespace Ritsu {
 

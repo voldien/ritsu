@@ -28,9 +28,9 @@ namespace Ritsu {
 	  public:
 		virtual ~Metric() = default;
 		using DType = float;
-		Metric(const std::string &m_name) : Object(m_name){};
+		Metric(const std::string &m_name) : Object(m_name) {};
 
-		virtual void update_state(const std::initializer_list<const Tensor<DType> *>& args) = 0;
+		virtual void update_state(const std::initializer_list<const Tensor<DType> *> &args) = 0;
 
 		template <typename... Args> void update_state(Args &...args) { return this->update_state({&args...}); }
 
@@ -38,9 +38,7 @@ namespace Ritsu {
 
 		virtual const Tensor<DType> &result() const noexcept = 0;
 
-		virtual void operator()(const std::initializer_list<const Tensor<DType> *> &args) {
-			return this->update_state(args);
-		}
+		virtual void operator()(const std::initializer_list<const Tensor<DType> *> &args) { this->update_state(args); }
 
 	  protected:
 	};
@@ -103,7 +101,7 @@ namespace Ritsu {
 		}
 
 		void reset_state() override {
-			this->m_result = std::move(Tensor<DType>({1}));
+			this->m_result = Tensor<DType>({1});
 			this->m_result.getValue<DType>(0) = 10000000;
 		}
 

@@ -20,7 +20,7 @@ namespace Ritsu {
 	 */
 	template <typename T> class Layer : public Object {
 	  public:
-		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+		static_assert(std::is_floating_point_v<T> || std::is_integral_v<T>,
 					  "Must be a decimal type(float/double/half) or integer.");
 
 		using IndexType = std::uint32_t;

@@ -63,8 +63,8 @@ namespace Ritsu {
 		Model(const std::vector<Layer<T> *> inputs, const std::vector<Layer<T> *> outputs,
 			  const std::string &name = "model")
 			: Object(name), inputs(inputs), outputs((outputs)) {
-			// TODO build up memory.
-			/*	TODO other optimization.	*/
+			// TODO: build up memory.
+			/*	TODO: other optimization.	*/
 			this->build(this->inputs, this->outputs);
 		}
 		virtual ~Model() = default;
@@ -109,7 +109,7 @@ namespace Ritsu {
 			auto [expected_train, expected_validation] =
 				split_dataset<float>(expectedData, 1 - validation_split, false, 0, true);
 
-			// TODO add support
+			// TODO: add support
 
 			/*	Batch Shape Size.	*/
 			Shape<Tensor<float>::IndexType> batchDataShape = inputData.getShape();
@@ -121,7 +121,7 @@ namespace Ritsu {
 			const size_t batchDataElementSize = batchDataShape.getNrElements();
 			const size_t batchExpectedElementSize = batchExpectedShape.getNrElements();
 
-			// TODO add array support.
+			// TODO: add array support.
 			Tensor<float> batchPredictedResult;
 			/*	TODO: setup cache.	*/
 			std::map<std::string, Tensor<float>> cachedResult;

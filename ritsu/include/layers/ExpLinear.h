@@ -14,7 +14,7 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
-#include "Activaction.h"
+#include "Activation.h"
 #include "Activations.h"
 #include <cmath>
 
@@ -24,9 +24,9 @@ namespace Ritsu {
 	 * @brief
 	 *
 	 */
-	class ExpLinear : public Activaction {
+	class ExpLinear : public Activation {
 	  public:
-		ExpLinear(const DType linear, const std::string &name = "exp-linear") : Activaction(name), coff(linear) {}
+		ExpLinear(const DType linear, const std::string &name = "exp-linear") : Activation(name), coff(linear) {}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 			Tensor<float> output = tensor;

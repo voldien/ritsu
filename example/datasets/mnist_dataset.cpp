@@ -56,14 +56,15 @@ static void load_image_dataset(std::ifstream &stream, Ritsu::Tensor<uint8_t> &da
 				static_cast<unsigned int>(height), 1};
 	assert(dataX.getShape() == expected);
 
+	/*	*/
 	uint8_t *raw = dataX.getRawData<uint8_t>();
+	uint8_t *imageData = static_cast<uint8_t *>(malloc(Math::align<size_t>(ImageSize, 4)));
 
-	uint8_t *imageData = static_cast<uint8_t *>(malloc(ImageSize));
-
+#pragma omp distribute parallel for simd
 	for (size_t i = 0; i < nr_images; i++) {
 		stream.read(reinterpret_cast<char *>(&imageData[0]), ImageSize);
-		// swap value...
 
+		// swap value...
 		memcpy(&raw[i * ImageSize], imageData, ImageSize);
 	}
 
@@ -98,9 +99,11 @@ static void load_label_dataset(std::ifstream &stream, Ritsu::Tensor<uint8_t> &da
 	assert(dataY.getShape() == expected);
 
 	uint8_t label = 0;
-	for (size_t i = 0; i < nr_label; i++) {
+#pragma omp distribute parallel for simd private(label)
+	for (size_t i = 0; i < (const uint32_t)nr_label; i++) {
 
 		stream.read(reinterpret_cast<char *>(&label), sizeof(label));
+
 		dataY.getValue<uint8_t>(i) = label;
 	}
 }

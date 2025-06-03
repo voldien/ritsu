@@ -92,8 +92,8 @@ int main(int argc, const char **argv) {
 				  << std::endl;
 
 		/*	*/
-		inputResY = std::move(Tensor<uint8_t>::oneShot(inputResY));
-		inputResTestY = std::move(Tensor<uint8_t>::oneShot(inputResTestY));
+		inputResY = Tensor<uint8_t>::oneShot(inputResY);
+		inputResTestY = Tensor<uint8_t>::oneShot(inputResTestY);
 
 		/*	*/
 		const Tensor<float> inputResYF = std::move(inputResY.cast<float>() * (1.0 / 255.0f));

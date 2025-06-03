@@ -14,7 +14,7 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
-#include "Layer.h"
+#include "layers/Layer.h"
 
 namespace Ritsu {
 
@@ -22,10 +22,10 @@ namespace Ritsu {
 	 * @brief
 	 *
 	 */
-	class Activaction : public Layer<float> {
+	class Activation : public Layer<float> {
 	  public:
-		Activaction(const std::string &name = "activaction") : Layer(name) {}
-		~Activaction() override = default;
+		Activation(const std::string &name = "activation") : Layer(name) {}
+		~Activation() = default;
 
 		// virtual Tensor<float> operator<<(Tensor<float> &tensor) override { return tensor; }
 		//

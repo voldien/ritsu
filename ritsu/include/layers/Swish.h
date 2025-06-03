@@ -14,7 +14,7 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
-#include "Activaction.h"
+#include "Activation.h"
 #include "Activations.h"
 
 namespace Ritsu {
@@ -23,9 +23,9 @@ namespace Ritsu {
 	 * @brief
 	 *
 	 */
-	class Swish : public Activaction {
+	class Swish : public Activation {
 	  public:
-		Swish(const DType beta, const std::string &name = "swish") : Activaction(name), beta(beta) {}
+		Swish(const DType beta, const std::string &name = "swish") : Activation(name), beta(beta) {}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 

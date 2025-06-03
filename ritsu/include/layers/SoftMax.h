@@ -15,7 +15,7 @@
  */
 #pragma once
 #include "../Activations.h"
-#include "Activaction.h"
+#include "Activation.h"
 #include <cmath>
 
 namespace Ritsu {
@@ -24,9 +24,9 @@ namespace Ritsu {
 	 * @brief
 	 *
 	 */
-	class SoftMax : public Activaction {
+	class SoftMax : public Activation {
 	  public:
-		SoftMax(const std::string &name = "softmax") : Activaction(name) {}
+		SoftMax(const std::string &name = "softmax") : Activation(name) {}
 		~SoftMax() override = default;
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {

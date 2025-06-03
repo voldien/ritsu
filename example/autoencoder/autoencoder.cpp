@@ -219,17 +219,17 @@ int main(int argc, const char **argv) {
 
 			Optimizer<float> *optimizer = nullptr;
 			SGD<float> optimizerSGD(learningRate, momentum);
-			Adam<float> Adamoptimizer(learningRate);
+			Adam<float> AdamOptimizer(learningRate);
 
 			MetricAccuracy accuracy;
 			MetricMean lossmetric("loss");
 			MeanSquareError mse_loss;
 
-			autoencoder.compile(&Adamoptimizer, mse_loss, {&accuracy});
+			autoencoder.compile(&AdamOptimizer, mse_loss, {&accuracy});
 
 			std::cout << autoencoder.summary();
 
-			autoencoder.fit(epochs, inputDataXF, inputDataXF, batchSize, validationSplit);
+			autoencoder.fit<float,float>(epochs, inputDataXF, inputDataXF, batchSize, validationSplit);
 
 			encoderModel.saveWeight("autoencoder_network_model.weight");
 			decoderModel.saveWeight("autoencoder_network_model.weight");

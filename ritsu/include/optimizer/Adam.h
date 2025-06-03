@@ -52,8 +52,6 @@ namespace Ritsu {
 			m_dw[uid] = (this->m_dw[uid] * this->beta_1) + gradient * (1 - this->beta_1);
 			v_dw[uid] = (this->v_dw[uid] * this->beta_2) + (gradient * gradient) * (1 - this->beta_2);
 
-			T t = 1;
-
 			/*	*/
 			Tensor<T> m_dw_corr = this->m_dw[uid];
 			Tensor<T> v_dw_corr = this->v_dw[uid];

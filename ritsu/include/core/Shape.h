@@ -85,8 +85,8 @@ namespace Ritsu {
 
 		friend Shape operator-(const Shape &shapeA, const Shape &shapeB) { return shapeA.erase(shapeB); }
 
-		IndexType operator[](IndexType index) const noexcept { return this->getAxisDimensions(index); }
-		IndexType &operator[](IndexType index) noexcept { return this->getAxisDimensions(index); }
+		IndexType operator[](const IndexType index) const noexcept { return this->getAxisDimensions(index); }
+		IndexType &operator[](const IndexType index) noexcept { return this->getAxisDimensions(index); }
 
 		Shape<IndexType> operator()(IndexType start, IndexType end) const { return this->getSubShapeMem(start, end); }
 
@@ -185,7 +185,9 @@ namespace Ritsu {
 			Shape<IndexType> copy = *this;
 
 			/*	*/
-			for (IndexType i = 0; i < subaxisGroup.size(); i++) {
+			const size_t nrAxisGroups = subaxisGroup.size();
+#pragma omp simd
+			for (size_t i = 0; i < nrAxisGroups; i++) {
 
 				const ShapePair<IndexType> &pair = (*(subaxisGroup.begin() + i));
 
@@ -231,6 +233,7 @@ namespace Ritsu {
 					i = -1; /*	reset index counter.	*/
 				}
 			}
+			/*	*/
 			if (this->dims.empty()) {
 				this->dims.resize(1, 1);
 			}
@@ -302,11 +305,11 @@ namespace Ritsu {
 
 		inline IndexType getNrElements() const noexcept { return Shape::computeNrElements<IndexType>(this->dims); }
 
-		IndexType getAxisDimensions(const int32_t index) const noexcept {
+		inline IndexType getAxisDimensions(const int32_t index) const noexcept {
 			return this->dims[Math::mod<int32_t>(index, this->dims.size())];
 		}
 
-		IndexType &getAxisDimensions(const int32_t index) noexcept {
+		inline IndexType &getAxisDimensions(const int32_t index) noexcept {
 			return this->dims[Math::mod<int32_t>(index, this->dims.size())];
 		}
 
@@ -334,7 +337,7 @@ namespace Ritsu {
 			if (Shape<IndexType>::computeNrElements(newDims) == this->getNrElements()) {
 				this->dims = newDims;
 
-				// TODO determine if the data has to reshaped too.
+				// TODO: determine if the data has to reshaped too.
 				if (*this != newDims) {
 					throw RuntimeException("Failed to reshape");
 				}
@@ -437,6 +440,7 @@ namespace Ritsu {
 		 * @brief Get the Index Memory Offset object
 		 * Memory is row. thus the result is itself.
 		 */
+#pragma omp declare simd
 		static inline IndexType getIndexMemoryOffset(const Shape<IndexType> &shape, IndexType index,
 													 const unsigned int orderAxis = 0) noexcept {
 			if (orderAxis == 0) {
@@ -457,11 +461,14 @@ namespace Ritsu {
 				return false;
 			}
 
-			const unsigned int axisMod = Math::mod<int32_t>(axis, shapeB.getNrDimensions());
-			for (IndexType i = 0; i < shapeB.getNrDimensions(); i++) {
+			const IndexType axisMod = Math::mod<int32_t>(axis, shapeB.getNrDimensions());
+			const IndexType NrDims = shapeB.getNrDimensions();
+			for (IndexType i = 0; i < NrDims; i++) {
+
 				if (axisMod == i) {
 					continue;
 				}
+
 				if (shapeB.getAxisDimensions(i) != shapeA.getAxisDimensions(i)) {
 					return false;
 				}
@@ -470,6 +477,7 @@ namespace Ritsu {
 			return true;
 		}
 
+#pragma omp declare simd uniform(dim, shape)
 		template <typename U = IndexType>
 		static size_t computeIndex(const std::vector<U> &dim, const Shape<IndexType> &shape) noexcept {
 			size_t totalSize = 0;
@@ -477,6 +485,7 @@ namespace Ritsu {
 
 			for (IndexType i = 0; i < nrDims; i++) {
 				long depth = 1;
+
 				if (i > 0) {
 					depth = Math::product(&shape.dims.data()[0], i);
 				}
@@ -489,6 +498,7 @@ namespace Ritsu {
 			return totalSize;
 		}
 
+#pragma omp declare simd
 		template <typename U = IndexType>
 		static size_t computeIndex(const std::initializer_list<U> &dim, const Shape<IndexType> &shape) noexcept {
 			size_t totalSize = 0;
@@ -511,6 +521,7 @@ namespace Ritsu {
 		/**
 		 * @brief
 		 */
+#pragma omp declare simd
 		static inline IndexType computeDepth(const Shape<IndexType> &shape, int depth) noexcept {
 			if (depth > 0) {
 				return Math::product<IndexType>(shape.dims.data(), depth);
@@ -521,6 +532,7 @@ namespace Ritsu {
 		/**
 		 * @brief
 		 */
+#pragma omp declare simd
 		template <typename U = IndexType> static inline U computeNrElements(const std::vector<U> &dims) noexcept {
 			static_assert(std::is_integral<U>::value, "Type must be a integral type.");
 			return dims.empty() ? 0 : Math::product(dims);

@@ -24,7 +24,7 @@ namespace Ritsu {
 	 *
 	 */
 	template <typename T> class Initializer {
-		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+		static_assert(std::is_floating_point_v<T> || std::is_integral_v<T>,
 					  "Must be a decimal type(float/double/half) or integer.");
 
 	  public:
@@ -53,7 +53,9 @@ namespace Ritsu {
 			return set(tensor);
 		}
 
+#pragma omp declare simd
 		Tensor<T> &set(Tensor<T> &tensor) override {
+
 #pragma omp parallel for simd shared(tensor)
 			for (size_t index = 0; index < tensor.getNrElements(); index++) {
 				tensor.getValue(index) = this->random.rand();

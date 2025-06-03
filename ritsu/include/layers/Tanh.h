@@ -14,7 +14,7 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
-#include "Activaction.h"
+#include "Activation.h"
 #include "Activations.h"
 #include "Tensor.h"
 
@@ -23,9 +23,9 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
-	class Tanh : public Activaction {
+	class Tanh : public Activation {
 	  public:
-		Tanh(const std::string &name = "tahn") : Activaction(name) {}
+		Tanh(const std::string &name = "tahn") : Activation(name) {}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 

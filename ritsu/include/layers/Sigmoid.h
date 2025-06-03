@@ -14,8 +14,7 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
-#include "Activaction.h"
-#include "Activations.h"
+#include "Activation.h"
 #include <cmath>
 
 namespace Ritsu {
@@ -24,9 +23,9 @@ namespace Ritsu {
 	 * @brief
 	 *
 	 */
-	class Sigmoid : public Activaction {
+	class Sigmoid : public Activation {
 	  public:
-		Sigmoid(const std::string &name = "sigmoid") : Activaction(name) {}
+		Sigmoid(const std::string &name = "sigmoid") : Activation(name) {}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 			Tensor<float> output = tensor;
@@ -72,6 +71,7 @@ namespace Ritsu {
 
 		Tensor<float> compute_derivative(const Tensor<float> &tensor) override {
 			Tensor<float> result(tensor.getShape());
+
 			this->computeSigmoidDerivative(result);
 			return result;
 		}
@@ -83,9 +83,10 @@ namespace Ritsu {
 
 	  private:
 		void computeSigmoidDerivative(Tensor<float> &tensor) const noexcept {
+			/*	Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 
-#pragma omp parallel for shared(tensor)
+#pragma omp parallel for simd simdlen(8)
 			for (size_t i = 0; i < nrElements; i++) {
 				const DType value = Ritsu::computeSigmoidDerivative<DType>(tensor.getValue<DType>(i));
 				tensor.getValue<DType>(i) = value;
@@ -93,10 +94,10 @@ namespace Ritsu {
 		}
 
 		void computeActivation(Tensor<float> &tensor) noexcept {
-			/*Iterate through each all elements.    */
+			/*	Iterate through each all elements.    */
 			const size_t nrElements = tensor.getNrElements();
 
-#pragma omp parallel for shared(tensor)
+#pragma omp parallel for simd simdlen(16)
 			for (size_t i = 0; i < nrElements; i++) {
 				tensor.getValue<DType>(i) = Ritsu::computeSigmoid(tensor.getValue<DType>(i));
 			}

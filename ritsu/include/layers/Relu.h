@@ -14,7 +14,7 @@
  * all copies or substantial portions of the Software.
  */
 #pragma once
-#include "Activaction.h"
+#include "Activation.h"
 #include "Activations.h"
 #include "Tensor.h"
 #include "layers/Layer.h"
@@ -27,9 +27,9 @@ namespace Ritsu {
 	 * @brief
 	 *
 	 */
-	class Relu : public Activaction {
+	class Relu : public Activation {
 	  public:
-		Relu(const std::string &name = "relu") : Activaction(name) {}
+		Relu(const std::string &name = "relu") : Activation(name) {}
 
 		Tensor<float> operator<<(const Tensor<float> &tensor) override {
 			Tensor<float> output = tensor; // Copy
@@ -88,7 +88,8 @@ namespace Ritsu {
 		void computeReluActivation(Tensor<float> &tensor) {
 
 			const IndexType nrElements = tensor.getNrElements();
-#pragma omp parallel for shared(tensor)
+
+#pragma omp parallel for simd shared(tensor) simdlen(16)
 			for (IndexType i = 0; i < nrElements; i++) {
 				const DType value = Ritsu::relu<DType>(tensor.getValue<DType>(i));
 				tensor.getValue<DType>(i) = value;
@@ -97,7 +98,8 @@ namespace Ritsu {
 
 		static void computeDerivative(Tensor<float> &tensor) {
 			const size_t nrElements = tensor.getNrElements();
-#pragma omp parallel for shared(tensor)
+
+#pragma omp parallel for simd shared(tensor) simdlen(16)
 			for (size_t i = 0; i < nrElements; i++) {
 				tensor.getValue<DType>(i) = Ritsu::reluDerivative(tensor.getValue<DType>(i));
 			}

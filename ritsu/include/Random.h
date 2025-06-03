@@ -24,7 +24,7 @@ namespace Ritsu {
 	 * @tparam T
 	 */
 	template <typename T> class Random {
-		static_assert(std::is_floating_point<T>::value || std::is_integral<T>::value,
+		static_assert(std::is_floating_point_v<T> || std::is_integral_v<T>,
 					  "Must be a decimal type(float/double/half) or integer.");
 
 	  public:

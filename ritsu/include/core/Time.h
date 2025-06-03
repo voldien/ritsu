@@ -41,7 +41,7 @@ namespace Ritsu {
 		 * @brief
 		 */
 		template <typename T> T getElapsed() const noexcept {
-			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
+			static_assert(std::is_floating_point_v<T>, "Must be a decimal type(float/double/half).");
 			duration<T> time_span = duration_cast<duration<T>>(steady_clock::now() - start_timestamp);
 
 			return time_span.count();
@@ -51,8 +51,7 @@ namespace Ritsu {
 		 * @brief
 		 */
 		template <typename T> T deltaTime() const noexcept {
-			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
-			duration<T> time_span = duration_cast<duration<T>>(steady_clock::now() - ticks);
+			static_assert(std::is_floating_point_v<T>, "Must be a decimal type(float/double/half).");
 
 			return static_cast<T>(delta_data.count());
 		}
@@ -61,7 +60,7 @@ namespace Ritsu {
 		 * @brief
 		 */
 		template <typename T> T deltaTimeNow() const noexcept {
-			static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
+			static_assert(std::is_floating_point_v<T>, "Must be a decimal type(float/double/half).");
 			duration<T> time_span = duration_cast<duration<T>>(steady_clock::now() - ticks);
 
 			return static_cast<T>(time_span.count());

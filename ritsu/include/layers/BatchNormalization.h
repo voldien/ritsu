@@ -74,7 +74,6 @@ namespace Ritsu {
 	  private:
 		void compute(const Tensor<float> &input, Tensor<float> &output) {
 
-			const size_t ndims = 10;
 			int axis = -1;
 			const DType epsilon = std::numeric_limits<DType>::epsilon();
 			Tensor<DType> batch_mean = Tensor<DType>::mean(input, axis);
@@ -83,7 +82,7 @@ namespace Ritsu {
 			Tensor<DType> inv = (batch_variance + epsilon).sqrt();
 			inv *= gamma;
 
-			/*	*/ // TOOD:fix
+			/*	*/ // TODO:fix
 			output = input * inv + (this->beta - batch_mean * inv);
 		}
 

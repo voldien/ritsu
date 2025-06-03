@@ -327,7 +327,7 @@ TYPED_TEST_P(TensorTest, Mean) {
 		Tensor<TypeParam> tensor({32, 10}, sizeof(TypeParam));
 		tensor.assignInitValue(1);
 
-		TypeParam value;
+		TypeParam value = 0;
 		ASSERT_NO_THROW(value = tensor.mean());
 		ASSERT_NEAR(value, static_cast<TypeParam>(1), 0.0001);
 	}

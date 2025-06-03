@@ -28,11 +28,10 @@ namespace Ritsu {
 	template <typename T> class Loss : public Object {
 	  public:
 		virtual ~Loss() = default;
-		static_assert(std::is_floating_point<T>::value, "Must be a decimal type(float/double/half).");
+		static_assert(std::is_floating_point_v<T>, "Must be a decimal type(float/double/half).");
 		using DType = T;
 		static constexpr const size_t DTypeSize = sizeof(DType);
 
-	  public:
 		using LossFunction = void (*)(const Tensor<DType> &evaluated_pre_true, const Tensor<DType> &expected_pred,
 									  Tensor<DType> &output_result);
 
@@ -76,6 +75,7 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
+#pragma omp declare simd
 	static void loss_error(const Tensor<float> &evaluated_pre, const Tensor<float> &expected,
 						   Tensor<float> &output_result) {
 
@@ -94,6 +94,7 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
+#pragma omp declare simd
 	static void loss_categorical_crossentropy(const Tensor<float> &expected_true, const Tensor<float> &evaluated_pre,
 											  Tensor<float> &output) {
 
@@ -106,6 +107,7 @@ namespace Ritsu {
 	/**
 	 * @brief
 	 */
+#pragma omp declare simd
 	static void sparse_categorical_crossentropy(const Tensor<float> &expected_true, const Tensor<float> &evaluated_pre,
 												Tensor<float> &output) {
 
@@ -119,13 +121,14 @@ namespace Ritsu {
 					  << evaluated_pre.getShape() << std::endl;
 		}
 
-		return loss_categorical_crossentropy(evaluated_pre, expected_one_shot, output);
+		loss_categorical_crossentropy(evaluated_pre, expected_one_shot, output);
 	}
 
 	class MeanSquareError : public Loss<float> {
 	  public:
 		MeanSquareError(const std::string name = "MSE") : Loss(loss_mse, name) {}
 
+#pragma omp declare simd
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
 			/*	-2(D - P)	*/
 			Tensor<float> output_result = (inputX0_true - inputX1_pred) * static_cast<DType>(-2);
@@ -135,9 +138,10 @@ namespace Ritsu {
 			return output_result;
 		}
 
-		/**
-		 * @brief
-		 */
+/**
+ * @brief
+ */
+#pragma omp declare simd
 		static void loss_mse(const Tensor<float> &evaluated_pre_true, const Tensor<float> &expected_pred,
 							 Tensor<float> &output_result) {
 
@@ -154,6 +158,8 @@ namespace Ritsu {
 	class MeanAbsoluterror : public Loss<float> {
 	  public:
 		MeanAbsoluterror(const std::string name = "MSA") : Loss(loss_msa, name) {}
+
+#pragma omp declare simd
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
 
 			// TODO: fix
@@ -169,6 +175,7 @@ namespace Ritsu {
 		/**
 		 * @brief
 		 */
+#pragma omp declare simd
 		static void loss_msa(const Tensor<float> &inputX0_true, const Tensor<float> &evaluated_pre,
 							 Tensor<float> &output_result) {
 
@@ -187,7 +194,7 @@ namespace Ritsu {
 	class BinaryCrossEntropy : public Loss<float> {
 	  public:
 		BinaryCrossEntropy(const std::string name = "Binary Cross") : Loss(loss_binary_cross_entropy, name) {}
-
+#pragma omp declare simd
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
 
 			Tensor<DType> output_result = -(inputX0_true / inputX1_pred) + (1 - inputX0_true) / (1 - inputX1_pred);
@@ -197,7 +204,7 @@ namespace Ritsu {
 			output_result = output_result.mean(batchIndex);
 			return output_result;
 		}
-
+#pragma omp declare simd
 		static void loss_binary_cross_entropy(const Tensor<float> &evaluated_pre, const Tensor<float> &expected,
 											  Tensor<float> &output) {
 
@@ -213,6 +220,7 @@ namespace Ritsu {
 		CategoricalCrossentropy(bool from_logits = false, const std::string name = "Categorical Crossentropy")
 			: Loss(Ritsu::loss_categorical_crossentropy, name), from_logits(from_logits) {}
 
+#pragma omp declare simd
 		Tensor<DType> computeLoss(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
 			Tensor<DType> batchLossResult = inputX1_pred;
 
@@ -226,6 +234,7 @@ namespace Ritsu {
 			return Loss::computeLoss(inputX0_true, batchLossResult);
 		}
 
+#pragma omp declare simd
 		Tensor<DType> derivative(const Tensor<DType> &inputX0_true, const Tensor<DType> &inputX1_pred) const override {
 
 			Tensor<DType> output_result;
