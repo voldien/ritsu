@@ -88,15 +88,18 @@ namespace Ritsu {
 			return Math::sum<T>(list.data(), list.size());
 		}
 
+#pragma omp declare simd
 		template <typename T> static T sum(const T *list, const size_t nrElements) noexcept {
 			static_assert(std::is_floating_point_v<T> || std::is_integral_v<T> || std::is_enum_v<T>,
 						  "Type Must Support addition operation.");
 			T sum = 0;
-
+			size_t index = 0;
+			
 #pragma omp simd reduction(+ : sum)
-			for (size_t index = 0; index < nrElements; index++) {
+			for (index = 0; index < nrElements; index++) {
 				sum += list[index];
 			}
+
 			return sum;
 		}
 
@@ -112,7 +115,7 @@ namespace Ritsu {
 			T abs_sum = 0;
 			T value;
 			size_t index = 0;
-#pragma omp simd reduction(+ : abs_sum) private(value) linear(index : 1)
+#pragma omp simd reduction(+ : abs_sum) private(value)
 			for (index = 0; index < nrElements; index++) {
 				value = list[index];
 				abs_sum += std::abs(value);
@@ -185,7 +188,7 @@ namespace Ritsu {
 			return static_cast<T>(averageInverse * sum);
 		}
 
-#pragma omp declare simd uniform(mean) linear(list : 1)
+#pragma omp declare simd uniform(mean)
 		template <typename T> static T variance(const T *list, const size_t nrElements, const T mean) noexcept {
 			static_assert(std::is_floating_point_v<T> || std::is_integral_v<T>,
 						  "Type Must Support addition operation.");

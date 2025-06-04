@@ -120,6 +120,7 @@ namespace Ritsu {
 
 			/*	Check additional dims are equal to 1.	TODO:cleanup.	*/
 			for (IndexType i = minDim; i < maxDim; i++) {
+
 				if (i < shape.getNrDimensions()) {
 					if (shape.getAxisDimensions(i) != 1) {
 						return false;
@@ -389,12 +390,12 @@ namespace Ritsu {
 			return size;
 		}
 
-		Shape<IndexType> &insert(int axis, const Shape<IndexType> &additionalDims) {
+		Shape<IndexType> &insert(const int axis, const Shape<IndexType> &additionalDims) {
 			this->dims.insert(std::begin(this->dims) + axis, additionalDims.dims.begin(), additionalDims.dims.end());
 			return *this;
 		}
 
-		Shape<IndexType> &insert(int axis, const std::initializer_list<IndexType> &additionalDims) {
+		Shape<IndexType> &insert(const int axis, const std::initializer_list<IndexType> &additionalDims) {
 			this->dims.insert(std::begin(this->dims) + axis, additionalDims.begin(), additionalDims.end());
 			return *this;
 		}
@@ -441,7 +442,7 @@ namespace Ritsu {
 		 * Memory is row. thus the result is itself.
 		 */
 #pragma omp declare simd
-		static inline IndexType getIndexMemoryOffset(const Shape<IndexType> &shape, IndexType index,
+		static inline IndexType getIndexMemoryOffset(const Shape<IndexType> &shape, const IndexType index,
 													 const unsigned int orderAxis = 0) noexcept {
 			if (orderAxis == 0) {
 				return index;
@@ -463,7 +464,9 @@ namespace Ritsu {
 
 			const IndexType axisMod = Math::mod<int32_t>(axis, shapeB.getNrDimensions());
 			const IndexType NrDims = shapeB.getNrDimensions();
-			for (IndexType i = 0; i < NrDims; i++) {
+
+			IndexType i = 0;
+			for (i = 0; i < NrDims; i++) {
 
 				if (axisMod == i) {
 					continue;
@@ -483,15 +486,24 @@ namespace Ritsu {
 			size_t totalSize = 0;
 			const IndexType nrDims = shape.getNrDimensions();
 
-			for (IndexType i = 0; i < nrDims; i++) {
-				long depth = 1;
+			// if (i < dim.size()) {
+			const unsigned long depth = 1;
+			const U value = *(dim.begin() + 0);
+			totalSize += depth * value;
+			//}
 
-				if (i > 0) {
-					depth = Math::product(&shape.dims.data()[0], i);
+			/*	*/
+			IndexType index;
+#pragma omp simd
+			for (index = 1; index < nrDims; index++) {
+				unsigned long depth = 1;
+
+				if (index > 0) {
+					depth = Math::product(&shape.dims.data()[0], index);
 				}
 
-				if (i < dim.size()) {
-					const U value = *(dim.begin() + i);
+				if (index < dim.size()) {
+					const U value = *(dim.begin() + index);
 					totalSize += depth * value;
 				}
 			}
@@ -500,7 +512,8 @@ namespace Ritsu {
 
 #pragma omp declare simd
 		template <typename U = IndexType>
-		static size_t computeIndex(const std::initializer_list<U> &dim, const Shape<IndexType> &shape) noexcept {
+		static size_t computeIndex(const std::initializer_list<U> &__restrict dim,
+								   const Shape<IndexType> &__restrict shape) noexcept {
 			size_t totalSize = 0;
 			const IndexType nrDims = shape.getNrDimensions();
 
@@ -522,7 +535,7 @@ namespace Ritsu {
 		 * @brief
 		 */
 #pragma omp declare simd
-		static inline IndexType computeDepth(const Shape<IndexType> &shape, int depth) noexcept {
+		static inline IndexType computeDepth(const Shape<IndexType> &shape, const int depth) noexcept {
 			if (depth > 0) {
 				return Math::product<IndexType>(shape.dims.data(), depth);
 			}

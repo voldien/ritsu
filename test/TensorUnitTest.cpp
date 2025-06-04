@@ -380,7 +380,7 @@ TYPED_TEST_P(TensorTest, Sum) {
 
 		const Tensor<TypeParam> result = Tensor<TypeParam>::sum(tensor, 0);
 		ASSERT_EQ(result.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({1, 10}));
-		for (int i = 0; i < result.getNrElements(); i++) {
+		for (unsigned int i = 0; i < result.getNrElements(); i++) {
 			ASSERT_EQ(result.getValue(i), static_cast<TypeParam>(32));
 		}
 	}
@@ -394,7 +394,7 @@ TYPED_TEST_P(TensorTest, Sum) {
 		const Tensor<TypeParam> result = Tensor<TypeParam>::sum(tensor, 0);
 		ASSERT_EQ(result.getShape(), Shape<typename Tensor<TypeParam>::IndexType>({1, 10, 10}));
 
-		for (int i = 0; i < result.getNrElements(); i++) {
+		for (unsigned int i = 0; i < result.getNrElements(); i++) {
 			ASSERT_EQ(result.getValue(i), static_cast<TypeParam>(32));
 		}
 	}
