@@ -59,10 +59,10 @@ namespace Ritsu {
 		std::vector<Layer<DType> *> getInputs() const override { return {input}; }
 		std::vector<Layer<DType> *> getOutputs() const override { return outputs; }
 
-		Tensor<float> compute_derivative(const Tensor<float> &tensor) override {
+		inline Tensor<float> compute_derivative(const Tensor<float> &tensor) override {
 			return softMaxDerivative<DType>(tensor);
 		}
-		Tensor<float> &compute_derivative(Tensor<float> &tensor) const override {
+		inline Tensor<float> &compute_derivative(Tensor<float> &tensor) const override {
 			tensor = softMaxDerivative<DType>(tensor);
 			return tensor;
 		}

@@ -10,6 +10,8 @@ buildType:
         RITSU_BUILD_WITH_UBSAN: OFF
         RITSU_BUILD_WITH_TSAN: OFF
         RITSU_BUILD_WITH_PEDANTIC: OFF
+        RITSU_BUILD_WITH_COVERAGE: OFF
+        RITSU_BUILD_WITH_PROFILER: OFF
     release:
       short: Release
       long: Optimize generated code
@@ -19,6 +21,8 @@ buildType:
         RITSU_BUILD_WITH_UBSAN: OFF
         RITSU_BUILD_WITH_TSAN: OFF
         RITSU_BUILD_WITH_PEDANTIC: OFF
+        RITSU_BUILD_WITH_COVERAGE: OFF
+        RITSU_BUILD_WITH_PROFILER: OFF
     releasedebug:
       short: RelWithDebInfo
       long: Optimize generated code and Debug
@@ -28,6 +32,8 @@ buildType:
         RITSU_BUILD_WITH_UBSAN: OFF
         RITSU_BUILD_WITH_TSAN: OFF
         RITSU_BUILD_WITH_PEDANTIC: OFF
+        RITSU_BUILD_WITH_COVERAGE: OFF
+        RITSU_BUILD_WITH_PROFILER: OFF
     asan:
       short: Asan
       long: Instrument with Address Sanitizer
@@ -36,6 +42,8 @@ buildType:
         RITSU_BUILD_WITH_ASAN: ON
         RITSU_BUILD_WITH_UBSAN: ON
         RITSU_BUILD_WITH_PEDANTIC: OFF
+        RITSU_BUILD_WITH_COVERAGE: OFF
+        RITSU_BUILD_WITH_PROFILER: OFF
     tsan:
       short: Tsan
       long: Instrument with Thread Sanitizer
@@ -45,11 +53,16 @@ buildType:
         RITSU_BUILD_WITH_UBSAN: ON
         RITSU_BUILD_WITH_TSAN: ON
         RITSU_BUILD_WITH_PEDANTIC: OFF
+        RITSU_BUILD_WITH_COVERAGE: OFF
+        RITSU_BUILD_WITH_PROFILER: OFF
     gprof:
       short: GNU Profiler
       long: Profiler
       buildType: Debug
       settings: 
+        RITSU_BUILD_WITH_ASAN: OFF
+        RITSU_BUILD_WITH_UBSAN: OFF
+        RITSU_BUILD_WITH_TSAN: OFF
         RITSU_BUILD_WITH_COVERAGE: ON
         RITSU_BUILD_WITH_PROFILER: ON
         RITSU_BUILD_WITH_PEDANTIC: OFF
@@ -62,6 +75,8 @@ buildType:
         RITSU_BUILD_WITH_UBSAN: OFF
         RITSU_BUILD_WITH_TSAN: OFF
         RITSU_BUILD_WITH_PEDANTIC: ON
+        RITSU_BUILD_WITH_COVERAGE: OFF
+        RITSU_BUILD_WITH_PROFILER: OFF
 
 linkage:
   default: static

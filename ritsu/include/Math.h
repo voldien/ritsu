@@ -74,6 +74,7 @@ namespace Ritsu {
 						  "Must be a decimal type(float/double/half) or integer.");
 			return (static_cast<T>(value1) < static_cast<T>(value0)) ? static_cast<T>(value1) : static_cast<T>(value0);
 		}
+		
 
 		template <typename T> constexpr static T frac(const T value) noexcept {
 			static_assert(std::is_floating_point_v<T>, "Must be a decimal type(float/double/half).");

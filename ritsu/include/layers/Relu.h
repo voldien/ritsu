@@ -88,21 +88,12 @@ namespace Ritsu {
 		void computeReluActivation(Tensor<float> &tensor) {
 
 			const IndexType nrElements = tensor.getNrElements();
-
-#pragma omp parallel for simd shared(tensor) simdlen(16)
-			for (IndexType i = 0; i < nrElements; i++) {
-				const DType value = Ritsu::relu<DType>(tensor.getValue<DType>(i));
-				tensor.getValue<DType>(i) = value;
-			}
+			Ritsu::relu<DType>(tensor.getRawData(), nrElements);
 		}
 
 		static void computeDerivative(Tensor<float> &tensor) {
 			const size_t nrElements = tensor.getNrElements();
-
-#pragma omp parallel for simd shared(tensor) simdlen(16)
-			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = Ritsu::reluDerivative(tensor.getValue<DType>(i));
-			}
+			Ritsu::reluDerivative<DType>(tensor.getRawData(), nrElements);
 		}
 
 	  private:

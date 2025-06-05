@@ -15,6 +15,7 @@
  */
 #pragma once
 #include "Activation.h"
+#include "Activations.h"
 #include <cmath>
 
 namespace Ritsu {
@@ -84,23 +85,14 @@ namespace Ritsu {
 	  private:
 		void computeSigmoidDerivative(Tensor<float> &tensor) const noexcept {
 			/*	Iterate through each all elements.    */
-			const size_t nrElements = tensor.getNrElements();
-
-#pragma omp parallel for simd simdlen(8)
-			for (size_t i = 0; i < nrElements; i++) {
-				const DType value = Ritsu::computeSigmoidDerivative<DType>(tensor.getValue<DType>(i));
-				tensor.getValue<DType>(i) = value;
-			}
+			const IndexType nrElements = tensor.getNrElements();
+			Ritsu::computeSigmoidDerivative<DType>(tensor.getRawData(), nrElements);
 		}
 
 		void computeActivation(Tensor<float> &tensor) noexcept {
 			/*	Iterate through each all elements.    */
-			const size_t nrElements = tensor.getNrElements();
-
-#pragma omp parallel for simd simdlen(16)
-			for (size_t i = 0; i < nrElements; i++) {
-				tensor.getValue<DType>(i) = Ritsu::computeSigmoid(tensor.getValue<DType>(i));
-			}
+			const IndexType nrElements = tensor.getNrElements();
+			Ritsu::computeSigmoid<DType>(tensor.getRawData(), nrElements);
 		}
 
 	  private:

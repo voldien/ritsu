@@ -18,18 +18,35 @@
 #include <cmath>
 #include <limits>
 
+//#define RITSU_FAST_SIGMOID
+
 namespace Ritsu {
 
-#pragma omp declare simd uniform(value) notinbranch simdlen(16)
+#pragma omp declare simd uniform(value) notinbranch
 	template <typename T> inline static T computeSigmoid(const T value) noexcept {
 		static_assert(std::is_floating_point_v<T> || std::is_integral_v<T>,
 					  "Must be a decimal type(float/double/half) or integer.");
 
-		return Math::clamp<T>(static_cast<T>(1) / (std::exp(-value) + static_cast<T>(1)), static_cast<T>(0),
-							  static_cast<T>(1));
+#ifdef RITSU_FAST_SIGMOID
+		const T sigmoid = value / (1 + std::abs(value));
+#else
+		const T sigmoid = static_cast<T>(1) / (std::exp(-value) + static_cast<T>(1));
+#endif
+		return Math::clamp<T>(sigmoid, static_cast<T>(0), static_cast<T>(1));
 	}
 
-#pragma omp declare simd uniform(value) notinbranch simdlen(16)
+	template <typename T> inline static void computeSigmoid(T *list, const size_t nrElements) noexcept {
+		static_assert(std::is_floating_point_v<T> || std::is_integral_v<T>,
+					  "Must be a decimal type(float/double/half) or integer.");
+		size_t index = 0;
+
+#pragma omp simd
+		for (index = 0; index < nrElements; index++) {
+			list[index] = Ritsu::computeSigmoid<T>(list[index]);
+		}
+	}
+
+#pragma omp declare simd uniform(value) notinbranch simdlen(8)
 	template <typename T> inline static T computeSigmoidDerivative(const T value) noexcept {
 		static_assert(std::is_floating_point_v<T> || std::is_integral_v<T>,
 					  "Must be a decimal type(float/double/half) or integer.");
@@ -37,11 +54,32 @@ namespace Ritsu {
 		return sig * (static_cast<T>(1) - sig);
 	}
 
-#pragma omp declare simd uniform(value) simdlen(8)
+	template <typename T> inline static void computeSigmoidDerivative(T *list, const size_t nrElements) noexcept {
+		static_assert(std::is_floating_point_v<T> || std::is_integral_v<T>,
+					  "Must be a decimal type(float/double/half) or integer.");
+		size_t index = 0;
+#pragma omp simd
+		for (index = 0; index < nrElements; index++) {
+			list[index] = Ritsu::computeSigmoidDerivative<T>(list[index]);
+		}
+	}
+
+#pragma omp declare simd uniform(value) simdlen(8) notinbranch
 	template <typename T> static constexpr T relu(const T value) noexcept {
 		static_assert(std::is_floating_point_v<T> || std::is_integral_v<T>,
 					  "Must be a decimal type(float/double/half) or integer.");
 		return Math::max<T>(0, value);
+	}
+
+	template <typename T> static void relu(T *list, const size_t nrElements) noexcept {
+		static_assert(std::is_floating_point_v<T> || std::is_integral_v<T>,
+					  "Must be a decimal type(float/double/half) or integer.");
+		size_t index = 0;
+
+#pragma omp simd
+		for (index = 0; index < nrElements; index++) {
+			list[index] = Ritsu::relu<T>(list[index]);
+		}
 	}
 
 #pragma omp declare simd uniform(value) simdlen(8)
@@ -52,6 +90,17 @@ namespace Ritsu {
 			return 1;
 		}
 		return 0;
+	}
+
+	template <typename T> static void reluDerivative(T *list, const size_t nrElements) noexcept {
+		static_assert(std::is_floating_point_v<T> || std::is_integral_v<T>,
+					  "Must be a decimal type(float/double/half) or integer.");
+		size_t index = 0;
+
+#pragma omp simd
+		for (index = 0; index < nrElements; index++) {
+			list[index] = Ritsu::reluDerivative<T>(list[index]);
+		}
 	}
 
 #pragma omp declare simd uniform(value, alpha)
@@ -138,14 +187,16 @@ namespace Ritsu {
 		return fvalue + (sigValue * (beta - fvalue));
 	}
 
+#pragma omp declare simd
 	template <typename T> Tensor<T> &softMax(Tensor<T> &tensor, const int axis = -1) noexcept {
-
 		const size_t nrElements = tensor.getNrElements();
 
+		unsigned int index = 0;
+
 		/*	Compute exponential for each element.	*/
-#pragma omp simd
-		for (size_t i = 0; i < nrElements; i++) {
-			tensor.template getValue<T>(i) = static_cast<T>(std::exp(tensor.template getValue<T>(i)));
+#pragma omp simd simdlen(8)
+		for (index = 0; index < nrElements; index++) {
+			tensor.template getRawData<T>()[index] = static_cast<T>(std::exp(tensor.template getRawData<T>()[index]));
 		}
 
 		/*	Compute inverse sum.	*/
@@ -154,9 +205,9 @@ namespace Ritsu {
 		Inversesum = static_cast<T>(1) / Inversesum;
 
 		/*	Apply inverse sum.	*/
-#pragma omp simd
-		for (size_t i = 0; i < nrElements; i++) {
-			tensor.template getValue<T>(i) *= Inversesum;
+#pragma omp simd simdlen(8)
+		for (index = 0; index < nrElements; index++) {
+			tensor.template getRawData<T>()[index] *= Inversesum;
 		}
 
 		/*	*/
@@ -172,7 +223,7 @@ namespace Ritsu {
 	template <typename T> Tensor<float> softMaxDerivative(const Tensor<float> &tensor) {
 		Tensor<T> diag = Tensor<T>::diag(tensor);
 
-#pragma omp simd collapse(2)
+#pragma omp for simd collapse(2)
 		for (unsigned int i = 0; i < diag.getShape().getAxisDimensions(0); i++) {
 			for (unsigned int j = 0; j < diag.getShape().getAxisDimensions(1); j++) {
 
