@@ -443,7 +443,7 @@ namespace Ritsu {
 
 #pragma omp parallel for shared(output)
 			for (IndexType index = 0; index < nrElements; index++) {
-				output.getValue<DType>(index) = -this->getRawData()[index];
+				output.getRawData()[index] = -this->getRawData()[index];
 			}
 
 			return output;

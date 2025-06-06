@@ -37,6 +37,55 @@ Model<float>::History *result = &forwardModel.fit(8, dataX, dataY, 1, 0, false, 
 ## Example Run Image Recognition MNIST
 
 ```bash
+bin/mnist -B 16 -E 8 -l 0.00000001
+Loaded MNIST Data Set: [60000,28,28,1] Labels: [60000,1]
+Train Object Size: [28,28,1] Expected result Size: [10]
+input    [28,28,1]
+flatten0         [784]  <-- [ input ] f
+layer0   [32]   <-- [ flatten0 ] f
+relu0    [32]   <-- [ layer0 ] f
+layer1   [16]   <-- [ relu0 ] f
+relu1    [16]   <-- [ layer1 ] f
+layer2   [10]   <-- [ relu1 ] f
+number of weights: 25818
+Trainable in Bytes: 100 KB
+None-Trainable in Bytes: 0 KB
+Loss Function: Categorical Crossentropy
+Optimizer: sgd
+
+Epoch: 0 / 8
+Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.00194646 - accuracy: 0.3
+Batch: 375/375 ETA:  loss-val: 0.00136129 - accuracy: 0.25625
+Epoch: 1 / 8
+Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.00134664 - accuracy: 0.475
+Batch: 375/375 ETA:  loss-val: 0.00102787 - accuracy: 0.38125
+Epoch: 2 / 8
+Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.00113783 - accuracy: 0.5625
+Batch: 375/375 ETA:  loss-val: 0.000954269 - accuracy: 0.4625
+Epoch: 3 / 8
+Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.0010338 - accuracy: 0.58125
+Batch: 375/375 ETA:  loss-val: 0.000924363 - accuracy: 0.525
+Epoch: 4 / 8
+Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.000975035 - accuracy: 0.60625
+Batch: 375/375 ETA:  loss-val: 0.00090925 - accuracy: 0.54375
+Epoch: 5 / 8
+Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.00093868 - accuracy: 0.61875
+Batch: 375/375 ETA:  loss-val: 0.000900569 - accuracy: 0.5625
+Epoch: 6 / 8
+Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.000916001 - accuracy: 0.64375
+Batch: 375/375 ETA:  loss-val: 0.000894858 - accuracy: 0.5875
+Epoch: 7 / 8
+Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.000901652 - accuracy: 0.6625
+Batch: 375/375 ETA:  loss-val: 0.000890853 - accuracy: 0.59375
+
+Average Test Loss: 0.00201005
+
+Accuracy Test: 0.67083,
+```
+
+## Example Run AutoEncoder MNIST
+
+```bash
 bin/autoencoder -E 8 -B 1 -l 0.00001
 Loaded MNIST Data Set: [60000,28,28,1] Labels: [60000,1]
 Train Object Size: [28,28,1] Expected result Size: [28,28,1]
@@ -89,55 +138,6 @@ Batch: 54000/54000 ETA: 0 - lr: 1e-05 loss: 0.155844 - accuracy: 0.821429
 Batch: 6000/6000 ETA:  loss-val: 0.159869 - accuracy: 0.808673
 Average Test Loss: 0.16282
 Accuracy Test: 0.828147
-```
-
-## Example Run AutoEncoder MNIST
-
-```bash
-bin/mnist -B 16 -E 8 -l 0.00000001
-Loaded MNIST Data Set: [60000,28,28,1] Labels: [60000,1]
-Train Object Size: [28,28,1] Expected result Size: [10]
-input    [28,28,1]
-flatten0         [784]  <-- [ input ] f
-layer0   [32]   <-- [ flatten0 ] f
-relu0    [32]   <-- [ layer0 ] f
-layer1   [16]   <-- [ relu0 ] f
-relu1    [16]   <-- [ layer1 ] f
-layer2   [10]   <-- [ relu1 ] f
-number of weights: 25818
-Trainable in Bytes: 100 KB
-None-Trainable in Bytes: 0 KB
-Loss Function: Categorical Crossentropy
-Optimizer: sgd
-
-Epoch: 0 / 8
-Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.00194646 - accuracy: 0.3
-Batch: 375/375 ETA:  loss-val: 0.00136129 - accuracy: 0.25625
-Epoch: 1 / 8
-Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.00134664 - accuracy: 0.475
-Batch: 375/375 ETA:  loss-val: 0.00102787 - accuracy: 0.38125
-Epoch: 2 / 8
-Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.00113783 - accuracy: 0.5625
-Batch: 375/375 ETA:  loss-val: 0.000954269 - accuracy: 0.4625
-Epoch: 3 / 8
-Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.0010338 - accuracy: 0.58125
-Batch: 375/375 ETA:  loss-val: 0.000924363 - accuracy: 0.525
-Epoch: 4 / 8
-Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.000975035 - accuracy: 0.60625
-Batch: 375/375 ETA:  loss-val: 0.00090925 - accuracy: 0.54375
-Epoch: 5 / 8
-Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.00093868 - accuracy: 0.61875
-Batch: 375/375 ETA:  loss-val: 0.000900569 - accuracy: 0.5625
-Epoch: 6 / 8
-Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.000916001 - accuracy: 0.64375
-Batch: 375/375 ETA:  loss-val: 0.000894858 - accuracy: 0.5875
-Epoch: 7 / 8
-Batch: 3375/3375 ETA: 0 - lr: 1e-08 loss: 0.000901652 - accuracy: 0.6625
-Batch: 375/375 ETA:  loss-val: 0.000890853 - accuracy: 0.59375
-
-Average Test Loss: 0.00201005
-
-Accuracy Test: 0.67083,
 ```
 
 ## Supported Precisions
@@ -211,6 +211,21 @@ ctest -vv
 ctest -O failure.txt --output-on-failure
 ```
 
+## Binary Analysis
+
+Extract disassembled unmanaged debug info.
+
+```bash
+objdump -CDS binary.elf
+```
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details
+
+## MNIST DataSet
+
+<https://www.kaggle.com/datasets/hojjatk/mnist-dataset>
+
+<http://yann.lecun.com/exdb/mnist/>
+

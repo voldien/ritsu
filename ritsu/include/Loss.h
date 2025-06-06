@@ -97,9 +97,10 @@ namespace Ritsu {
 #pragma omp declare simd
 	static void loss_categorical_crossentropy(const Tensor<float> &expected_true, const Tensor<float> &evaluated_pre,
 											  Tensor<float> &output) {
-
+		/*	*/
 		output = -(expected_true * Tensor<float>::log10(evaluated_pre));
 
+		/*	*/
 		const int batchIndex = 0;
 		output = output.mean(batchIndex);
 	}
