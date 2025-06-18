@@ -33,17 +33,17 @@ INSTALL(TARGETS ritsu DESTINATION lib)
 ###################################
 # No OpenMP Version (Single Core)
 ###################################
-ADD_LIBRARY(ritsu-no-opm ${RITSU_SOURCE_FILES})
-TARGET_COMPILE_FEATURES(ritsu-no-opm PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
+ADD_LIBRARY(ritsu-no-opm INTERFACE ${RITSU_SOURCE_FILES})
+TARGET_COMPILE_FEATURES(ritsu-no-opm INTERFACE cxx_constexpr cxx_alias_templates cxx_raw_string_literals
 	cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
 	cxx_generic_lambdas cxx_override cxx_noexcept cxx_aggregate_default_initializers)
 
-TARGET_LINK_LIBRARIES(ritsu-no-opm PRIVATE m)
+TARGET_LINK_LIBRARIES(ritsu-no-opm INTERFACE m)
 IF(RITSU_WITH_MEM_JEMALLOC)
-	TARGET_LINK_LIBRARIES(ritsu-no-opm PRIVATE ${JEMALLOC_LIBRARIES})
+	TARGET_LINK_LIBRARIES(ritsu-no-opm INTERFACE ${JEMALLOC_LIBRARIES})
 ENDIF()
 
-TARGET_INCLUDE_DIRECTORIES(ritsu-no-opm PUBLIC
+TARGET_INCLUDE_DIRECTORIES(ritsu-no-opm INTERFACE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 	$<INSTALL_INTERFACE:include>
 )
