@@ -13,17 +13,17 @@ FIND_PACKAGE(IntelDPCPP QUIET)
 #########################
 # CPU Ritsu 
 #########################
-ADD_LIBRARY(ritsu ${RITSU_SOURCE_FILES})
-TARGET_COMPILE_FEATURES(ritsu PUBLIC cxx_constexpr cxx_alias_templates cxx_raw_string_literals
+ADD_LIBRARY(ritsu INTERFACE ${RITSU_SOURCE_FILES})
+TARGET_COMPILE_FEATURES(ritsu INTERFACE cxx_constexpr cxx_alias_templates cxx_raw_string_literals
 	cxx_variadic_templates cxx_uniform_initialization cxx_right_angle_brackets cxx_nullptr
 	cxx_generic_lambdas cxx_override cxx_noexcept cxx_aggregate_default_initializers)
-TARGET_LINK_LIBRARIES(ritsu PRIVATE m pthread PUBLIC OpenMP::OpenMP_CXX)
+TARGET_LINK_LIBRARIES(ritsu INTERFACE m pthread OpenMP::OpenMP_CXX)
 IF(RITSU_WITH_MEM_JEMALLOC)
 	TARGET_LINK_LIBRARIES(ritsu PRIVATE ${JEMALLOC_LIBRARIES})
 ENDIF()
-TARGET_COMPILE_OPTIONS(ritsu PUBLIC -openmp-mapping -fopenmp-simd)
+TARGET_COMPILE_OPTIONS(ritsu INTERFACE -openmp-mapping -fopenmp-simd)
 
-TARGET_INCLUDE_DIRECTORIES(ritsu PUBLIC
+TARGET_INCLUDE_DIRECTORIES(ritsu INTERFACE
 	$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 	$<INSTALL_INTERFACE:include>
 )
