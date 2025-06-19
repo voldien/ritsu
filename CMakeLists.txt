@@ -27,7 +27,7 @@ LIST(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake" )
 OPTION(RITSU_WITH_MEM_JEMALLOC "Enable malloc replacement (http://www.canonware.com/jemalloc)" OFF)
 MARK_AS_ADVANCED(RITSU_WITH_MEM_JEMALLOC)
 
-OPTION(RITSU_BUILD_WITH_TEST "Enable Testing." ON)
+OPTION(RITSU_BUILD_WITH_TEST "Enable Testing." OFF)
 OPTION(RITSU_BUILD_WITH_ASAN "Enable AddressSanitizer." OFF )
 OPTION(RITSU_BUILD_WITH_UBSAN "Enable Undefined Behavior sanitizer." OFF )
 OPTION(RITSU_BUILD_WITH_TSAN "Enable Thread sanitizer" OFF)
@@ -35,8 +35,6 @@ OPTION(RITSU_BUILD_WITH_TSAN "Enable Thread sanitizer" OFF)
 OPTION(RITSU_BUILD_WITH_COVERAGE "Enable Code coverage report analysis." OFF)
 OPTION(RITSU_BUILD_WITH_PROFILER "Enable Code Profiling." OFF)
 OPTION(RITSU_BUILD_WITH_PEDANTIC "Enable Pedantic Compilation" OFF)
-
-
 
 IF(RITSU_WITH_MEM_JEMALLOC)
 	FIND_PACKAGE(JeMalloc)
