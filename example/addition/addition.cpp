@@ -1,6 +1,5 @@
 #include "Metric.h"
 #include "Tensor.h"
-#include "mnist_dataset.h"
 #include "optimizer/Optimizer.h"
 #include <Ritsu.h>
 #include <cstdio>
